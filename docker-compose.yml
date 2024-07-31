@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+
+    container_name: rabbitmq
+
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+  myapiclient:
+    build:
+      context: MyAPIClient # This sets the build context to the current directory
+      #dockerfile: Dockerfile  # Optional if the Dockerfile is named 'Dockerfile'
+
+    depends_on:
+      - rabbitmq
+
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+
+  myreader:
+    build:
+      context: MyReader
+
+    depends_on:
+      - rabbitmq
+
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
