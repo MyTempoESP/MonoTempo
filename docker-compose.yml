@@ -15,6 +15,15 @@ services:
     volumes:
       - db_data:/var/lib/mysql
 
+  dbcontroller:
+    build:
+      context: Db
+    container_name: db_controller
+    environment:
+      MYSQL_DB: mytempo
+      MYSQL_HOST: db
+      MYSQL_USER: mytempo_user
+      MYSQL_PASS: mytempo1
 
   php:
     build:
@@ -56,7 +65,7 @@ services:
 
   myapiclient:
     build:
-      context: MyAPIClient # This sets the build context to the current directory
+      context: API # This sets the build context to the current directory
       #dockerfile: Dockerfile  # Optional if the Dockerfile is named 'Dockerfile'
 
     depends_on:
