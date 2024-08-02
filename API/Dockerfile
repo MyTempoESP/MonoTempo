@@ -10,11 +10,13 @@ COPY go.mod go.sum ./
 # Download all dependencies. Dependencies will be cached if the go.mod and go.sum files are not changed
 RUN go mod download
 
+RUN go mod tidy
+
 # Copy the source code into the container
 COPY . .
 
 # Build the Go application
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o MyAPIClient && ls -l MyAPIClient
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o MyAPIClient
 
 # Use a smaller base image for the final container
 #FROM debian:buster-slim

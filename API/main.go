@@ -10,6 +10,6 @@ func main() {
 	var r rabbit.Rabbit
 
 	r.Setup()
-	r.NewTopic("api_exchange")
+	//r.NewTopic("api_exchange") unreleased
 	r.SendMessage("Oie", 10)
 }
