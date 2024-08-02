@@ -35,9 +35,10 @@ class WebSocketServer implements MessageComponentInterface {
     public function onError(ConnectionInterface $conn, \Exception $e) {
         $conn->close();
     }
-
+    
     public function processMessage(AMQPMessage $msg) {
-        $data = $msg->body;
+	$data = $msg->body;
+
         foreach ($this->clients as $client) {
             $client->send($data);
         }
