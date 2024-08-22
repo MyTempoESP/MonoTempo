@@ -27,7 +27,7 @@ services:
 
   envio:
     build:
-      context: MiniEnvio
+      context: Envio
 
     depends_on:
       - rabbitmq
