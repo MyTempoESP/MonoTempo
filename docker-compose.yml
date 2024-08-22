@@ -23,20 +23,43 @@ services:
       PMA_USER: mytempo_user
       PMA_PASSWORD: mytempo1
     ports:
-      - "8081:80"
+      - "8082:80"
+
+  receba:
+    build:
+      context: Receba
+    
+    depends_on:
+      - db
+
+    environment:
+      MYSQL_DB: mytempo
+      MYSQL_HOST: db
+      MYSQL_PORT: 3306
+      MYSQL_USER: mytempo_user
+      MYSQL_PASS: mytempo1
+      MYTEMPO_EQUIP: "PORTAL LEITOR RFIDMY501"
+      MYTEMPO_API_URL: "10.0.0.31:9000" #api.mytempo.esp.br
 
   envio:
     build:
-      context: Envio
+      context: MiniEnvio
 
     depends_on:
       - rabbitmq
+      - db
 
     environment:
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: 5672
       RABBITMQ_USER: guest
       RABBITMQ_PASS: guest
+      MYSQL_DB: mytempo
+      MYSQL_HOST: db
+      MYSQL_PORT: 3306
+      MYSQL_USER: mytempo_user
+      MYSQL_PASS: mytempo1
+
 
   rabbitmq:
     image: rabbitmq:3-management
