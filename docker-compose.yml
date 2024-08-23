@@ -3,7 +3,7 @@ version: '3.8'
 services:
   db:
     image: mysql:8.0
-    container_name: mysql_container
+    container_name: mysql_envio
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: mytempo_root1
@@ -13,11 +13,12 @@ services:
     ports:
       - "3306:3306"
     volumes:
+      - ./mytempo.sql:/docker-entrypoint-initdb.d/mytempo.sql
       - db_data:/var/lib/mysql
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
-    container_name: phpmyadmin
+    container_name: phpmyadmin_envio
     environment:
       PMA_HOST: db
       PMA_USER: mytempo_user
@@ -39,11 +40,11 @@ services:
       MYSQL_USER: mytempo_user
       MYSQL_PASS: mytempo1
       MYTEMPO_EQUIP: "PORTAL LEITOR RFIDMY501"
-      MYTEMPO_API_URL: "10.0.0.31:9000" #api.mytempo.esp.br
+      MYTEMPO_API_URL: "localhost:9000" #api.mytempo.esp.br
 
   envio:
     build:
-      context: MiniEnvio
+      context: Envio
 
     depends_on:
       - rabbitmq
@@ -64,7 +65,7 @@ services:
   rabbitmq:
     image: rabbitmq:3-management
 
-    container_name: rabbitmq
+    container_name: rabbitmq_envio
 
     ports:
       - "5672:5672"
