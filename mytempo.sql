@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: db
--- Generation Time: Aug 29, 2024 at 01:31 PM
+-- Generation Time: Aug 29, 2024 at 03:13 PM
 -- Server version: 8.0.39
 -- PHP Version: 8.2.8
 
@@ -46,7 +46,8 @@ CREATE TABLE `athletes_times` (
   `id` int NOT NULL,
   `antenna` int DEFAULT NULL,
   `athlete_num` int NOT NULL,
-  `athlete_time` varchar(12) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL
+  `athlete_time` varchar(12) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `timestp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -84,7 +85,8 @@ CREATE TABLE `invalidos` (
   `id` int NOT NULL,
   `antenna` int DEFAULT NULL,
   `athlete_num` int NOT NULL,
-  `athlete_time` varchar(12) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL
+  `athlete_time` varchar(12) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `timestp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
