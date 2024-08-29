@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: db
--- Generation Time: Aug 29, 2024 at 12:50 PM
+-- Generation Time: Aug 29, 2024 at 01:31 PM
 -- Server version: 8.0.39
 -- PHP Version: 8.2.8
 
@@ -77,6 +77,19 @@ CREATE TABLE `event_data` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `invalidos`
+--
+
+CREATE TABLE `invalidos` (
+  `id` int NOT NULL,
+  `antenna` int DEFAULT NULL,
+  `athlete_num` int NOT NULL,
+  `athlete_time` varchar(12) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `tracks`
 --
 
@@ -123,6 +136,12 @@ ALTER TABLE `event_data`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `invalidos`
+--
+ALTER TABLE `invalidos`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `tracks`
 --
 ALTER TABLE `tracks`
@@ -138,6 +157,12 @@ ALTER TABLE `tracks`
 --
 ALTER TABLE `athletes_times`
   MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `invalidos`
+--
+ALTER TABLE `invalidos`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- Constraints for dumped tables
