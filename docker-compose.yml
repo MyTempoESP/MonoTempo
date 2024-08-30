@@ -106,7 +106,7 @@ services:
       RABBITMQ_USER: guest
       RABBITMQ_PASS: guest 
     ports:
-      - 8083:80
+      - 80:80
 
   receba:
     container_name: monotempo_receba
