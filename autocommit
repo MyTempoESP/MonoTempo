@@ -2,9 +2,9 @@
 
 clear
 
-printf "\033[31;1m"
+printf ""
 cat /etc/elsojosmo
-printf "\033[0m"
+printf ""
 
 echo "====STATUS=="
 git status
@@ -21,9 +21,9 @@ if [ ${ALR:-y} = "n" ] ; then
 fi
 echo
 
-printf "\033[31;1m"
+printf ""
 read -p "Are you feeling dangerous? [y/N] " ISINSANE
-printf "\033[0m"
+printf ""
 
 if [ "${ISINSANE:-y}" = "n" ] ; then
 	git pull
