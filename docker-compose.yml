@@ -14,11 +14,11 @@
 #   Version 0.2
 #     Docker compose file for setting up
 #      - MySql.............................(mysql:8.0)
-#      - Reader............................(MyReader)
-#      - RabbitMQ Message broker for comms.(rabbitmq)
-#      - Auto-Update functionality.........(Receba)
-#      - Sending collected data to the API.(Envio)
-#      - Página Hotspot....................(php)      <-- added
+#      - ...
+#      - ...
+#      - ...
+#      - ...
+#      - Página Hotspot....................(php) <-- added
 #
 #      And PhpMyAdmin for debugging database stuff
 #
@@ -106,7 +106,7 @@ services:
       RABBITMQ_USER: guest
       RABBITMQ_PASS: guest 
     ports:
-      - 80:80
+      - 8083:80
 
   receba:
     container_name: monotempo_receba
