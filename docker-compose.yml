@@ -179,7 +179,7 @@ services:
       RABBITMQ_USER: guest
       RABBITMQ_PASS: guest
       MYTEMPO_READER: impinj # TODO: This has to be set manually
-      READER_IP: 10.19.3.61 # TODO: This has to be set manually
+      READER_IP: "10.19.3.61" # TODO: This has to be set manually
 
   datemon:
     container_name: monotempo_datemon
@@ -189,7 +189,7 @@ services:
 
     environment:
       MYTEMPO_READER: impinj
-      READER_IP: 10.19.3.61 # TODO: This has to be set manually
+      READER_IP: "10.19.3.61" # TODO: This has to be set manually
 
 volumes:
   db_data:
