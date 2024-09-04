@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: db
--- Generation Time: Aug 29, 2024 at 03:13 PM
+-- Generation Time: Sep 04, 2024 at 02:07 PM
 -- Server version: 8.0.39
 -- PHP Version: 8.2.8
 
@@ -47,6 +47,7 @@ CREATE TABLE `athletes_times` (
   `antenna` int DEFAULT NULL,
   `athlete_num` int NOT NULL,
   `athlete_time` varchar(12) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `staff` int NOT NULL,
   `timestp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -86,8 +87,21 @@ CREATE TABLE `invalidos` (
   `antenna` int DEFAULT NULL,
   `athlete_num` int NOT NULL,
   `athlete_time` varchar(12) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `staff` int NOT NULL,
   `timestp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `staffs`
+--
+
+CREATE TABLE `staffs` (
+  `id` int NOT NULL,
+  `event_id` int NOT NULL,
+  `nome` varchar(200) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -144,6 +158,13 @@ ALTER TABLE `invalidos`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `staffs`
+--
+ALTER TABLE `staffs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `event_id` (`event_id`);
+
+--
 -- Indexes for table `tracks`
 --
 ALTER TABLE `tracks`
@@ -158,7 +179,7 @@ ALTER TABLE `tracks`
 -- AUTO_INCREMENT for table `athletes_times`
 --
 ALTER TABLE `athletes_times`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `invalidos`
@@ -181,6 +202,12 @@ ALTER TABLE `athletes`
 --
 ALTER TABLE `athletes_times`
   ADD CONSTRAINT `athletes_times_ibfk_1` FOREIGN KEY (`athlete_num`) REFERENCES `athletes` (`num`);
+
+--
+-- Constraints for table `staffs`
+--
+ALTER TABLE `staffs`
+  ADD CONSTRAINT `staffs_ibfk_1` FOREIGN KEY (`event_id`) REFERENCES `event_data` (`id`);
 
 --
 -- Constraints for table `tracks`
