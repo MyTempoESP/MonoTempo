@@ -139,7 +139,7 @@ services:
       MYSQL_PORT: 3306
       MYSQL_USER: mytempo_user
       MYSQL_PASS: mytempo1
-      MYTEMPO_EQUIP: "PORTAL LEITOR RFIDMY702" # TODO: This has to be set manually
+      MYTEMPO_EQUIP: "PORTAL LEITOR RFIDMY503" # TODO: This has to be set manually
       MYTEMPO_API_URL: "api.v2.mytempo.esp.br"
 
   envio:
@@ -178,18 +178,9 @@ services:
       RABBITMQ_PORT: 5672
       RABBITMQ_USER: guest
       RABBITMQ_PASS: guest
-      MYTEMPO_READER: impinj # TODO: This has to be set manually
-      READER_IP: "10.19.3.61" # TODO: This has to be set manually
-
-  datemon:
-    container_name: monotempo_datemon
-    restart: always
-    build:
-      context: Datemon
-
-    environment:
-      MYTEMPO_READER: impinj
-      READER_IP: "10.19.3.61" # TODO: This has to be set manually
+      MYTEMPO_READER_TYPE: chafon # TODO: This has to be set manually
+      MYTEMPO_READER: "PORTAL LEITOR RFID503" # TODO: This has to be set manually
+      READER_IP: "192.168.0.200" # TODO: This has to be set manually
 
 volumes:
   db_data:
