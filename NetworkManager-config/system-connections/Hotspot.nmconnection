@@ -6,7 +6,7 @@ interface-name=wlp0s21f0u1u2
 
 [wifi]
 mode=ap
-ssid=
+ssid=Portal-My702
 
 [wifi-security]
 group=ccmp;

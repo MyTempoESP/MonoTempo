@@ -7,7 +7,7 @@ interface-name=enp2s0
 [ethernet]
 
 [ipv4]
-address1=
+address1=10.19.3.61
 method=manual
 
 [ipv6]
