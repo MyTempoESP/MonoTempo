@@ -178,7 +178,7 @@ services:
       RABBITMQ_PORT: 5672
       RABBITMQ_USER: guest
       RABBITMQ_PASS: guest
-      MYTEMPO_READER_TYPE: chafon # TODO: This has to be set manually
+      MYTEMPO_READER_TYPE: impinj # TODO: This has to be set manually
       MYTEMPO_READER: "PORTAL LEITOR RFID503" # TODO: This has to be set manually
       READER_IP: "192.168.0.200" # TODO: This has to be set manually
 
