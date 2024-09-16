@@ -13,7 +13,8 @@ Centralized stuff
 
 - [ ] Diagnose/Fix impinj reader
 - [ ] Reenvio ( Present first functioning draft )
-      deadline: 14d
+      deadline: 14d ( fim do mes de set )
+- [ ] Exportar banco de dados na máquina local.
 
 ### In progress
 
