@@ -182,22 +182,24 @@ services:
       MYTEMPO_READER: "PORTAL LEITOR RFID503" # TODO: This has to be set manually
       READER_IP: "192.168.1.200" # TODO: This has to be set manually
 
-  ### Datemon
-
-  # reenvio:
-  #  container_name: monotempo_reenvio
-  #  restart: always
-  #  build:
-  #    context: Reenvio
-  #  depends_on:
-  #    - db
-  #  environment:
-  #    MYSQL_DB: mytempo
-  #    MYSQL_HOST: db
-  #    MYSQL_PORT: 3306
-  #    MYSQL_USER: mytempo_user
-  #    MYSQL_PASS: mytempo1
-  #    MYTEMPO_API_URL: "api.v2.mytempo.esp.br"
+  reenvio:
+   container_name: monotempo_reenvio
+   restart: always
+   build:
+     context: Reenvio
+   depends_on:
+     - db
+   environment:
+     RABBITMQ_HOST: rabbitmq
+     RABBITMQ_PORT: 5672
+     RABBITMQ_USER: guest
+     RABBITMQ_PASS: guest
+     MYSQL_DB: mytempo
+     MYSQL_HOST: db
+     MYSQL_PORT: 3306
+     MYSQL_USER: mytempo_user
+     MYSQL_PASS: mytempo1
+     MYTEMPO_API_URL: "api.v2.mytempo.esp.br"
 
 volumes:
   db_data:
