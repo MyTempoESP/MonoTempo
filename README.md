@@ -41,3 +41,23 @@ Centralized stuff
 
 Nice font recommendation: Recursive mono.
 
+### Scratch
+
+```sql
+SELECT
+    athlete_num,
+    MAX(athlete_time),
+    checkpoint_id,
+    antenna,
+    staff,
+    tracks.event_id,
+    tracks.id
+FROM
+    athletes_times
+JOIN athletes ON athlete_num = athletes.num
+JOIN tracks ON tracks.id = athletes.track_id
+WHERE
+    TIME(athlete_time) > TIME(tracks.largada)
+GROUP BY athlete_num, checkpoint_id, antenna, staff, tracks.event_id, tracks.id;
+```
+
