@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: db
--- Generation Time: Oct 02, 2024 at 12:00 PM
+-- Generation Time: Oct 03, 2024 at 02:22 PM
 -- Server version: 8.0.39
 -- PHP Version: 8.2.8
 
@@ -63,6 +63,20 @@ CREATE TABLE `checkpoints` (
   `description` int NOT NULL,
   `km` int NOT NULL,
   `local` int NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `classificacao`
+--
+
+CREATE TABLE `classificacao` (
+  `id` int NOT NULL,
+  `athlete` int DEFAULT NULL,
+  `track_id` int DEFAULT NULL,
+  `start_time` varchar(12) DEFAULT NULL,
+  `end_time` varchar(12) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
@@ -192,6 +206,14 @@ ALTER TABLE `checkpoints`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `classificacao`
+--
+ALTER TABLE `classificacao`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `athlete` (`athlete`),
+  ADD KEY `track_id` (`track_id`);
+
+--
 -- Indexes for table `equipamento`
 --
 ALTER TABLE `equipamento`
@@ -246,6 +268,12 @@ ALTER TABLE `athletes_times`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `classificacao`
+--
+ALTER TABLE `classificacao`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `invalidos`
 --
 ALTER TABLE `invalidos`
@@ -272,6 +300,13 @@ ALTER TABLE `athletes`
 --
 ALTER TABLE `athletes_times`
   ADD CONSTRAINT `athletes_times_ibfk_1` FOREIGN KEY (`athlete_num`) REFERENCES `athletes` (`num`);
+
+--
+-- Constraints for table `classificacao`
+--
+ALTER TABLE `classificacao`
+  ADD CONSTRAINT `classificacao_ibfk_1` FOREIGN KEY (`athlete`) REFERENCES `athletes_times` (`athlete_num`),
+  ADD CONSTRAINT `classificacao_ibfk_2` FOREIGN KEY (`track_id`) REFERENCES `tracks` (`id`);
 
 --
 -- Constraints for table `staffs`
