@@ -10,6 +10,7 @@
 #define YLW "\033[33;1m"
 #define RST "\033[0m"
 
+/* dbg */
 void _Noreturn fatal(const char *func, int line) {
   fprintf(stderr, RED "Fatal error at '%s', line %d\n" RST, func, line);
   exit(1);
@@ -44,7 +45,7 @@ int parse(char *data) {
   return count;
 }
 
-#define DATA_BUF_SIZE 36
+#define DATA_BUF_SIZE 64
 
 #define COMMAND(...)                                                           \
   do {                                                                         \
@@ -61,9 +62,14 @@ int parse(char *data) {
   } while (0)
 
 void connect(const char *network, const char *password) {
-  // sed -i "/^ssid=/ s/=.*\$/=$NETWORK/"
-  // /etc/NetworkManager/system-connections/Wifi.nmconnection
 
+  /*
+   * sed -i
+   * 	"/^ssid=/ s/=.*\$/=$NETWORK/"
+   * 	/etc/NetworkManager/system-connections/Wifi.nmconnection
+   */
+
+  /* Creating the sed command */
   char command[18 + DATA_BUF_SIZE];
   sprintf(command, "/^ssid=/ s/=.*$/=%s/", network);
 
@@ -80,7 +86,7 @@ int main(void) {
 
   int count = -1; /* length of the network name (will be calculated later) */
 
-  char data[DATA_BUF_SIZE] = {0};
+  char data[DATA_BUF_SIZE] = {0}; /* REMINDER: this is Network AND Password! */
 
   for (;;) {
 
