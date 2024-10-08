@@ -5,7 +5,7 @@
 git pull
 git submodule update --init --recursive
 
-mkfifo ./network
+mkfifo /etc/wifi-connection
 
 docker compose up --build
 
