@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: db
--- Generation Time: Oct 03, 2024 at 02:22 PM
+-- Generation Time: Oct 08, 2024 at 07:39 PM
 -- Server version: 8.0.39
 -- PHP Version: 8.2.8
 
@@ -33,7 +33,8 @@ CREATE TABLE `athletes` (
   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `city` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `team` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `track_id` int DEFAULT NULL
+  `track_id` int DEFAULT NULL,
+  `sex` varchar(1) COLLATE utf8mb4_unicode_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -72,9 +73,7 @@ CREATE TABLE `checkpoints` (
 --
 
 CREATE TABLE `classificacao` (
-  `id` int NOT NULL,
   `athlete` int DEFAULT NULL,
-  `track_id` int DEFAULT NULL,
   `start_time` varchar(12) DEFAULT NULL,
   `end_time` varchar(12) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -129,6 +128,7 @@ CREATE TABLE `invalidos` (
 
 CREATE TABLE `rede` (
   `ssid` varchar(100) NOT NULL,
+  `id` int NOT NULL,
   `password` int NOT NULL,
   `status` tinyint NOT NULL DEFAULT '0',
   `descricao` varchar(255) NOT NULL,
@@ -209,9 +209,8 @@ ALTER TABLE `checkpoints`
 -- Indexes for table `classificacao`
 --
 ALTER TABLE `classificacao`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `athlete` (`athlete`),
-  ADD KEY `track_id` (`track_id`);
+  ADD UNIQUE KEY `athlete_2` (`athlete`),
+  ADD KEY `athlete` (`athlete`);
 
 --
 -- Indexes for table `equipamento`
@@ -231,6 +230,12 @@ ALTER TABLE `event_data`
 -- Indexes for table `invalidos`
 --
 ALTER TABLE `invalidos`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `rede`
+--
+ALTER TABLE `rede`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -268,15 +273,15 @@ ALTER TABLE `athletes_times`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `classificacao`
---
-ALTER TABLE `classificacao`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT for table `invalidos`
 --
 ALTER TABLE `invalidos`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `rede`
+--
+ALTER TABLE `rede`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
@@ -305,8 +310,7 @@ ALTER TABLE `athletes_times`
 -- Constraints for table `classificacao`
 --
 ALTER TABLE `classificacao`
-  ADD CONSTRAINT `classificacao_ibfk_1` FOREIGN KEY (`athlete`) REFERENCES `athletes_times` (`athlete_num`),
-  ADD CONSTRAINT `classificacao_ibfk_2` FOREIGN KEY (`track_id`) REFERENCES `tracks` (`id`);
+  ADD CONSTRAINT `classificacao_ibfk_1` FOREIGN KEY (`athlete`) REFERENCES `athletes_times` (`athlete_num`);
 
 --
 -- Constraints for table `staffs`
