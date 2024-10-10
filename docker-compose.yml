@@ -72,6 +72,7 @@ services:
       - "3306:3306"
     volumes:
       - ./mytempo.sql:/docker-entrypoint-initdb.d/mytempo.sql
+      - ./mysql/my.cnf:/etc/my.cnf
       - db_data:/var/lib/mysql
 
   # FIXME: remove this, it's just for debugging
