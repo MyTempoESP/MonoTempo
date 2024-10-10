@@ -189,6 +189,7 @@ services:
       MYTEMPO_READER_TYPE: chafon # TODO: This has to be set manually
       MYTEMPO_READER: "PORTAL LEITOR RFID502" # TODO: This has to be set manually
       READER_IP: "192.168.1.200" # TODO: This has to be set manually
+      READER_SUBTYPE: none
 
   reenvio:
    container_name: monotempo_reenvio
