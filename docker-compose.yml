@@ -55,7 +55,6 @@
 #      - TODO: Use a script (or just the fucking .env) to set
 #              the reader type and model name easily.
 
-
 services:
   db:
     # TODO: bump mysql to latest?
