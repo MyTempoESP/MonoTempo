@@ -1,0 +1,17 @@
+--- /etc/ntp.conf	2024-10-14 13:05:41.479310855 -0300
++++ ntp.conf	2024-10-14 13:06:11.412645290 -0300
+@@ -8,10 +8,10 @@
+ # - the ntp.conf man page
+ 
+ # Associate to Arch's NTP pool
+-server 0.arch.pool.ntp.org
+-server 1.arch.pool.ntp.org
+-server 2.arch.pool.ntp.org
+-server 3.arch.pool.ntp.org
++server 0.br.pool.ntp.org
++server 1.br.pool.ntp.org
++server 2.br.pool.ntp.org
++server 3.br.pool.ntp.org
+ 
+ # By default, the server allows:
+ # - all queries from the local host
