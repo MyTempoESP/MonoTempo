@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: db
--- Generation Time: Oct 08, 2024 at 07:39 PM
+-- Generation Time: Oct 15, 2024 at 12:58 PM
 -- Server version: 8.0.39
 -- PHP Version: 8.2.8
 
@@ -34,7 +34,7 @@ CREATE TABLE `athletes` (
   `city` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `team` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `track_id` int DEFAULT NULL,
-  `sex` varchar(1) COLLATE utf8mb4_unicode_ci NOT NULL
+  `sex` varchar(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -196,8 +196,8 @@ ALTER TABLE `athletes`
 --
 ALTER TABLE `athletes_times`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `id` (`id`),
-  ADD KEY `athlete_num` (`athlete_num`);
+  ADD KEY `athlete_num` (`athlete_num`),
+  ADD KEY `athlete_time` (`athlete_time`);
 
 --
 -- Indexes for table `checkpoints`
@@ -230,7 +230,9 @@ ALTER TABLE `event_data`
 -- Indexes for table `invalidos`
 --
 ALTER TABLE `invalidos`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `athlete_num` (`athlete_num`),
+  ADD KEY `athlete_time` (`athlete_time`);
 
 --
 -- Indexes for table `rede`
@@ -250,7 +252,10 @@ ALTER TABLE `staffs`
 --
 ALTER TABLE `tracks`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `event_id` (`event_id`);
+  ADD KEY `event_id` (`event_id`),
+  ADD KEY `inicio` (`inicio`),
+  ADD KEY `chegada` (`chegada`),
+  ADD KEY `largada` (`largada`);
 
 --
 -- Indexes for table `unsent_athletes`
@@ -335,7 +340,5 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-
 /*FIX_FILE_PERM*/
 GRANT FILE on *.* to mytempo_user@'%';
-
