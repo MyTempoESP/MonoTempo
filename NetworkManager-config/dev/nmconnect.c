@@ -69,12 +69,29 @@ void connect(const char *network, const char *password) {
    * 	/etc/NetworkManager/system-connections/Wifi.nmconnection
    */
 
+/* TODO: defs in nmconnect.h */
+#define NETWORK_SSID_LENGTH 30 /* '%s' is counted by LEN so +2 chars */
+#define NETWORK_PSK_LENGTH 30
+
+#define STRING(v, s)                                                           \
+  const char *v = s;                                                           \
+  const int v##_sz = sizeof s;
+#define LEN(v) v##_sz
+
+  STRING(network_fmt, "/^ssid=/ s/=.*$/=%" QUOTE(NETWORK_SSID_LENGTH) "s/;");
+  STRING(password_fmt, "/^psk=/ s/=.*$/=%" QUOTE(NETWORK_PSK_LENGTH) "s/");
+
   /* Creating the sed command */
-  char command[18 + DATA_BUF_SIZE];
-  sprintf(command, "/^ssid=/ s/=.*$/=%s/", network);
+  char command[LEN(network_fmt) + LEN(password_fmt) + NETWORK_SSID_LENGTH +
+               NETWORK_PSK_LENGTH + DATA_BUF_SIZE];
+
+  int count = 0;
+
+  count = sprintf(command, network_fmt, network);
+  sprintf(command + count, password_fmt, password);
 
   COMMAND("sed", "sed", "-i", command, NETWORK_CONFIG_FILE, (char *)NULL);
-  COMMAND("nmcli", "nmcli", "reload", (char *)NULL);
+  // COMMAND("nmcli", "nmcli", "reload", (char *)NULL);
 }
 
 int main(void) {
