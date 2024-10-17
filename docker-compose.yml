@@ -92,9 +92,6 @@ services:
     container_name: monotempo_rabbitmq
     restart: always
 
-    logging:
-      driver: none
-
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -188,7 +185,7 @@ services:
       RABBITMQ_USER: guest
       RABBITMQ_PASS: guest
       MYTEMPO_READER_TYPE: chafon # TODO: This has to be set manually
-      MYTEMPO_READER: "PORTAL LEITOR RFID502" # TODO: This has to be set manually
+      MYTEMPO_READER: "PORTAL LEITOR RFIDMY502" # TODO: This has to be set manually
       READER_IP: "192.168.1.200" # TODO: This has to be set manually
       READER_SUBTYPE: none
 
