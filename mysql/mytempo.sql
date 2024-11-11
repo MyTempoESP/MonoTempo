@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: db
--- Generation Time: Oct 18, 2024 at 09:28 PM
+-- Generation Time: Nov 11, 2024 at 05:48 PM
 -- Server version: 8.0.40
 -- PHP Version: 8.2.8
 
@@ -151,6 +151,19 @@ CREATE TABLE `staffs` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `stats`
+--
+
+CREATE TABLE `stats` (
+  `tags_total` int NOT NULL DEFAULT '1',
+  `tags_unicas` int NOT NULL DEFAULT '0',
+  `id` tinyint NOT NULL,
+  `validos` int NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `tracks`
 --
 
@@ -247,6 +260,12 @@ ALTER TABLE `rede`
 ALTER TABLE `staffs`
   ADD PRIMARY KEY (`id`),
   ADD KEY `event_id` (`event_id`);
+
+--
+-- Indexes for table `stats`
+--
+ALTER TABLE `stats`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `tracks`
