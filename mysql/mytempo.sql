@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: db
--- Generation Time: Nov 11, 2024 at 05:48 PM
+-- Generation Time: Nov 21, 2024 at 08:26 PM
 -- Server version: 8.0.40
 -- PHP Version: 8.2.8
 
@@ -158,7 +158,11 @@ CREATE TABLE `stats` (
   `tags_total` int NOT NULL DEFAULT '1',
   `tags_unicas` int NOT NULL DEFAULT '0',
   `id` tinyint NOT NULL,
-  `validos` int NOT NULL DEFAULT '0'
+  `validos` int NOT NULL DEFAULT '0',
+  `Antena1` int UNSIGNED NOT NULL DEFAULT '0',
+  `Antena2` int UNSIGNED NOT NULL DEFAULT '0',
+  `Antena3` int UNSIGNED NOT NULL DEFAULT '0',
+  `Antena4` int UNSIGNED NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
