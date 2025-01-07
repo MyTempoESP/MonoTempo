@@ -215,8 +215,6 @@ services:
     restart: always
     build:
       context: MyReader
-    logging:
-      driver: none
 
     depends_on:
       - rabbitmq
@@ -227,7 +225,7 @@ services:
       RABBITMQ_USER: guest
       RABBITMQ_PASS: guest
       MYTEMPO_READER_TYPE: chafon # TODO: This has to be set manually
-      MYTEMPO_READER: "PORTAL LEITOR RFIDMY502" # TODO: This has to be set manually
+      MYTEMPO_READER: "PORTAL LEITOR RFIDMY501" # TODO: This has to be set manually
       READER_IP: "192.168.1.200" # TODO: This has to be set manually
       READER_SUBTYPE: none
 

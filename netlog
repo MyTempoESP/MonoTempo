@@ -1,0 +1,17 @@
+======================
+NETLOG @ Thu Nov  7 16:23:09 2024
+======================
+@ Thu Nov  7 16:23:09 2024 --> logger attached succesfully
+@ Thu Nov  7 16:23:09 2024 --> logger attached succesfully
+@ Thu Nov  7 16:23:16 2024 --> IN CHECKING UP ENP2S0| Dev state: DISCONNECTED
+@ Thu Nov  7 16:23:16 2024 --> IN CHECKING UP WLP1S0| Dev state: DISCONNECTED
+@ Thu Nov  7 16:23:16 2024 --> IN CALLBACK FROM ENP2S0| starting
+@ Thu Nov  7 16:23:16 2024 --> IN CALLBACK FROM ENP2S0| The connection profile has been successfully added to NetworkManager:
+@ Thu Nov  7 16:23:16 2024 --> IN CALLBACK FROM ENP2S0| wired, 78cea213-24ab-433f-8ad8-4d737155027d
+@ Thu Nov  7 16:23:16 2024 --> IN CONN CALLBACK| /org/freedesktop/NetworkManager/ActiveConnection/16: (ACTIVATING)
+@ Thu Nov  7 16:23:16 2024 --> IN CALLBACK FROM WLP1S0| starting
+@ Thu Nov  7 16:23:16 2024 --> IN CALLBACK FROM WLP1S0| The connection profile has been successfully added to NetworkManager:
+@ Thu Nov  7 16:23:16 2024 --> IN CALLBACK FROM WLP1S0| OFICINaaA , 0399f569-c0ae-4c7a-b0e0-5c3a103c656e
+@ Thu Nov  7 16:23:16 2024 --> IN CONN CALLBACK| /org/freedesktop/NetworkManager/ActiveConnection/17: (ACTIVATING)
+@ Thu Nov  7 16:23:24 2024 --> IN CHECKING UP ENP2S0| Dev state: ACTIVATED
+@ Thu Nov  7 16:23:24 2024 --> IN CHECKING UP WLP1S0| Dev state: CONFIG
