@@ -2,8 +2,10 @@
 
 #cp NetworkManager-config/system-connections/* /etc/NetworkManager/system-connections
 
+pacman -Sy dosfstools
+
 git pull
-git submodule update --init --recursive
+git submodule update --init --recursive --remote
 
 mkfifo ./wifi-connection
 chmod 0666 ./wifi-connection
