@@ -143,7 +143,7 @@ services:
       MYSQL_PORT: 3306
       MYSQL_USER: mytempo_user
       MYSQL_PASS: mytempo1
-      MYTEMPO_EQUIP: "PORTAL LEITOR RFIDMY502" # TODO: This has to be set manually
+      MYTEMPO_EQUIP: "PORTAL LEITOR RFIDMY501" # TODO: This has to be set manually
       MYTEMPO_API_URL: "api.v2.mytempo.esp.br"
 
   envio:
@@ -168,11 +168,11 @@ services:
       MYSQL_PASS: mytempo1
       MYTEMPO_API_URL: "api.v2.mytempo.esp.br"
 
-  analytics:
-    container_name: monotempo_analytics
+  process:
+    container_name: ProcessAthletes
     restart: always
     build:
-      context: Analytics
+      context: Process-Athletes
 
     depends_on:
       - rabbitmq
@@ -189,8 +189,9 @@ services:
       MYSQL_USER: mytempo_user
       MYSQL_PASS: mytempo1
 
-   aa2:
-    container_name: monotempo_aa2
+
+  aa2:
+    container_name: aa2
     restart: always
     privileged: true
     build:
@@ -198,17 +199,30 @@ services:
 
     depends_on:
       - rabbitmq
+      - db
 
     devices:
       - "/dev/ttyUSB0:/dev/ttyUSB0"
-      - "/dev/sdb:/dev/sdb"
+      #- "/dev/sdb:/dev/sdb"
+      #- "/dev/sdc:/dev/sdc"
+
+    volumes:
+      - /dev:/dev
+      - /etc/localtime:/etc/localtime:ro
+      - /tmp:/tmp
 
     environment:
+      TZ: "Brazil/East"
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: 5672
       RABBITMQ_USER: guest
       RABBITMQ_PASS: guest
-      READER_IP: "192.168.1.200" # TODO: This has to be set manually 
+      MYSQL_DB: mytempo
+      MYSQL_HOST: db
+      MYSQL_PORT: 3306
+      MYSQL_USER: mytempo_user
+      MYSQL_PASS: mytempo1
+      READER_IP: "192.168.1.200" # TODO: This has to be set manually
       MYTEMPO_API_URL: "api.v2.mytempo.esp.br"
 
   myreader:
@@ -221,6 +235,7 @@ services:
 
     depends_on:
       - rabbitmq
+      - db
 
     environment:
       RABBITMQ_HOST: rabbitmq
@@ -228,7 +243,7 @@ services:
       RABBITMQ_USER: guest
       RABBITMQ_PASS: guest
       MYTEMPO_READER_TYPE: chafon # TODO: This has to be set manually
-      MYTEMPO_READER: "PORTAL LEITOR RFIDMY502" # TODO: This has to be set manually
+      MYTEMPO_READER: "PORTAL LEITOR RFIDMY501" # TODO: This has to be set manually
       READER_IP: "192.168.1.200" # TODO: This has to be set manually
       READER_SUBTYPE: none
 
