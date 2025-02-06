@@ -1,0 +1,10 @@
+--- docker-compose.yml	2025-02-05 19:28:31.120274878 -0300
++++ docker-compose-aa2_env.yml	2025-02-05 20:58:53.103980942 -0300
+@@ -213,6 +213,7 @@
+ 
+     environment:
+       TZ: "Brazil/East"
++      PROGRAM_COMMIT_HASH: ${PROGRAM_COMMIT_HASH}
+       RABBITMQ_HOST: rabbitmq
+       RABBITMQ_PORT: 5672
+       RABBITMQ_USER: guest
