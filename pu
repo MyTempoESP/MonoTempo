@@ -1,5 +1,0 @@
-#!/bin/sh
-
-git pull
-
-ls | xargs -P10 -I{} git -C {} pull origin main
