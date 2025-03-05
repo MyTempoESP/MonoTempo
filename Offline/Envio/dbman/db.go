@@ -1,16 +1,17 @@
 package dbman
 
 import (
-	"time"
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"database/sql"
 	"envio/athlete"
-	_ "modernc.org/sqlite"
+	//"sync/atomic"
 
 	backoff "github.com/cenkalti/backoff"
+	_ "modernc.org/sqlite"
 )
 
 type Baselet struct {
@@ -31,14 +32,23 @@ type MADB struct {
 
 func NewBaselet(path string) (b Baselet, err error) {
 
-	_, err = os.Create(path)
+	b.Path = path
+
+	err = b.Init()
+
+	return
+}
+
+func (b *Baselet) Init() (err error) {
+
+	_, err = os.Create(b.Path)
 
 	if err != nil {
 
 		return
 	}
 
-	db, err := sql.Open("sqlite", path)
+	db, err := sql.Open("sqlite", b.Path)
 
 	if err != nil {
 
@@ -55,7 +65,6 @@ func NewBaselet(path string) (b Baselet, err error) {
 	}
 
 	b.db = db
-	b.Path = path
 
 	return
 }
@@ -106,7 +115,12 @@ func (b *Baselet) Monitor() chan<- athlete.Atleta {
 		for c := range data {
 
 			bf := backoff.NewExponentialBackOff()
-			bf.MaxElapsedTime = 250 * time.Millisecond
+
+			bf.InitialInterval = 100 * time.Millisecond
+			bf.RandomizationFactor = 0.5
+			bf.Multiplier = 1.25
+			bf.MaxInterval = 500 * time.Millisecond
+			bf.MaxElapsedTime = 2 * time.Second
 
 			err := backoff.Retry(
 				func() (err error) {
@@ -129,11 +143,38 @@ func (b *Baselet) Monitor() chan<- athlete.Atleta {
 			if err != nil {
 
 				log.Printf("Could not store time '%s' of athlete '%d'\n", c.Tempo, c.Numero)
+				log.Printf("| Restarting baselet ID='%s'\n", b.Path)
+
+				defer b.reOpen()
+
+				break
 			}
 		}
 	}()
 
 	return data
+}
+
+func (b *Baselet) reOpen() {
+
+	b.Close()
+
+	err := b.Open()
+
+	if err != nil {
+
+		// reinit it
+		err = b.Init()
+
+		if err != nil {
+
+			log.Printf("Baselet ID='%s' is dead.\n", b.Path)
+		}
+
+		return
+	}
+
+	log.Printf("Baselet ID='%s' is back up\n", b.Path)
 }
 
 func (b *Baselet) Close() {
