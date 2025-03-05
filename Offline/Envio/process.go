@@ -32,6 +32,6 @@ func (envio *Envio) Process() {
 			Tentar salvar o atleta no banco de dados.
 		*/
 
-		envio.SalvarAtleta(&at)
+		envio.SalvarAtleta(at)
 	}
 }

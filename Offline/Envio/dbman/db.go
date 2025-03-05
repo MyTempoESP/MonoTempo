@@ -2,6 +2,7 @@ package dbman
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"database/sql"
@@ -10,12 +11,16 @@ import (
 )
 
 type Baselet struct {
+	Path string
+
 	db     *sql.DB
-	Path   string
+	data   chan<- athlete.Atleta
 	opened bool
 }
 
 type MADB struct {
+	DatabaseRoot string // path to the database dir
+
 	databases []Baselet
 	groupSize int // group length in which athletes are divided (0-10, 0-100, ...)
 	maxValue  int // max number that fits
@@ -70,10 +75,13 @@ func (b *Baselet) Open() (err error) {
 
 	b.opened = true
 
+	// create data channel for insertions
+	b.data = b.Monitor()
+
 	return
 }
 
-func (b *Baselet) Insert(a *athlete.Atleta) (err error) {
+func (b *Baselet) Insert(c athlete.Atleta) (err error) {
 
 	err = b.Open()
 
@@ -82,16 +90,30 @@ func (b *Baselet) Insert(a *athlete.Atleta) (err error) {
 		return
 	}
 
-	_, err = b.db.Exec(
-		INSERT_TIME,
-
-		a.Antena,
-		a.Numero,
-		a.Staff,
-		a.Tempo,
-	)
+	b.data <- c
 
 	return
+}
+
+func (b *Baselet) Monitor() chan<- athlete.Atleta {
+
+	data := make(chan athlete.Atleta)
+
+	go func() {
+		for c := range data {
+
+			b.db.Exec(
+				INSERT_TIME,
+
+				c.Antena,
+				c.Numero,
+				c.Staff,
+				c.Tempo,
+			)
+		}
+	}()
+
+	return data
 }
 
 func (b *Baselet) Close() {
@@ -100,6 +122,8 @@ func (b *Baselet) Close() {
 
 		return
 	}
+
+	close(b.data)
 
 	b.db.Close()
 
@@ -117,7 +141,7 @@ func (m *MADB) Add() (err error) {
 	)
 
 	b, err = NewBaselet(
-		fmt.Sprintf("/var/monotempo-data/%d.db", len(m.databases)))
+		fmt.Sprintf("%s/N%d.db", m.DatabaseRoot, len(m.databases)))
 
 	if err != nil {
 
@@ -146,11 +170,11 @@ func (m *MADB) Grow(amount int) (err error) {
 	return
 }
 
-func (m *MADB) Insert(a *athlete.Atleta) (err error) {
+func (m *MADB) Insert(c athlete.Atleta) (err error) {
 
-	if a.Numero > m.maxValue {
+	if c.Numero > m.maxValue {
 
-		err = m.Grow((a.Numero - m.maxValue) / m.groupSize)
+		err = m.Grow(((c.Numero - m.maxValue) / m.groupSize) + 1)
 
 		if err != nil {
 
@@ -158,15 +182,34 @@ func (m *MADB) Insert(a *athlete.Atleta) (err error) {
 		}
 	}
 
-	err = m.databases[a.Numero].Insert(a)
+	if c.Numero == m.maxValue {
+
+		err = m.Grow(1)
+
+		if err != nil {
+
+			return
+		}
+	}
+
+	err = m.databases[c.Numero/m.groupSize].Insert(c)
 
 	return
 }
 
 func (m *MADB) Close() {
 
-	for _, v := range m.databases {
+	for _, b := range m.databases {
 
-		v.Close()
+		log.Println("closed!")
+
+		b.Close()
 	}
+}
+
+func (m *MADB) Init() (err error) {
+
+	err = m.Grow(1)
+
+	return
 }

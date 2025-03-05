@@ -58,22 +58,26 @@ func main() {
 		err := envio.broker.Setup()
 
 		if err != nil {
+
 			log.Fatal(err)
 		}
 
 		err = envio.CreateBindings()
 
 		if err != nil {
+
 			log.Fatal(err)
 		}
 
 		channel, err := envio.StartConsumers()
 
 		if err != nil {
+
 			log.Fatal(err)
 		}
 
-		envio.DBManager.GroupSize(20)
+		envio.DBManager.GroupSize(10)
+		envio.DBManager.Init()
 
 		go envio.Process()
 

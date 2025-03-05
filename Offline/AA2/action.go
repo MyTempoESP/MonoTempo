@@ -8,62 +8,11 @@ import (
 	c "aa2/constant"
 	file "aa2/file"
 	usb "aa2/usb"
-	mysql "github.com/mytempoesp/mysql-easy"
 )
 
 func ResetarTudo() (err error) {
 
-	db, err := mysql.ConfiguraDB()
-
-	if err != nil {
-
-		return
-	}
-
-	defer db.Close()
-
-	_, err = db.Exec("DELETE FROM recover")
-
-	if err != nil {
-
-		log.Println(err)
-
-		return
-	}
-
-	_, err = db.Exec("DELETE FROM athletes_times")
-
-	if err != nil {
-
-		log.Println(err)
-
-		return
-	}
-
-	_, err = db.Exec("DELETE FROM resultados_chegada")
-
-	if err != nil {
-
-		log.Println(err)
-
-		return
-	}
-
-	_, err = db.Exec("DELETE FROM resultados_largada")
-
-	if err != nil {
-
-		log.Println(err)
-
-		return
-	}
-
-	_, err = db.Exec("DELETE FROM invalidos")
-
-	if err != nil {
-
-		log.Println(err)
-	}
+	// delete entire times database
 
 	return
 }
