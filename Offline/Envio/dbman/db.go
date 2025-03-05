@@ -151,6 +151,7 @@ func (b *Baselet) Monitor() chan<- athlete.Atleta {
 
 				log.Printf("Could not store time '%s' of athlete '%d'\n", c.Tempo, c.Numero)
 				log.Printf("| Restarting baselet ID='%s'\n", b.Path)
+				log.Printf("| cause of failure: %s\n", err)
 
 				return
 			}
