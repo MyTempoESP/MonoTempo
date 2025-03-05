@@ -48,6 +48,13 @@ func (b *Baselet) Init() (err error) {
 		return
 	}
 
+	err = b.CreateDatabase()
+
+	return
+}
+
+func (b *Baselet) CreateDatabase() (err error) {
+
 	db, err := sql.Open("sqlite", b.Path)
 
 	if err != nil {
@@ -73,6 +80,14 @@ func (b *Baselet) Init() (err error) {
 func (b *Baselet) Open() (err error) {
 
 	if b.opened {
+
+		return
+	}
+
+	// ensure a known state
+	err = b.CreateDatabase()
+
+	if err != nil {
 
 		return
 	}

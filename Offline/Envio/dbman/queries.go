@@ -7,7 +7,7 @@ PRAGMA journal_mode = MEMORY;
 
 BEGIN TRANSACTION;
 
-CREATE TABLE athletes_times (
+CREATE TABLE IF NOT EXISTS athletes_times (
    id            INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT
 ,  antenna       INTEGER NOT NULL
 ,  athlete_num   INTEGER NOT NULL
