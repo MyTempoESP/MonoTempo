@@ -10,6 +10,7 @@ var (
 	Version            = os.Getenv("PROGRAM_COMMIT_HASH")[:4]
 	Reader             = os.Getenv("READER_NAME")
 	Serie              = 501
+	ReaderPath         = os.Getenv("READER_PATH")
 )
 
 const (
