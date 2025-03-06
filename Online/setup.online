@@ -1,10 +1,14 @@
 #!/bin/sh
 
-docker run --env-file=../shared.env -v ../database/:/var/monotempo-data --name receba "receba:1.0"
+docker run --env-file=../shared.env -v $(realpath ../database/):/var/monotempo-data --name receba "receba:1.0"
 
 docker wait receba
 
-docker run --env-file=../shared.env -v ../database/:/var/monotempo-data --name reenvio "reenvio:1.0"
+docker remove receba
+exit
+docker run --env-file=../shared.env -v $(realpath ../database/):/var/monotempo-data --name reenvio "reenvio:1.0"
 
 docker wait reenvio
+
+docker remove reenvio
 

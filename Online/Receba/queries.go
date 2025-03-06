@@ -6,17 +6,13 @@ import (
 
 const (
 	QUERY_ATUALIZA_EQUIP = `
-	INSERT INTO equipamento(
+	REPLACE INTO equipamento (
 	    id,
 	    idequip,
 	    modelo,
-	    event_id,
+	    event_id
 	)
-	VALUES(1, 0, "", 0)
-	ON CONFLICT(id) DO UPDATE
-	        SET idequip = ?,
-	        SET modelo = ?,
-	        SET event_id = ?,
+	VALUES(1, ?, ?, ?);
 	`
 
 	QUERY_ATUALIZA_PROVA = `

@@ -25,6 +25,10 @@ func (r *Receba) AtualizaEquip(equip Equipamento) (err error) {
 		equip.ID,
 		equip.Nome,
 		equip.ProvaID,
+
+		equip.ID,
+		equip.Nome,
+		equip.ProvaID,
 	)
 
 	return
