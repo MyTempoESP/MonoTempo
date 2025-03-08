@@ -9,6 +9,8 @@ usage() {
 [ $# -ne 1 ] && usage
 
 if [ "$1" = "yes" ]; then
+	docker compose -p monotempo-offline -f "$(dirname $0)/docker-compose.yml" pause myreader
+	sleep 10
 	docker compose -p monotempo-offline -f "$(dirname $0)/docker-compose.yml" pause
 elif [ "$1" = "no" ]; then
 	docker compose -p monotempo-offline -f "$(dirname $0)/docker-compose.yml" unpause
