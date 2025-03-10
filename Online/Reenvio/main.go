@@ -2,8 +2,34 @@ package main
 
 import (
 	"log"
+	"os"
 	"time"
+
+	backoff "github.com/cenkalti/backoff"
 )
+
+func countDir(path string) (n int, err error) {
+
+	f, err := os.Open(path)
+
+	if err != nil {
+
+		return
+	}
+
+	list, err := f.Readdirnames(-1)
+
+	f.Close()
+
+	if err != nil {
+
+		return
+	}
+
+	n = len(list)
+
+	return
+}
 
 func main() {
 
@@ -16,14 +42,48 @@ func main() {
 		log.Fatalf("Erro atualizando equipamento: %s\n", err)
 	}
 
-	/*
-		Timer para sincronizar os envios.
-	*/
-	timerEnvio := time.NewTicker(REENVIO_INTERVALO)
+	r.Tempos.DatabaseRoot = "/var/monotempo-data/"
 
-	/*
-		Iniciar o loop que faz a conexão com a API e envia os atletas
-		obtidos (seja por meio de não envio ou inválidos).
-	*/
-	r.EnviaLoop(timerEnvio)
+	n, err := countDir(r.Tempos.DatabaseRoot)
+
+	if err != nil {
+
+		log.Fatalf("Couldn't count files: %s\n", err)
+	}
+
+	r.Tempos.Grow(n - 1)
+
+	lotes := r.Tempos.Get()
+
+	if err != nil {
+
+		log.Fatalf("Couldn't Get data: %s\n", err)
+	}
+
+	bf := backoff.NewExponentialBackOff()
+
+	bf.MaxElapsedTime = 5 * time.Minute
+
+	err = backoff.Retry(
+		func() (err error) {
+
+			err = r.TentarReenvio(lotes)
+
+			if err != nil {
+
+				log.Println(err)
+			}
+
+			return
+		},
+
+		bf,
+	)
+
+	if err != nil {
+
+		log.Printf("Não foi possível enviar dados: %s\n", err)
+
+		os.Exit(1)
+	}
 }

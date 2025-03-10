@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"database/sql"
-	"github.com/MyTempoESP/Reenvio/atleta"
 	_ "modernc.org/sqlite"
 )
 
@@ -12,8 +11,6 @@ type Equipamento struct {
 	ID      int
 	Nome    string
 	ProvaID int
-
-	Atletas []atleta.Atleta
 }
 
 func (equip *Equipamento) Atualiza() (err error) {

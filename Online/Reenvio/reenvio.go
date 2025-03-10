@@ -1,14 +1,10 @@
 package main
 
 import (
-	"database/sql"
-	//rabbit "github.com/mytempoesp/rabbit"
+	"github.com/MyTempoESP/Reenvio/dbman"
 )
 
 type Reenvio struct {
-	//broker rabbit.Rabbit
-
-	tempos *sql.DB
-
-	Equip Equipamento
+	Tempos dbman.MADB
+	Equip  Equipamento
 }

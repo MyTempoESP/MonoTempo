@@ -12,8 +12,13 @@ SELECT
 	MAX(athlete_time)
 FROM
 	athletes_times
+JOIN
+	athletes ON athletes.num LIKE athlete_num
+JOIN
+	tracks ON tracks.id LIKE track_id
 WHERE
-	athlete_time < ?
+	athlete_time <= largada AND
+	athlete_time >= inicio
 GROUP BY
 	athlete_num;`
 
@@ -26,8 +31,13 @@ SELECT
 	MIN(athlete_time)
 FROM
 	athletes_times
+JOIN
+	athletes ON athletes.num LIKE athlete_num
+JOIN
+	tracks ON tracks.id LIKE track_id
 WHERE
-	athlete_time > ?
+	athlete_time > largada AND
+	athlete_time <= chegada
 GROUP BY
 	athlete_num;`
 )

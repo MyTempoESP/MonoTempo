@@ -14,6 +14,13 @@ func (r *Receba) ConfiguraDB() (err error) {
 		return
 	}
 
+	_, err = db.Exec(CRIA_DB)
+
+	if err != nil {
+
+		return
+	}
+
 	r.db = db
 
 	return

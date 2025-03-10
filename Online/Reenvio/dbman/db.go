@@ -22,10 +22,7 @@ type Baselet struct {
 
 type MADB struct { // client version
 	DatabaseRoot string // path to the database dir
-
-	databases []Baselet
-	groupSize int // group length in which athletes are divided (0-10, 0-100, ...)
-	maxValue  int // max number that fits
+	databases    []Baselet
 }
 
 func NewBaselet(path string) (b Baselet, err error) {
@@ -51,7 +48,11 @@ func (b *Baselet) Init() (err error) {
 	if err != nil {
 
 		log.Printf("Error loading track data: %s\n", err)
+
+		return
 	}
+
+	b.beginMonitor()
 
 	return
 }
@@ -81,10 +82,13 @@ func (b *Baselet) Open() (err error) {
 
 	b.opened = true
 
+	return
+}
+
+func (b *Baselet) beginMonitor() {
+
 	// create data channel for insertions
 	b.Largadas, b.Chegadas = b.Monitor()
-
-	return
 }
 
 func (b *Baselet) Monitor() (largada, chegada <-chan atleta.Atleta) {
@@ -192,6 +196,34 @@ func (b *Baselet) Monitor() (largada, chegada <-chan atleta.Atleta) {
 	return
 }
 
+func (b *Baselet) Get() (atletas []atleta.Atleta, err error) {
+
+	var data atleta.Atleta
+	var largada_ok, chegada_ok bool
+
+	for {
+		select {
+		case data, largada_ok = <-b.Largadas:
+			if !largada_ok {
+				b.Largadas = nil
+			}
+		case data, chegada_ok = <-b.Chegadas:
+			if !chegada_ok {
+				b.Chegadas = nil
+			}
+		}
+
+		if b.Largadas == nil && b.Chegadas == nil {
+
+			break
+		}
+
+		atletas = append(atletas, data)
+	}
+
+	return
+}
+
 func (b *Baselet) Close() {
 
 	if !b.opened {
@@ -204,8 +236,30 @@ func (b *Baselet) Close() {
 	b.opened = false
 }
 
-func (m *MADB) GroupSize(s int) {
-	m.groupSize = s
+func (m *MADB) Get() (lotes <-chan []atleta.Atleta) {
+
+	l := make(chan []atleta.Atleta)
+
+	go func() {
+		defer func() { close(l) }()
+
+		for _, b := range m.databases {
+			lote, err := b.Get()
+
+			if err != nil {
+
+				log.Printf("Erro ao receber lote: %s\n", err)
+
+				continue
+			}
+
+			l <- lote
+		}
+	}()
+
+	lotes = l
+
+	return
 }
 
 func (m *MADB) Add() (err error) {
@@ -239,8 +293,6 @@ func (m *MADB) Grow(amount int) (err error) {
 		}
 	}
 
-	m.maxValue += m.groupSize * amount
-
 	return
 }
 
@@ -252,11 +304,4 @@ func (m *MADB) Close() {
 
 		b.Close()
 	}
-}
-
-func (m *MADB) Init() (err error) {
-
-	err = m.Grow(1)
-
-	return
 }

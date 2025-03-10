@@ -43,25 +43,25 @@ type AtletasForm struct {
 	Atletas       []atleta.Atleta `json:"atletas"`
 }
 
-func (reenvio *Reenvio) Upload(atletas []atleta.Atleta) {
+func (reenvio *Reenvio) Upload(atletas []atleta.Atleta) (err error) {
 
 	if len(atletas) == 0 {
 
-		log.Println("Ignorando lote vazio de atletas para reenvio.")
+		err = fmt.Errorf("Ignorando lote vazio de atletas para reenvio.\n")
 
 		return
 	}
 
 	if reenvio.Equip.ID == 0 {
 
-		log.Println("Equipamento inválido! (0)")
+		err = fmt.Errorf("Equipamento inválido! (0)\n")
 
 		return
 	}
 
 	if reenvio.Equip.ProvaID == 0 {
 
-		log.Println("Prova inválida! (0)")
+		err = fmt.Errorf("Prova inválida! (0)\n")
 
 		return
 	}
@@ -76,7 +76,7 @@ func (reenvio *Reenvio) Upload(atletas []atleta.Atleta) {
 
 	if err != nil {
 
-		log.Println("Erro na conversão dos dados: ", err)
+		err = fmt.Errorf("Erro na conversão dos dados: %s\n", err)
 
 		return
 	}
@@ -91,7 +91,7 @@ func (reenvio *Reenvio) Upload(atletas []atleta.Atleta) {
 
 	if uploadErr != nil {
 
-		log.Printf("Tentativa de reenvio de um lote falhou. (erro: %s)\n", uploadErr)
+		err = fmt.Errorf("Tentativa de reenvio de um lote falhou. (erro: %s)\n", uploadErr)
 	}
 
 	return
@@ -106,9 +106,12 @@ ter 17 set 2024 12:34:47 -03
 Aguarda por dados de reenvio e tenta o envio para a API,
 em caso de erro, redireciona para o Banco de Dados.
 */
-func (reenvio *Reenvio) TentarReenvio() {
+func (reenvio *Reenvio) TentarReenvio(lotes <-chan []atleta.Atleta) (err error) {
 
-	//var ( tempos []atleta.Atleta ) TODO
+	var (
+		tempos []atleta.Atleta
+		ok     bool
+	)
 
 	/*
 		Envia um lote.
@@ -126,35 +129,23 @@ func (reenvio *Reenvio) TentarReenvio() {
 		Se houver registros, receba.
 		Caso contrário, não bloqueie o código.
 	*/
-	select {
-	//case tempos = <-reenvio.Atletas: // TODO
-	//reenvio.Upload(tempos) // TODO
-
-	case <-timeoutMon:
-		log.Println("Timeout, deixando para enviar depois")
-	}
-}
-
-/*
-By Rodrigo Monteiro Junior
-ter 17 set 2024 09:31:40 -03
-
-# LoopReenvio
-
-Inicia o loop de conexão com a API, reenviando atletas
-dentro da queue de reenvio.
-*/
-func (r *Reenvio) EnviaLoop(timerEnvio *time.Ticker) {
-
-	/*
-		A cada minuto é feito o reenvio de todos
-		os atletas aguardando, conforme necessidade.
-	*/
-
 	for {
-		<-timerEnvio.C
+		select {
+		case tempos, ok = <-lotes:
+			if !ok {
 
-		log.Println("Tentando reenvio dos atletas.")
-		go r.TentarReenvio()
+				return
+			}
+
+			err = reenvio.Upload(tempos)
+
+			if err != nil {
+
+				return
+			}
+		case <-timeoutMon:
+			err = fmt.Errorf("Timeout, deixando para enviar depois")
+			return
+		}
 	}
 }
