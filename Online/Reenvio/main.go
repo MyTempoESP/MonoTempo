@@ -51,6 +51,8 @@ func main() {
 		log.Fatalf("Couldn't count files: %s\n", err)
 	}
 
+	log.Printf("Processing %d databases...\n", n-1)
+
 	r.Tempos.Grow(n - 1)
 
 	lotes := r.Tempos.Get()

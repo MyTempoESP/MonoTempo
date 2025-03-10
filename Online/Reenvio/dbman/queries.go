@@ -8,7 +8,7 @@ const (
 SELECT
 	athlete_num,
 	antenna,
-	staff,
+	track_id,
 	MAX(athlete_time)
 FROM
 	athletes_times
@@ -27,7 +27,7 @@ GROUP BY
 SELECT
 	athlete_num,
 	antenna,
-	staff,
+	track_id,
 	MIN(athlete_time)
 FROM
 	athletes_times

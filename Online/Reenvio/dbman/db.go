@@ -105,8 +105,8 @@ func (b *Baselet) Monitor() (largada, chegada <-chan atleta.Atleta) {
 
 			err = res.Scan(
 				&at.Numero,
-				&at.Staff,
 				&at.Antena,
+				&at.PercursoID,
 				&at.Tempo,
 			)
 
@@ -153,9 +153,9 @@ func (b *Baselet) Monitor() (largada, chegada <-chan atleta.Atleta) {
 
 			err = res.Scan(
 				&at.Numero,
-				&at.Tempo,
 				&at.Antena,
-				&at.Staff,
+				&at.PercursoID,
+				&at.Tempo,
 			)
 
 			if err != nil {
