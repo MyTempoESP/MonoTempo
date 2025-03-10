@@ -37,7 +37,7 @@ JOIN
 	tracks ON tracks.id LIKE track_id
 WHERE
 	athlete_time > largada AND
-	athlete_time <= chegada
+	athlete_time >= chegada
 GROUP BY
 	athlete_num;`
 )
