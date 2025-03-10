@@ -77,8 +77,8 @@ func (b *Baselet) beginMonitor() {
 
 func (b *Baselet) Monitor() (largada, chegada <-chan atleta.Atleta) {
 
-	l := make(chan atleta.Atleta)
-	c := make(chan atleta.Atleta)
+	l := make(chan atleta.Atleta, 10) // groupSize
+	c := make(chan atleta.Atleta, 10)
 
 	// sqlite allows concurrent reads
 
@@ -184,30 +184,15 @@ func (b *Baselet) Monitor() (largada, chegada <-chan atleta.Atleta) {
 	return
 }
 
-func (b *Baselet) Get() (atletas []atleta.Atleta, err error) {
+func (b *Baselet) Get() (atletas []atleta.Atleta) {
 
 	var data atleta.Atleta
-	var largada_ok, chegada_ok bool
 
-	for {
-		select {
-		case data, largada_ok = <-b.Largadas:
-			if !largada_ok {
-				b.Largadas = nil
-				continue
-			}
-		case data, chegada_ok = <-b.Chegadas:
-			if !chegada_ok {
-				b.Chegadas = nil
-				continue
-			}
-		}
+	for data = range b.Largadas {
+		atletas = append(atletas, data)
+	}
 
-		if b.Largadas == nil && b.Chegadas == nil {
-
-			break
-		}
-
+	for data = range b.Chegadas {
 		atletas = append(atletas, data)
 	}
 
@@ -234,16 +219,10 @@ func (m *MADB) Get() (lotes <-chan []atleta.Atleta) {
 		defer func() { close(l) }()
 
 		for _, b := range m.databases {
-			lote, err := b.Get()
 
-			if err != nil {
+			log.Println("Recebendo lote...")
 
-				log.Printf("Erro ao receber lote: %s\n", err)
-
-				continue
-			}
-
-			l <- lote
+			l <- b.Get()
 		}
 	}()
 
