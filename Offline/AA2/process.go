@@ -171,6 +171,7 @@ func (a *Ay) Process() {
 				switch action {
 				case lcdlogger.ACTION_WIFI:
 					UploadData()
+					select{}
 				case lcdlogger.ACTION_TIME: /* empty */
 				case lcdlogger.ACTION_RESET:
 					{

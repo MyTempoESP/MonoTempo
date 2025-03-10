@@ -19,8 +19,9 @@ func ResetarTudo() (err error) {
 }
 
 func UploadData() {
-	cmd := exec.Command("sh -c", "echo 'a' > /var/monotempo-data/sig-upload-data")
-	cmd.Run()
+	cmd := exec.Command("sh", "-c", "echo 'a' > /var/monotempo-data/sig-upload-data")
+	err := cmd.Run()
+	log.Println(err)
 }
 
 func CopyToUSB(device *usb.Device, file *file.File) (err error) {
