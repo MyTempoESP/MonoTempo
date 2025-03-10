@@ -17,7 +17,7 @@ type Baselet struct {
 	db     *sql.DB
 	opened bool
 
-	Chegadas, Largadas <-chan atleta.Atleta
+	Tempos <-chan atleta.Atleta
 }
 
 type MADB struct { // client version
@@ -72,114 +72,70 @@ func (b *Baselet) Open() (err error) {
 func (b *Baselet) beginMonitor() {
 
 	// create data channel for insertions
-	b.Largadas, b.Chegadas = b.Monitor()
+	b.Tempos = b.Monitor()
 }
 
-func (b *Baselet) Monitor() (largada, chegada <-chan atleta.Atleta) {
+func (b *Baselet) ScanCheckpoint(query string, tempos chan<- atleta.Atleta) {
 
-	l := make(chan atleta.Atleta, 10) // groupSize
-	c := make(chan atleta.Atleta, 10)
+	res, err := b.db.Query(query)
+
+	if err != nil {
+
+		log.Println("Erro checando atletas disponíveis", err)
+
+		return
+	}
+
+	defer res.Close()
+
+	for res.Next() {
+
+		var at atleta.Atleta
+
+		err = res.Scan(
+			&at.Numero,
+			&at.Antena,
+			&at.PercursoID,
+			&at.Tempo,
+		)
+
+		if err != nil {
+
+			log.Println("Erro ao escanear os atletas: ", err)
+
+			break
+		}
+
+		tempos <- at
+	}
+
+	err = res.Err()
+
+	if err != nil {
+
+		log.Println("Erro ao escanear os atletas: ", err)
+	}
+}
+
+func (b *Baselet) Monitor() (tempos <-chan atleta.Atleta) {
+
+	t := make(chan atleta.Atleta, 20) // groupSize
 
 	// sqlite allows concurrent reads
 
 	go func() {
 
-		defer func() { close(l) }()
+		defer func() { close(t) }()
 
 		b.db.Exec(ATTACH)
 
-		res, err := b.db.Query(QUERY_LARGADA)
-
-		if err != nil {
-
-			log.Println("Erro checando atletas disponíveis para largada", err)
-
-			return
-		}
-
-		defer res.Close()
-
-		for res.Next() {
-
-			var at atleta.Atleta
-
-			err = res.Scan(
-				&at.Numero,
-				&at.Antena,
-				&at.PercursoID,
-				&at.Tempo,
-			)
-
-			if err != nil {
-
-				log.Println("Erro ao escanear os atletas: ", err)
-
-				break
-			}
-
-			l <- at
-		}
-
-		err = res.Err()
-
-		if err != nil {
-
-			log.Println("Erro ao escanear os atletas: ", err)
-		}
+		b.ScanCheckpoint(QUERY_LARGADA, t)
+		b.ScanCheckpoint(QUERY_CHEGADA, t)
 
 		return
 	}()
 
-	go func() {
-
-		defer func() { close(c) }()
-
-		b.db.Exec(ATTACH)
-
-		res, err := b.db.Query(QUERY_CHEGADA)
-
-		if err != nil {
-
-			log.Println("Erro checando atletas disponíveis para chegada", err)
-
-			return
-		}
-
-		defer res.Close()
-
-		for res.Next() {
-
-			var at atleta.Atleta
-
-			err = res.Scan(
-				&at.Numero,
-				&at.Antena,
-				&at.PercursoID,
-				&at.Tempo,
-			)
-
-			if err != nil {
-
-				log.Printf("Erro ao escanear atletas: %s", err)
-
-				break
-			}
-
-			c <- at
-		}
-
-		err = res.Err()
-
-		if err != nil {
-
-			log.Println("Erro ao escanear os atletas: ", err)
-		}
-
-		return
-	}()
-
-	largada = l
-	chegada = c
+	tempos = t
 
 	return
 }
@@ -188,11 +144,7 @@ func (b *Baselet) Get() (atletas []atleta.Atleta) {
 
 	var data atleta.Atleta
 
-	for data = range b.Largadas {
-		atletas = append(atletas, data)
-	}
-
-	for data = range b.Chegadas {
+	for data = range b.Tempos {
 		atletas = append(atletas, data)
 	}
 
