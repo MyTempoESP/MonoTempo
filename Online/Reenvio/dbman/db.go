@@ -194,10 +194,12 @@ func (b *Baselet) Get() (atletas []atleta.Atleta, err error) {
 		case data, largada_ok = <-b.Largadas:
 			if !largada_ok {
 				b.Largadas = nil
+				continue
 			}
 		case data, chegada_ok = <-b.Chegadas:
 			if !chegada_ok {
 				b.Chegadas = nil
+				continue
 			}
 		}
 
@@ -205,8 +207,6 @@ func (b *Baselet) Get() (atletas []atleta.Atleta, err error) {
 
 			break
 		}
-
-		log.Println("Athletes: ", atletas)
 
 		atletas = append(atletas, data)
 	}
@@ -242,8 +242,6 @@ func (m *MADB) Get() (lotes <-chan []atleta.Atleta) {
 
 				continue
 			}
-
-			log.Println("Got: ", lote)
 
 			l <- lote
 		}
