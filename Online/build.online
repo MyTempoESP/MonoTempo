@@ -1,0 +1,12 @@
+#!/bin/sh
+
+dir=$(realpath $(dirname $0))
+
+cd $dir/Receba
+docker build --tag="receba:1.0" .
+
+cd $dir/Reenvio
+docker build --tag="reenvio:1.0" .
+
+cd ..
+

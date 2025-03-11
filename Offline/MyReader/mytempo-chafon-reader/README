@@ -1,0 +1,20 @@
+CHAFON READER
+=============
+
+Release build:
+
+	cd Release
+	cmake -DCMAKE_BUILD_TYPE=Release -DPRODUCTION=ON ..
+
+Debug build
+
+	cd Debug
+	cmake ..
+
+TODO: THE PIPELINE
+
+thread -> tag pool [tag, timestamp]
+                |
+                v
+            pychafon <- python <- Tag.py
+

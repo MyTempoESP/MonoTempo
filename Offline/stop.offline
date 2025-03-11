@@ -1,0 +1,6 @@
+#!/bin/sh
+
+docker compose -p monotempo-offline -f "$(dirname $0)/docker-compose.yml" down myreader
+sleep 10
+docker compose -p monotempo-offline -f "$(dirname $0)/docker-compose.yml" down
+

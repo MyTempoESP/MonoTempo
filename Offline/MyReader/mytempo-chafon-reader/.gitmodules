@@ -1,0 +1,3 @@
+[submodule "extern/assertutils"]
+	path = extern/assertutils
+	url = https://github.com/mytempoesp/assertutils

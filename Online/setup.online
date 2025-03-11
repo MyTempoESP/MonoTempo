@@ -1,0 +1,41 @@
+#!/bin/sh
+
+usage() {
+	echo "$0 DATA-DIR [CMD]"
+	exit 1
+}
+
+[ $# -eq 0 ] && usage
+
+env_file=$(dirname $0)/../shared.env
+
+# if no custom directory is specified, set default
+database=$1
+shift
+
+mytempo_update() {
+	docker run --env-file=$env_file -v $database:/var/monotempo-data --name receba "receba:1.0"
+	docker wait receba
+	docker remove receba
+}
+
+mytempo_upload() {
+	docker run --env-file=$env_file -v $database:/var/monotempo-data --name reenvio "reenvio:1.0"
+	docker wait reenvio
+	docker remove reenvio
+}
+
+if [ $# -eq 0 ]; then
+	mytempo_update
+	mytempo_upload
+else
+ for _ in `seq $#`; do
+		case "$1" in
+			update) mytempo_update ;;
+			upload) mytempo_upload ;;
+		esac
+
+		shift
+	done
+fi
+

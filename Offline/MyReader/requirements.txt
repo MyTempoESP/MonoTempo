@@ -1,0 +1,7 @@
+pendulum
+pika==1.3.2
+python-dateutil==2.9.0.post0
+six==1.16.0
+time-machine==2.14.2
+tzdata==2024.1
+sllurp @ git+https://github.com/sllurp/sllurp@4609b86fcf7b212afaefef814f58e06629b5d3fe

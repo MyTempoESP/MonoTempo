@@ -1,0 +1,6 @@
+#!/bin/sh
+
+rm ~/Arduino/aatwo/*
+mkdir -p ~/Arduino/aatwo
+cp sketch.ino ~/Arduino/aatwo/aatwo.ino
+

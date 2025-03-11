@@ -1,0 +1,16 @@
+#!/bin/sh
+
+test -e database || mkdir database
+test -e database/backup || mkdir database/backup
+test -e database/sig-upload-data || mkfifo database/sig-upload-data
+
+# fixed chancelor to local bin
+mkdir -p "/usr/local/bin/"
+sed 's;\(MYTEMPO_DATA=\);\1'"$(realpath .);" System/chancelor > "/usr/local/bin/chancelor"
+chmod +x "/usr/local/bin/chancelor"
+
+# linking the service
+systemctl link ./System/systemd/system/chancelor.service
+
+echo "All done! now run 'systemctl enable --now chancelor'"
+

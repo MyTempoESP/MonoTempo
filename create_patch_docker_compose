@@ -1,6 +1,0 @@
-#!/bin/sh
-
-cp docker-compose.yml "docker-compose-$1.yml"
-$EDITOR "docker-compose-$1.yml"
-diff -u docker-compose.yml "docker-compose-$1.yml" > "patches/docker-compose-$1.yml.patch"
-rm -i "docker-compose-$1.yml"

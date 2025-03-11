@@ -1,0 +1,14 @@
+[Unit]
+Description=Chancelor MonoTempo Manager
+After=network.target
+Requires=network.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=root
+ExecStart=/usr/local/bin/chancelor
+
+[Install]
+WantedBy=multi-user.target

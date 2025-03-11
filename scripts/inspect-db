@@ -1,0 +1,47 @@
+#!/bin/sh
+
+DB="athletes_times"
+
+SELECT_TYPE="COUNT(1)"
+FIELDS=""
+EXTRA=""
+
+addfield() {
+
+	[ "$FIELDS" ] && FIELDS="$FIELDS,"
+	FIELDS="$FIELDS $1"
+}
+
+for _ in $(seq $#); do
+	case "$1" in
+		last)
+			[ "$SELECT_TYPE" = "COUNT(1)" ] && SELECT_TYPE=;
+
+			EXTRA='order by rowid desc LIMIT 1'
+			addfield athlete_time
+		;;
+		distinct)
+			SELECT_TYPE="DISTINCT"
+			addfield athlete_num
+		;;
+	esac
+
+	shift
+done
+
+CMD="SELECT $SELECT_TYPE $FIELDS FROM $DB $EXTRA"
+
+for i in *.db; do
+
+	OUTPUT=$(mktemp /tmp/XXXXX.output)
+
+	sqlite3 -line $i "$CMD;" > $OUTPUT
+
+	if [ $(wc -l $OUTPUT | awk '{print$1}') -ge 1 ]; then
+		echo -n "$i -> "
+		mergelines $OUTPUT ", "
+	fi
+
+	rm $OUTPUT
+done
+

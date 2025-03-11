@@ -1,43 +1,13 @@
 # MonoTempo
 
-# Php/ -> dev
+container configuration for monitoring:
 
-Centralized stuff
-
-# Tasks
-
-- [ ] Configure network automatically ( not quite there yet,
-      solution is currently a workaround with netmon ).
-
-## Next minor version
-
-## IMPORTANT
-
-- [ ] Diagnose/Fix impinj reader
-- [X] Exportar banco de dados na máquina local.
-
-### In progress
-
-- [ ] Hotspot
-- [ ] Reenvio
-
-### Assigned
-
-- [ ] Install script
-- [X] Start container and stuff automatically at boot
-- [ ] Configure impinj reader's time automatically <- FIXME
-- [ ] Configure docker-compose.yml to the correct reader
-- [X] Get equipment checkpoint data.
-
-## Per-topic
-
-### Datemon
-
-- [X] Move all the logic from datemon to MyReader or Envio
-      a shell script shouldn't be a container, nor should
-      it deal with it's own syncronization.
-
-### Outro
-
-Nice font recommendation: Recursive mono.
+|      Container        |                                        Description                                         |
+| --------------------- | ------------------------------------------------------------------------------------------ |
+| AA2                   | An Arduino controlling an LCD screen ( Go/C/forth )                                        |
+| mytempo-chafon-reader | My python library for controlling an RFID module ( Python/C/C++ )                          |
+| MyReader              | A wrapper around the reader for sending tags through a Message Broker ( RabbitMQ/Python )  |
+| Envio                 | Simple program to manage multiple sqlite databases and store tags ( RabbitMQ/Go/Sqlite )   |
+| Receba                | Fetch equipment data from the mytempo API ( PHP/Go/Sqlite )                                |
+| Reenvio               | Process/Send stored tags to the mytempo API ( PHP/Go/Sqlite )                              |
 

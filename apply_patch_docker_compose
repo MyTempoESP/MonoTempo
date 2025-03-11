@@ -1,4 +1,0 @@
-#!/bin/sh
-
-patch < patches/docker-compose-$1.yml.patch
-
