@@ -1,18 +1,28 @@
 #!/bin/sh
 
 # mytempo directory
-MYTEMPO_DATA=
+MYTEMPO_DATA=/root/mytempo2
+
+mytempo_backup() {
+
+	backup_dir="$MYTEMPO_DATA/database/backup/$(date +"%d.%m.%Y-%H_%M")"
+
+	mkdir -p $backup_dir
+	mv $MYTEMPO_DATA/database/N*.db $backup_dir
+}
 
 while true;
 do
 	$MYTEMPO_DATA/Offline/setup.offline
 
 	# wait for a signal
-	read < $MYTEMPO_DATA/database/sig-upload-data
+	read UPLOAD_TYPE < $MYTEMPO_DATA/database/sig-upload-data
 
 	$MYTEMPO_DATA/Offline/stop.offline
-	$MYTEMPO_DATA/Online/setup.online
-	
+	$MYTEMPO_DATA/Online/setup.online $UPLOAD_TYPE
+
+	mytempo_backup
+
 	sleep 5
 done
 
