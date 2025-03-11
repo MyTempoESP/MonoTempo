@@ -53,6 +53,11 @@ func main() {
 
 	log.Printf("Processing %d databases...\n", n-1)
 
+	if (n - 1) <= 0 {
+
+		return
+	}
+
 	r.Tempos.Grow(n - 1)
 
 	lotes := r.Tempos.Get()
@@ -65,6 +70,7 @@ func main() {
 	bf := backoff.NewExponentialBackOff()
 
 	bf.MaxElapsedTime = 5 * time.Minute
+	bf.MaxInterval = 10 * time.Second
 
 	err = backoff.Retry(
 		func() (err error) {

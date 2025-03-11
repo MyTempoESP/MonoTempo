@@ -1,14 +1,49 @@
 #!/bin/sh
 
 # mytempo directory
-MYTEMPO_DATA=/root/mytempo2
+MYTEMPO_DATA=
 
-mytempo_backup() {
+mytempo_upload() {
 
-	backup_dir="$MYTEMPO_DATA/database/backup/$(date +"%d.%m.%Y-%H_%M")"
+	$MYTEMPO_DATA/Online/setup.online ${1:-$MYTEMPO_DATA/database} upload
+}
 
-	mkdir -p $backup_dir
-	mv $MYTEMPO_DATA/database/N*.db $backup_dir
+mytempo_update() {
+
+	$MYTEMPO_DATA/Online/setup.online ${1:-$MYTEMPO_DATA/database} update
+}
+
+mytempo_save() {
+
+	mkdir -p $1 && mv $MYTEMPO_DATA/database/N*.db $1
+}
+
+mytempo_save_backup() {
+
+	mytempo_save "$MYTEMPO_DATA/database/backup/$(date +"%d.%m.%Y-%H_%M")"
+}
+
+mytempo_upload_backup() {
+
+ 	backup_dir=$MYTEMPO_DATA/database/backup
+
+	mytempo_update
+
+	for d in $backup_dir/*; do
+
+		cp $MYTEMPO_DATA/database/equipamento.db $d
+
+		# actual volume directory
+		mytempo_upload $(realpath $d)
+	done
+}
+
+mytempo_upload_normal() {
+
+	mytempo_update
+	mytempo_upload
+
+	mytempo_save_backup
 }
 
 while true;
@@ -19,9 +54,9 @@ do
 	read UPLOAD_TYPE < $MYTEMPO_DATA/database/sig-upload-data
 
 	$MYTEMPO_DATA/Offline/stop.offline
-	$MYTEMPO_DATA/Online/setup.online $UPLOAD_TYPE
 
-	mytempo_backup
+	[ "$UPLOAD_TYPE" = "normal" ] && mytempo_upload_normal
+	[ "$UPLOAD_TYPE" = "backup" ] && mytempo_upload_backup
 
 	sleep 5
 done
