@@ -182,7 +182,7 @@ func (a *Ay) Process() {
 					select {}
 				case lcdlogger.ACTION_UPLOAD_BACKUP:
 					UploadBackup()
-					select {}
+					<-time.After(20 * time.Second)
 				case lcdlogger.ACTION_RESET:
 					{
 						hasKey := display.WaitKeyPress(5 * time.Second)
