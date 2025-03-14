@@ -33,13 +33,13 @@ const char* labels[] = {
   "PARA CONFIRMAR", // 20
 
   "OFFLINE",
-  "DATA: " // 22
+  "DATA: ", // 22
 
-  "PRESSIONE CONFIRMA"
-  "PARA FAZER UPLOAD"
-  "DE ATLETAS" // 25
+  "PRESSIONE CONFIRMA",
+  "PARA FAZER UPLOAD",
+  "DE ATLETAS", // 25
 
-  "DOS BACKUPS" // 26
+  "DOS BACKUPS", // 26
 
   "UPLOAD EM ANDAMENTO" // 27
 };

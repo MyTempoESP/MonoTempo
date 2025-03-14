@@ -5,59 +5,65 @@ MYTEMPO_DATA=
 
 mytempo_upload() {
 
-	$MYTEMPO_DATA/Online/setup.online ${1:-$MYTEMPO_DATA/database} upload
+    $MYTEMPO_DATA/Online/setup.online ${1:-$MYTEMPO_DATA/database} upload
 }
 
 mytempo_update() {
 
-	$MYTEMPO_DATA/Online/setup.online ${1:-$MYTEMPO_DATA/database} update
+    $MYTEMPO_DATA/Online/setup.online ${1:-$MYTEMPO_DATA/database} update
 }
 
 mytempo_save() {
 
-	mkdir -p $1 && mv $MYTEMPO_DATA/database/N*.db $1
+    mkdir -p $1 && mv $MYTEMPO_DATA/database/N*.db $1
 }
 
 mytempo_save_backup() {
 
-	mytempo_save "$MYTEMPO_DATA/database/backup/$(date +"%d.%m.%Y-%H_%M")"
+    mytempo_save "$MYTEMPO_DATA/database/backup/$(date +"%d.%m.%Y-%H_%M")"
 }
 
 mytempo_upload_backup() {
 
- 	backup_dir=$MYTEMPO_DATA/database/backup
+    $MYTEMPO_DATA/Offline/pause.offline yes
+    
+    backup_dir=$MYTEMPO_DATA/database/backup
 
-	mytempo_update
+    mytempo_update
 
-	for d in $backup_dir/*; do
+    for d in $backup_dir/*; do
 
-		cp $MYTEMPO_DATA/database/equipamento.db $d
+	cp $MYTEMPO_DATA/database/equipamento.db $d
 
-		# actual volume directory
-		mytempo_upload $(realpath $d)
-	done
+	# actual volume directory
+	mytempo_upload $(realpath $d)
+    done
+
+    sleep 5 # resting time
+    
+    $MYTEMPO_DATA/Offline/pause.offline no # unpause    
 }
 
 mytempo_upload_normal() {
 
-	mytempo_update
-	mytempo_upload
+    $MYTEMPO_DATA/Offline/stop.offline
+    
+    mytempo_update
+    mytempo_upload
 
-	mytempo_save_backup
+    mytempo_save_backup
+
+    sleep 5
+    
+    $MYTEMPO_DATA/Offline/setup.offline
 }
 
 while true;
 do
-	$MYTEMPO_DATA/Offline/setup.offline
+    # wait for a signal
+    read UPLOAD_TYPE < $MYTEMPO_DATA/database/sig-upload-data
 
-	# wait for a signal
-	read UPLOAD_TYPE < $MYTEMPO_DATA/database/sig-upload-data
-
-	$MYTEMPO_DATA/Offline/stop.offline
-
-	[ "$UPLOAD_TYPE" = "normal" ] && mytempo_upload_normal
-	[ "$UPLOAD_TYPE" = "backup" ] && mytempo_upload_backup
-
-	sleep 5
+    [ "$UPLOAD_TYPE" = "normal" ] && mytempo_upload_normal
+    [ "$UPLOAD_TYPE" = "backup" ] && mytempo_upload_backup
 done
 

@@ -166,7 +166,8 @@ func (a *Ay) Process() {
 				switch action {
 				case lcdlogger.ACTION_RESET:
 					display.ScreenConfirma()
-				case lcdlogger.ACTION_UPLOAD: fallthrough
+				case lcdlogger.ACTION_UPLOAD:
+					fallthrough
 				case lcdlogger.ACTION_UPLOAD_BACKUP:
 					display.ScreenUpload()
 				default:
