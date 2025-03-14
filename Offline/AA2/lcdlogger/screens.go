@@ -18,6 +18,8 @@ const (
 	SCREEN_TIME
 	SCREEN_USB
 	SCREEN_INFO_EQUIP
+	SCREEN_UPLOAD
+	SCREEN_UPLOAD_BACKUP
 
 	SCREEN_COUNT
 )
@@ -188,6 +190,25 @@ func (display *SerialDisplay) ScreenInfoEquip(nome int) {
 	)
 }
 
+func (display *SerialDisplay) ScreenConfirmaUpload() {
+	display.DrawScreen(
+		fmt.Sprintf(
+			"%d lbl fwd %d lbl fwd %d lbl fwd fwd",
+			23, 24, 25,
+		),
+	)
+}
+
+func (display *SerialDisplay) ScreenConfirmaUploadBackup() {
+	
+	display.DrawScreen(
+		fmt.Sprintf(
+			"%d lbl fwd %d lbl fwd %d lbl fwd fwd",
+			23, 24, 26,
+		),
+	)
+}
+
 func (display *SerialDisplay) ScreenConfirma() {
 
 	display.DrawScreen(
@@ -213,6 +234,17 @@ func (display *SerialDisplay) ScreenProgress() {
 	)
 }
 
+func (display *SerialDisplay) ScreenUpload() {
+
+	display.DrawScreen(
+		fmt.Sprintf(
+			"fwd"+
+				" fwd %d lbl fwd fwd",
+			27,
+		),
+	)
+}
+
 func (display *SerialDisplay) ScreenErr() {
 
 	display.DrawScreen(
@@ -225,3 +257,4 @@ func (display *SerialDisplay) ScreenErr() {
 		),
 	)
 }
+

@@ -153,6 +153,10 @@ func (a *Ay) Process() {
 				)
 			case lcdlogger.SCREEN_INFO_EQUIP:
 				display.ScreenInfoEquip(NUM_EQUIP)
+			case lcdlogger.SCREEN_UPLOAD:
+				display.ScreenConfirmaUpload()
+			case lcdlogger.SCREEN_UPLOAD_BACKUP:
+				display.ScreenConfirmaUploadBackup()
 			}
 
 			display.SwitchScreens()
@@ -162,6 +166,9 @@ func (a *Ay) Process() {
 				switch action {
 				case lcdlogger.ACTION_RESET:
 					display.ScreenConfirma()
+				case lcdlogger.ACTION_UPLOAD: fallthrough
+				case lcdlogger.ACTION_UPLOAD_BACKUP:
+					display.ScreenUpload()
 				default:
 					display.ScreenProgress()
 				}
@@ -169,10 +176,10 @@ func (a *Ay) Process() {
 				err = nil
 
 				switch action {
-				case lcdlogger.ACTION_WIFI:
+				case lcdlogger.ACTION_UPLOAD:
 					UploadData()
 					select {}
-				case lcdlogger.ACTION_TIME: /* empty */
+				case lcdlogger.ACTION_UPLOAD_BACKUP:
 					UploadBackup()
 					select {}
 				case lcdlogger.ACTION_RESET:
