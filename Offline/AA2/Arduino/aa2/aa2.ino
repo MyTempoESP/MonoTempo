@@ -2,7 +2,7 @@
 #include <LiquidCrystal_I2C.h>
 //#include <Wire.h>
 //#include <HardwareSerial.h>
-#include <nanoFORTH.h>
+#include "nanoFORTH.h"
 #include <string.h>
 
 #define LABEL_COUNT 28
