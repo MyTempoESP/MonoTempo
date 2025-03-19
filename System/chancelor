@@ -73,6 +73,7 @@ do
 
     $MYTEMPO_DATA/Offline/stop.offline
 
+    [ "$UPLOAD_TYPE" = "reboot" ] && reboot
     [ "$UPLOAD_TYPE" = "normal" ] && mytempo_upload_normal
     [ "$UPLOAD_TYPE" = "backup" ] && mytempo_upload_backup
 

@@ -182,6 +182,9 @@ func (a *Ay) Process() {
 				case lcdlogger.ACTION_UPLOAD_BACKUP:
 					UploadBackup()
 					select {}
+				case lcdlogger.ACTION_REBOOT:
+					PCReboot()
+					select {}
 				case lcdlogger.ACTION_RESET:
 					{
 						hasKey := display.WaitKeyPress(5 * time.Second)

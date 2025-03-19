@@ -18,6 +18,12 @@ func ResetarTudo() (err error) {
 	return
 }
 
+func PCReboot() {
+	cmd := exec.Command("sh", "-c", "echo 'reboot' > /var/monotempo-data/sig-upload-data")
+	err := cmd.Run()
+	log.Println(err)
+}
+
 func UploadData() {
 	cmd := exec.Command("sh", "-c", "echo 'normal' > /var/monotempo-data/sig-upload-data")
 	err := cmd.Run()
