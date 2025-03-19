@@ -191,22 +191,8 @@ func (a *Ay) Process() {
 					PCReboot()
 					select {}
 				case lcdlogger.ACTION_RESET:
-					{
-						hasKey := display.WaitKeyPress(5 * time.Second)
-
-						if !hasKey { // timeout
-
-							continue
-						}
-
-						display.ScreenProgress()
-
-						// resetar equip
-
-						// err = ResetarTudo()
-						tagsFile.Clear()
-					}
-					fallthrough // resetar tags
+					ResetarTudo()
+					select {}
 				case lcdlogger.ACTION_TAGS:
 					{
 

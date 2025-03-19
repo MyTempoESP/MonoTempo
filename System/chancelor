@@ -62,10 +62,19 @@ mytempo_upload_normal() {
     mytempo_backup_all_prev_uploads
 }
 
-echo "Chancelor, Version 1.0.1"
+mytempo_clean() {
+
+    # XXX: this looks sus
+    
+    rm -rf $MYTEMPO_DATA/N*.db
+    rm -rf $MYTEMPO_DATA/backup/*
+    rm -rf $MYTEMPO_DATA/envio/*
+}
+
+echo "Chancelor, Version 1.1.0"
 
 echo "Backing up leftover data (if any)"
-test -e $MYTEMPO_DATA/database/N*.db \
+test -e $MYTEMPO_DATA/database/N0.db \
     && mytempo_save_backup_type backup
 
 while true;
@@ -77,6 +86,7 @@ do
 
     $MYTEMPO_DATA/Offline/stop.offline
 
+    [ "$UPLOAD_TYPE" = "reset"  ] && mytempo_clean
     [ "$UPLOAD_TYPE" = "reboot" ] && reboot
     [ "$UPLOAD_TYPE" = "normal" ] && mytempo_upload_normal
     [ "$UPLOAD_TYPE" = "backup" ] && mytempo_upload_backup

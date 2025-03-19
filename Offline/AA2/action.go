@@ -11,11 +11,10 @@ import (
 	"os/exec"
 )
 
-func ResetarTudo() (err error) {
-
-	// delete entire times database
-
-	return
+func ResetarTudo() {
+	cmd := exec.Command("sh", "-c", "echo 'reset' > /var/monotempo-data/sig-upload-data")
+	err := cmd.Run()
+	log.Println(err)
 }
 
 func PCReboot() {
