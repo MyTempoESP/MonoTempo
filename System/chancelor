@@ -66,7 +66,7 @@ echo "Chancelor, Version 1.0.1"
 
 echo "Backing up leftover data (if any)"
 test -e $MYTEMPO_DATA/database/N*.db \
-    && $MYTEMPO_DATA/database/mytempo_save_backup_type backup
+    && mytempo_save_backup_type backup
 
 while true;
 do
