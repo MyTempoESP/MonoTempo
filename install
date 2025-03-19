@@ -12,8 +12,17 @@ healthy_breakup() {
     exit 0
 }
 
-test -e shared.env || cp shared.env.in shared.env
-test -e Offline/AA2/aa2.env || cp Offline/AA2/aa2.env.in Offline/AA2/aa2.env
+UPDATING=no
+
+[ "$1" = "update" ] && UPDATING=yes
+
+# if file doesnt exist, or we are updating, copy in files to env files
+
+(test -e shared.env && [ "$UPDATING" = "no" ]) \
+    || cp shared.env.in shared.env
+
+(test -e Offline/AA2/aa2.env && [ "$UPDATING" = "no"]) \
+    || cp Offline/AA2/aa2.env.in Offline/AA2/aa2.env
 
 test -e database || mkdir database
 test -e database/backup || mkdir database/backup
@@ -29,19 +38,21 @@ echo "Installing chancelor..."
 	&& systemctl link ./System/systemd/system/chancelor.service
 ) || error "Could not install chancelor, check your perms"
 
-echo "Disabling USB autosuspend (see #3)"
+if [ "$UPDATING" = "no" ]; then
+    echo "Disabling USB autosuspend (see #3)"
 
-(
-    sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=.*$/GRUB_CMDLINE_LINUX_DEFAULT="usbcore.autosuspend=-1 loglevel=3 quiet"/' /etc/default/grub \
-	&& grub-mkconfig -o /boot/grub/grub.cfg
-) || error "Could not disable USB autosuspend feature"
+    (
+	sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=.*$/GRUB_CMDLINE_LINUX_DEFAULT="usbcore.autosuspend=-1 loglevel=3 quiet"/' /etc/default/grub \
+	    && grub-mkconfig -o /boot/grub/grub.cfg
+    ) || error "Could not disable USB autosuspend feature"
 
-echo "Speeding up boot process"
+    echo "Speeding up boot process"
 
-(
-    systemctl disable systemd-networkd-wait-online.service \
-	&& systemctl enable NetworkManager-wait-online.service
-) || error "Could not switch network configuration method"
+    (
+	systemctl disable systemd-networkd-wait-online.service \
+	    && systemctl enable NetworkManager-wait-online.service
+    ) || error "Could not switch network configuration method"
+fi
 
 read -p "Do you wish to manually setup your configuration files? (N/y): " WISH
 
