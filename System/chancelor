@@ -64,6 +64,9 @@ mytempo_upload_normal() {
 
 echo "Chancelor, Version 1.0.1"
 
+echo "Backing up leftover data"
+mytempo_save_backup_type backup
+
 while true;
 do
     $MYTEMPO_DATA/Offline/setup.offline
