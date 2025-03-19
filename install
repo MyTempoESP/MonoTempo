@@ -1,9 +1,15 @@
 #!/bin/sh
 
 error() {
-	echo "\033[31;1m$@\033[0m"
+    echo "\033[31;1m$@\033[0m"
 
-	exit 1
+    exit 1
+}
+
+healthy_breakup() {
+    echo "\033[32;1m$@\033[0m"
+
+    exit 0
 }
 
 test -e shared.env || cp shared.env.in shared.env
@@ -17,8 +23,8 @@ test -e database/sig-upload-data || mkfifo database/sig-upload-data
 echo "Installing chancelor..."
 
 (
-	mkdir -p "/usr/local/bin/"
-	sed 's;\(MYTEMPO_DATA=\);\1'"$(realpath .);" System/chancelor > "/usr/local/bin/chancelor" \
+    mkdir -p "/usr/local/bin/"
+    sed 's;\(MYTEMPO_DATA=\);\1'"$(realpath .);" System/chancelor > "/usr/local/bin/chancelor" \
 	&& chmod +x "/usr/local/bin/chancelor" \
 	&& systemctl link ./System/systemd/system/chancelor.service
 ) || error "Could not install chancelor, check your perms"
@@ -26,16 +32,53 @@ echo "Installing chancelor..."
 echo "Disabling USB autosuspend (see #3)"
 
 (
-	sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=.*$/GRUB_CMDLINE_LINUX_DEFAULT="usbcore.autosuspend=-1 loglevel=3 quiet"/' /etc/default/grub \
+    sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=.*$/GRUB_CMDLINE_LINUX_DEFAULT="usbcore.autosuspend=-1 loglevel=3 quiet"/' /etc/default/grub \
 	&& grub-mkconfig -o /boot/grub/grub.cfg
 ) || error "Could not disable USB autosuspend feature"
 
 echo "Speeding up boot process"
 
 (
-	systemctl disable systemd-networkd-wait-online.service \
+    systemctl disable systemd-networkd-wait-online.service \
 	&& systemctl enable NetworkManager-wait-online.service
 ) || error "Could not switch network configuration method"
 
-echo "All done! Please reboot your device for the changes to take place."
+read -p "Do you wish to manually setup your configuration files? (N/y): " WISH
 
+[ "WISH" != 'y' ] && healthy_breakup "All done! Please reboot for the changes to take effect."
+
+read -p "Please type the device ID (default: 501): " DEVICE_ID
+read -p "Type the device's reader type (impinj/chafon): " READER_TYPE
+read -p "Is your Arduino screen programmer detected as ACM or USB? (leave blank if you dont know): " SCREEN_PATH
+
+echo "Setting up shared.env"
+
+(
+    sed -i "s/MYTEMPO_READER_TYPE=.*$/MYTEMPO_READER_TYPE=$READER_TYPE/" shared.env \
+	&& sed -i "s/MYTEMPO_READER=.*$/MYTEMPO_READER=PORTAL LEITOR RFIDMY$DEVICE_ID/" shared.env \
+	&& sed -i "s/MYTEMPO_READER=.*$/MYTEMPO_EQUIP=PORTAL LEITOR RFIDMY$DEVICE_ID/" shared.env
+) || error "Could not setup shared.env"
+
+echo "Setting up Offline/AA2/aa2.env"
+
+READER_NAME=
+[ "$READER_TYPE" = "chafon" ] && READER_NAME=ca
+[ "$READER_TYPE" = "impinj" ] && READER_NAME=ff
+
+(    
+    sed -i "s/READER_NAME=.*$/READER_NAME=$READER_NAME/" Offline/AA2/aa2.env \
+	&& sed -i "s/READER_PATH=.*$/READER_PATH=/dev/tty${SCREEN_PATH:-USB}0/" Offline/AA2/aa2.env
+) || error "Something went wrong with the setup, i'm not really a sed expert"
+
+echo "Setting reader ip"
+
+[ "$READER_TYPE" = "chafon" ] \
+    && sed -i "s/READER_IP=.*$/READER_IP=192.168.1.200/" shared.env || error "Error setting reader IP address"
+
+if [ "$READER_TYPE" = "impinj" ]; then
+
+    read -p "Type the reader IP address: " READER_IP
+    sed -i "s/READER_IP=.*$/READER_IP=$READER_IP/" shared.env || error "Error setting reader IP address"
+fi
+
+healthy_breakup "All done! Please reboot for the changes to take effect."
