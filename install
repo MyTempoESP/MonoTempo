@@ -1,5 +1,11 @@
 #!/bin/sh
 
+error() {
+	echo "\033[31;1m$@\033[0m"
+
+	exit 1
+}
+
 test -e shared.env || cp shared.env.in shared.env
 test -e Offline/AA2/aa2.env || cp Offline/AA2/aa2.env.in Offline/AA2/aa2.env
 
@@ -10,13 +16,26 @@ test -e database/sig-upload-data || mkfifo database/sig-upload-data
 
 echo "Installing chancelor..."
 
-# fixed chancelor to local bin
-mkdir -p "/usr/local/bin/"
+(
+	mkdir -p "/usr/local/bin/"
+	sed 's;\(MYTEMPO_DATA=\);\1'"$(realpath .);" System/chancelor > "/usr/local/bin/chancelor" \
+	&& chmod +x "/usr/local/bin/chancelor" \
+	&& systemctl link ./System/systemd/system/chancelor.service
+) || error "Could not install chancelor, check your perms"
 
-sed 's;\(MYTEMPO_DATA=\);\1'"$(realpath .);" System/chancelor > "/usr/local/bin/chancelor" \
-&& chmod +x "/usr/local/bin/chancelor"                                                     \
-&& systemctl link ./System/systemd/system/chancelor.service                                \
-&& echo "Disabling USB autosuspend (see #3)"                                               \
-&& sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=.*$/GRUB_CMDLINE_LINUX_DEFAULT="usbcore.autosuspend=-1 loglevel=3 quiet"/' /etc/default/grub \
-&& grub-mkconfig -o /boot/grub/grub.cfg                                                    \
-&& echo "All done! Please reboot your device for the changes to take place."
+echo "Disabling USB autosuspend (see #3)"
+
+(
+	sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=.*$/GRUB_CMDLINE_LINUX_DEFAULT="usbcore.autosuspend=-1 loglevel=3 quiet"/' /etc/default/grub \
+	&& grub-mkconfig -o /boot/grub/grub.cfg
+) || error "Could not disable USB autosuspend feature"
+
+echo "Speeding up boot process"
+
+(
+	systemctl disable systemd-networkd-wait-online.service \
+	&& systemctl enable NetworkManager-wait-online.service
+) || error "Could not switch network configuration method"
+
+echo "All done! Please reboot your device for the changes to take place."
+
