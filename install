@@ -51,6 +51,9 @@ read -p "Please type the device ID (default: 501): " DEVICE_ID
 read -p "Type the device's reader type (impinj/chafon): " READER_TYPE
 read -p "Is your Arduino screen programmer detected as ACM or USB? (leave blank if you dont know): " SCREEN_PATH
 
+echo "Setting up hostname"
+(echo "my$DEVICE_ID" > /etc/hostname) || error "Could not set machine hostname"
+
 echo "Setting up shared.env"
 
 (
