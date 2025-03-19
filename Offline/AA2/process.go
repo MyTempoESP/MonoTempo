@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"strconv"
 	"sync/atomic"
 	"time"
 
@@ -78,9 +79,13 @@ func (a *Ay) Process() {
 		return
 	}
 
-	go func() {
+	NUM_EQUIP, err := strconv.Atoi(os.Getenv("MYTEMPO_DEVID"))
 
-		const NUM_EQUIP = 501
+	if err != nil {
+		return
+	}
+
+	go func() {
 
 		for {
 
