@@ -100,6 +100,28 @@ mytempo_clean() {
     rm -rf $MYTEMPO_DATA/database/envio/*
 }
 
+mytempo_count_tags_dir() {
+
+    # trivia: what is my tech stack? PAWS, Python AWk and Shell script
+    
+    python -c "print(sum([$((for i in $1/N*.db; do sqlite3 -line $i "select COUNT(1) from athletes_times"; done) | awk 'NF {print $3","}')]))"
+}
+
+mytempo_count_tags() {
+
+    echo "This may take a while"
+
+    local count=0
+    
+    for d in $MYTEMPO_DATA/database/envio/*
+    do
+	# math in shell!!!
+	count=$(($(mytempo_count_tags_dir "$d") + $count))
+    done
+
+    echo $count
+}
+
 echo "Chancelor, Version 1.1.0"
 
 echo "Backing up leftover data (if any)"
@@ -109,6 +131,9 @@ test -e $MYTEMPO_DATA/database/N0.db \
 
 while true;
 do
+    # set initial value of tag count
+    export TAG_COUNT_START_AT=$(mytempo_count_tags)
+    
     $MYTEMPO_DATA/Offline/setup.offline
 
     # wait for a signal

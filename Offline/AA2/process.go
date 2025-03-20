@@ -23,7 +23,20 @@ func (a *Ay) Process() {
 
 	tagSet := intSet.New()
 
+	tags_start_at := os.Getenv("TAG_COUNT_START_AT")
+
 	go func() {
+
+		if tags_start_at != "" {
+
+			tags_start_at, err := strconv.Atoi(tags_start_at)
+
+			if err != nil {
+				return
+			}
+
+			tags.Store(int64(tags_start_at))
+		}
 
 		for t := range a.Tags {
 
