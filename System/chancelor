@@ -18,17 +18,17 @@ mytempo_save() {
     mkdir -p $1 && mv $MYTEMPO_DATA/database/N*.db $1
 }
 
-mytempo_save_backup_type() {
+mytempo_backup_to() {
 
     mytempo_save "$MYTEMPO_DATA/database/$1/$(date +"%d.%m.%Y-%H_%M").$1"
 }
 
-mytempo_backup_all_prev_uploads() {
+mytempo_move_envio_to_backup() {
 
     mv $MYTEMPO_DATA/database/envio/* $MYTEMPO_DATA/database/backup
 }
 
-mytempo_upload_backup_type() {
+mytempo_upload_dir() {
 
     backup_dir=$MYTEMPO_DATA/database/$1
 
@@ -43,23 +43,18 @@ mytempo_upload_backup_type() {
 
 mytempo_upload_backup() {
 
-    # keep envio files for later
-    mytempo_save_backup_type envio
-
     mytempo_update
-    mytempo_upload_backup_type backup
+    mytempo_upload_dir backup
 }
 
 mytempo_upload_normal() {
 
     mytempo_update
-    mytempo_upload
 
-    # send unsent files (if any)
-    mytempo_upload_backup_type envio
+    # send files in envio directory (
+    mytempo_upload_dir envio
 
-    mytempo_save_backup_type backup
-    mytempo_backup_all_prev_uploads
+    mytempo_move_envio_to_backup
 }
 
 mytempo_dump_db() {
@@ -87,12 +82,10 @@ mytempo_dump_all() {
     do
 	mytempo_dump_db "$d" > /tmp/"dump$(basename "$d")"
     done
-    
-    mytempo_dump_db $MYTEMPO_DATA/database > /tmp/dump
 }
 
 mytempo_usb_save() {
-
+    
     mount /dev/sdb1 /mnt \
 	&& mytempo_dump_all \
 	&& mv /tmp/dump* /mnt \
@@ -103,7 +96,6 @@ mytempo_clean() {
 
     # XXX: this looks sus
     
-    rm -rf $MYTEMPO_DATA/database/N*.db
     rm -rf $MYTEMPO_DATA/database/backup/*
     rm -rf $MYTEMPO_DATA/database/envio/*
 }
@@ -112,7 +104,8 @@ echo "Chancelor, Version 1.1.0"
 
 echo "Backing up leftover data (if any)"
 test -e $MYTEMPO_DATA/database/N0.db \
-    && mytempo_save_backup_type backup
+    && mytempo_backup_to backup \
+    && mytempo_move_envio_to_backup
 
 while true;
 do
@@ -120,8 +113,12 @@ do
 
     # wait for a signal
     read UPLOAD_TYPE < $MYTEMPO_DATA/database/sig-upload-data
-
+    
     $MYTEMPO_DATA/Offline/stop.offline
+
+    # save databases independent of command just so we dont risk
+    # losing data
+    mytempo_backup_to envio
 
     [ "$UPLOAD_TYPE" = "save"   ] && mytempo_usb_save
     [ "$UPLOAD_TYPE" = "reset"  ] && mytempo_clean
