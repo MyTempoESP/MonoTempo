@@ -1,13 +1,11 @@
 package main
 
 import (
-	"log"
 	"os"
 	"strconv"
 	"sync/atomic"
 	"time"
 
-	"aa2/file"
 	"aa2/flick"
 	"aa2/intSet"
 	"aa2/lcdlogger"
@@ -24,13 +22,6 @@ func (a *Ay) Process() {
 	)
 
 	tagSet := intSet.New()
-
-	tagsFile, err := file.NewFile("tags")
-
-	if err != nil {
-
-		log.Println(err)
-	}
 
 	go func() {
 
@@ -50,9 +41,6 @@ func (a *Ay) Process() {
 			tagsUSB.Add(1)
 
 			tagSet.Insert(t.Epc)
-
-			//001000000000000036513:34:21.097
-			tagsFile.Insert(t.FormatoRefinado)
 		}
 	}()
 
@@ -201,11 +189,6 @@ func (a *Ay) Process() {
 
 						display.ScreenProgress()
 
-						// resetar equip
-
-						// err = ResetarTudo()
-						tagsFile.Clear()
-
 						ResetarTudo()
 						select {}
 					}
@@ -222,7 +205,7 @@ func (a *Ay) Process() {
 				case lcdlogger.ACTION_USB:
 					{
 
-						err = CopyToUSB(&device, &tagsFile)
+						err = CopyToUSB(&device)
 
 						if err == nil {
 

@@ -1,12 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"log"
-	"time"
 
-	c "aa2/constant"
-	file "aa2/file"
 	usb "aa2/usb"
 	"os/exec"
 )
@@ -35,7 +31,7 @@ func UploadBackup() {
 	log.Println(err)
 }
 
-func CopyToUSB(device *usb.Device, file *file.File) (err error) {
+func CopyToUSB(device *usb.Device) (err error) {
 
 	if !device.IsMounted {
 
@@ -49,18 +45,19 @@ func CopyToUSB(device *usb.Device, file *file.File) (err error) {
 		}
 	}
 
-	now := time.Now().In(c.ProgramTimezone)
+	//now := time.Now().In(c.ProgramTimezone)
 
 	log.Println("copying")
 
-	err = file.Upload(fmt.Sprintf("/mnt/MYTEMPO-%02d_%02d_%02d", now.Hour(), now.Minute(), now.Second()))
+	//err = file.Upload(fmt.Sprintf("/mnt/MYTEMPO-%02d_%02d_%02d", now.Hour(), now.Minute(), now.Second()))
+	/*
+		if err != nil {
 
-	if err != nil {
+			log.Println(err)
 
-		log.Println(err)
-
-		return
-	}
+			return
+		}
+	*/
 
 	err = device.Umount()
 
