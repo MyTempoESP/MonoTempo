@@ -88,7 +88,7 @@ mytempo_usb_save() {
     
     mount /dev/sdb1 /mnt \
 	&& mytempo_dump_all \
-	&& mv /tmp/dump* /mnt \
+	&& cat /tmp/dump* > /mnt/MYTEMPO_$(date +"%H_%M_%S").txt \
 	&& umount /mnt
 }
 
