@@ -113,13 +113,12 @@ mytempo_count_tags() {
 
     # pipe all output of this to /dev/null, since we just want
     # the side effect.
-    (
-	for d in $MYTEMPO_DATA/database/envio/*
-	do
-	    # math in shell!!!
-	    count=$(($(mytempo_count_tags_dir "$d") + $count))
-	done
-    ) 1> /dev/null 2> /dev/null && echo $count
+
+    for d in $MYTEMPO_DATA/database/envio/*
+    do
+	# math in shell!!!
+	count=$(($(mytempo_count_tags_dir "$d") + $count))
+    done 1> /dev/null 2> /dev/null && echo $count
 }
 
 echo "Chancelor, Version 1.1.0"
