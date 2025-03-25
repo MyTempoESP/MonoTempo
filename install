@@ -12,31 +12,52 @@ healthy_breakup() {
     exit 0
 }
 
-UPDATING=no
+# switch to update as default
+UPDATING=yes
+REMAKE_ENVIRONMENT=no
 
-[ "$1" = "update" ] && UPDATING=yes
+[ "$1" = "full" ] && UPDATING=no
 
-# if file doesnt exist, or we are updating, copy in files to env files
-
-(test -e shared.env && [ "$UPDATING" = "no" ]) \
-    || cp shared.env.in shared.env
-
-(test -e Offline/AA2/aa2.env && [ "$UPDATING" = "no" ]) \
-    || cp Offline/AA2/aa2.env.in Offline/AA2/aa2.env
+# sets REMAKE_ENVIRONMENT to yes if any one of these is true
+#       1. shared.env doesnt exist
+#       2. Offline/AA2/aa2.env doesnt exist
+#       3. there is an "(environment)" in the commit message
+#       4. the user answers "y" to the query
+(
+    ! test -e shared.env \
+	|| ! test -e Offline/AA2/aa2.env \
+	|| git log --format=%B -n 1 | head -n 1 | grep "(environment)" > /dev/null \
+	|| (
+	    read -p "Do you wish to manually reconfigure your configuration files? (N/y): " WISH ;
+	    [ "$WISH" = "y" ]
+	)
+) \
+    && REMAKE_ENVIRONMENT="yes" \
+    && (
+	cp shared.env.in shared.env
+	cp Offline/AA2/aa2.env.in Offline/AA2/aa2.env
+    )
 
 test -e database || mkdir database
 test -e database/backup || mkdir database/backup
 test -e database/envio || mkdir database/envio
 test -e database/sig-upload-data || mkfifo database/sig-upload-data
+test -e database/sig-device-operation || mkfifo database/sig-device-operation
 
-echo "Installing chancelor..."
+# easier to add scripts
+install_script() {
+    echo "Installing $1..."
 
-(
-    mkdir -p "/usr/local/bin/"
-    sed 's;\(MYTEMPO_DATA=\);\1'"$(realpath .);" System/chancelor > "/usr/local/bin/chancelor" \
-	&& chmod +x "/usr/local/bin/chancelor" \
-	&& systemctl link ./System/systemd/system/chancelor.service
-) || error "Could not install chancelor, check your perms"
+    (
+	mkdir -p "/usr/local/bin/"
+	sed 's;\(MYTEMPO_DATA=\);\1'"$(realpath .);" System/$1 > "/usr/local/bin/$1" \
+	    && chmod +x "/usr/local/bin/$1" \
+	    && systemctl link ./System/systemd/system/$1.service
+    ) || error "Could not install $1, check your perms"
+}
+
+install_script chancelor
+install_script provost
 
 if [ "$UPDATING" = "no" ]; then
     echo "Disabling USB autosuspend (see #3)"
@@ -54,15 +75,10 @@ if [ "$UPDATING" = "no" ]; then
     ) || error "Could not switch network configuration method"
 fi
 
-[ "$UPDATING" = "yes" ] \
-    && \
-    (
-	./build || error "Error while rebuilding the codebase, please file an issue at https://github.com/MyTempoESP/MonoTempo/issues/new?template=BLANK_ISSUE"
-    )
+./build || error "Error while rebuilding the codebase, please file an issue at https://github.com/MyTempoESP/MonoTempo/issues/new?template=BLANK_ISSUE"
 
-read -p "Do you wish to manually setup your configuration files? (N/y): " WISH
-
-[ "$WISH" != "y" ] && healthy_breakup "All done! Please reboot for the changes to take effect."
+# if does not remake env, die
+[ "$REMAKE_ENVIRONMENT" = "no" ] && healthy_breakup "All done! Please reboot for the changes to take effect."
 
 read -p "Please type the device ID (default: 501): " DEVICE_ID
 read -p "Type the device's reader type (impinj/chafon): " READER_TYPE

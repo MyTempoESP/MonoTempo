@@ -7,11 +7,9 @@ import (
 )
 
 func ResetWifi() {
-	cmd := exec.Command("/usr/bin/nmcli", "conn", "down", "MyTempo")
-	log.Println(cmd.Run())
-
-	cmd = exec.Command("/usr/bin/nmcli", "conn", "up", "MyTempo")
-	log.Println(cmd.Run())
+	cmd := exec.Command("sh", "-c", "echo 'wifi' > /var/monotempo-data/sig-upload-data")
+	err := cmd.Run()
+	log.Println(err)
 }
 
 func ResetarTudo() {
