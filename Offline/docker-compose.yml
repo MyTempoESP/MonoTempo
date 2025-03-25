@@ -1,14 +1,11 @@
 services:
   rabbitmq:
-    # FIXME: management is also a debug thing, get rid of it
-    image: rabbitmq:3-management
+    image: rabbitmq:3
     container_name: monotempo_rabbitmq
     restart: always
     ports:
       - "5672:5672"
-      - "15672:15672"
     environment:
-      # XXX: less of a security concern, but please set better credentials
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
 
