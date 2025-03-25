@@ -214,7 +214,7 @@ func (a *Ay) Process() {
 				display.ScreenConfirmaUploadBackup()
 			}
 
-			display.SwitchScreens()
+			//	display.SwitchScreens()
 
 			if action, hasAction := display.Action(); hasAction {
 
@@ -258,12 +258,13 @@ func (a *Ay) Process() {
 					}
 				case lcdlogger.ACTION_RESET:
 					{
-						hasKey := display.WaitKeyPress(5 * time.Second)
+						/*			hasKey := display.WaitKeyPress(5 * time.Second)
 
-						if !hasKey { // timeout
+									if !hasKey { // timeout
 
-							continue
-						}
+										continue
+									}
+						*/
 
 						display.ScreenProgress()
 

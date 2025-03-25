@@ -1,8 +1,4 @@
-//#include <EnableInterrupt.h>
 #include <LiquidCrystal_I2C.h>
-//#include <Wire.h>
-//#include <HardwareSerial.h>
-#include "nanoFORTH.h"
 #include <string.h>
 
 #define LABEL_COUNT 33
@@ -67,61 +63,46 @@ const char* values[] = {
   ": "
 };
 
-const char code[] PROGMEM =          ///< define preload Forth code here
-
-// Button.fth
-  "VAR bac\n"
-  "VAR bst\n"
-  "VAR ba2\n"
-  "VAR bs2\n"
-  ": btn 6 IN 0 = ;\n"
-  ": bt2 7 IN 0 = ;\n"
-  ": b1 btn DUP bst @ NOT AND IF 1 bac ! THN bst ! ;\n"
-  ": b2 bt2 DUP bs2 @ NOT AND IF 1 ba2 ! THN bs2 ! ;\n"
-  ": chb b1 b2 ;\n"
-  ": ba@ bac @ . ;\n"
-  ": b2@ ba2 @ . ;\n"
-
-// Screen.fth
-  ": lbl  5   API ;\n"
-  ": fwd  2   API ;\n"
-  ": lit  API fwd ;\n"
-  ": fnm  1   lit ;\n"
-  ": fni  1   API ;\n" // Multi-Column
-  ": num  4   lit ;\n"
-  ": nui  4   API ;\n" // Multi-Column
-  ": val  6   lit ;\n"
-  ": ip   7   lit ;\n"
-  ": ms   3   lit ;\n"
-  ": hms  256 ip  ;\n"
-  ": usb  12  lbl ;\n"
-  ": tim  11  lbl ;\n"
-  ": hex  16  fnm ;\n"
-  
-  // Text Decorations
-  ": a    7 6 API ;\n" // Multi-Column
-  ": spc  6 6 API ;\n" // Multi-Column
-  ": sep  8 6 API ;\n" // Multi-Column
-
-  // Antenna Data
-  ": atn " // ( N Mag N Mag N Mag N Mag -- )
-    "a 1 nui sep fni spc a 2 nui sep fnm "
-    "a 3 nui sep fni spc a 4 nui sep fnm "
-  ";\n"
-
-  "10 0 TMI chb 1 TME\n"
-;
-
 #define VIRT_SCR_COLS 20
 #define VIRT_SCR_ROWS 4
 
 uint8_t g_x, g_y;
 char g_virt_scr[VIRT_SCR_ROWS][VIRT_SCR_COLS];
 
-#define virt_scr_sprintf(fmt, ...) \
+#define virt_scr_sprintf(fmt, ...)																			\
   snprintf(g_virt_scr[g_y] + g_x, ((VIRT_SCR_COLS + 1) - g_x), fmt, __VA_ARGS__);
 
 LiquidCrystal_I2C lcd(0x27, VIRT_SCR_COLS, VIRT_SCR_ROWS);
+
+#define SERIAL_BUFSIZE 256
+char serial_buffer[SERIAL_BUFSIZE];
+
+bool new_data = false;
+
+int
+serial_recv_delimited()
+{
+	char start_delimiter = 0x3C;
+	char end_delimiter = 0x3E;
+
+	char rb;
+	int n;
+
+	new_data = false;
+
+	for (rb = 0; Serial.available() > 0; rb = Serial.read()) if (rb == start_delimiter) goto read_until_delimiter; return;
+
+ read_until_delimiter:
+	for (rb = Serial.read(), n = 0, new_data = true						\
+				 ; Serial.available() > 0														\
+				 && rb != end_delimiter															\
+				 && n < SERIAL_BUFSIZE - 1													\
+				 ; n++, rb = Serial.read()) serial_buffer[n] = rb;
+
+	serial_buffer[n] = '\0';
+
+	return n;
+}
 
 void
 setup()
@@ -133,18 +114,6 @@ setup()
 
   Serial.begin(115200);
   while(!Serial);
-
-  n4_setup(code);
-
-  n4_api(0, draw);
-  n4_api(1, print_forthNumber);
-  n4_api(2, forth_line_feed);
-  n4_api(3, forth_millis);
-
-  n4_api(4, forth_number);
-  n4_api(5, forth_label);
-  n4_api(6, forth_value);
-  n4_api(7, forth_ip);
 
   pinMode(7, INPUT_PULLUP);
   pinMode(6, INPUT_PULLUP);
@@ -265,5 +234,22 @@ draw()
 void
 loop()
 {
-  n4_run();
+	char* c;
+	
+	int count = serial_recv_delimited();
+
+	if (!new_data) return;
+	
+	char* start = serial_buffer;
+
+	for (int i = 0; i < VIRT_SCR_ROWS; i++) {
+		for (c = start; *c != '\0' && *c != '\n'; c++);
+		int len = c - start;
+		len = (len<(VIRT_SCR_COLS-1)?len:(VIRT_SCR_COLS-1));
+		memcpy(g_virt_scr[i], start, len);
+		g_virt_scr[i][len] = '\0';
+		if (*c == '\0') return;
+		
+		start = ++c;
+	}
 }

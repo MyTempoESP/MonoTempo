@@ -1,15 +1,11 @@
 package lcdlogger
 
 import (
-	"bytes"
-	"context"
+	"aa2/flick"
 	"log"
-	"regexp"
 	"time"
 
 	c "aa2/constant"
-
-	"aa2/flick"
 )
 
 type SerialDisplay struct {
@@ -30,17 +26,15 @@ func NewSerialDisplay() (display SerialDisplay, err error) {
 		return
 	}
 
-	f.Start()
-
-	f.Query("1 .")
+	f.Send("1 .")
 
 	display.Forth = &f
-
 	display.action = -1
 
 	return
 }
 
+/*
 func (display *SerialDisplay) WaitKeyPress(d time.Duration) (hasKey bool) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), d)
@@ -121,3 +115,4 @@ func (display *SerialDisplay) SwitchScreens() {
 		display.Forth.Send("0 ba2 !")
 	}
 }
+*/
