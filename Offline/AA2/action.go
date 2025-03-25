@@ -7,7 +7,7 @@ import (
 )
 
 func ResetWifi() {
-	cmd := exec.Command("sh", "-c", "echo 'wifi' > /var/monotempo-data/sig-upload-data")
+	cmd := exec.Command("sh", "-c", "echo 'wifi' > /var/monotempo-data/sig-device-operation")
 	err := cmd.Run()
 	log.Println(err)
 }
