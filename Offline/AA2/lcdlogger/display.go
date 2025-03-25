@@ -91,6 +91,8 @@ func (display *SerialDisplay) SwitchScreens() {
 
 	res = bytes.TrimSuffix(res, []byte{' ', 'o', 'k', '\n'})
 
+	log.Println(res)
+
 	m, err := regexp.Match("^[0-1] [0-1]$", res)
 
 	if err != nil || !m {
