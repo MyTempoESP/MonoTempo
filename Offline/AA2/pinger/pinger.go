@@ -19,7 +19,6 @@ func NewPinger(ip string, state *atomic.Bool, ping *atomic.Int64) (p *probing.Pi
 		return
 	}
 
-	p.Count = 0xFFFE
 	p.Interval = 4 * time.Second
 
 	p.OnSend = func(pkt *probing.Packet) {
@@ -40,8 +39,6 @@ func NewPinger(ip string, state *atomic.Bool, ping *atomic.Int64) (p *probing.Pi
 			ping.Store(pkt.Rtt.Milliseconds())
 		}
 	}
-
-	p.Run()
 
 	return
 }

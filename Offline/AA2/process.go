@@ -95,9 +95,11 @@ func (a *Ay) Process() {
 	var netState atomic.Bool
 	//var readerPing atomic.Int64
 
-	go pinger.NewPinger(readerIP, &readerState, nil)
-
+	ReaderPinger := pinger.NewPinger(readerIP, &readerState, nil)
 	WifiPinger := pinger.NewPinger("mytempo.esp.br", &netState, &netPing)
+
+	go ReaderPinger.Run()
+	go WifiPinger.Run()
 
 	display, displayErr := lcdlogger.NewSerialDisplay()
 
@@ -249,6 +251,8 @@ func (a *Ay) Process() {
 
 						WifiPinger.Stop()
 						WifiPinger = pinger.NewPinger("mytempo.esp.br", &netState, &netPing)
+
+						go WifiPinger.Run()
 					}
 				case lcdlogger.ACTION_RESET:
 					{
