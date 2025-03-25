@@ -82,6 +82,8 @@ func (display *SerialDisplay) SwitchScreens() {
 
 	// TODO: onrelease actions
 
+	<-time.After(100 * time.Millisecond)
+
 	res, err := display.Forth.Send("ba@ b2@")
 
 	if err != nil {
@@ -90,8 +92,6 @@ func (display *SerialDisplay) SwitchScreens() {
 	}
 
 	res = bytes.TrimSuffix(res, []byte{' ', 'o', 'k', '\n'})
-
-	log.Println(res)
 
 	m, err := regexp.Match("^[0-1] [0-1]$", res)
 
