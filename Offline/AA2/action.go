@@ -7,10 +7,10 @@ import (
 )
 
 func ResetWifi() {
-	cmd := exec.Command("nmcli", "conn", "down", "MyTempo")
+	cmd := exec.Command("/usr/bin/nmcli", "conn", "down", "MyTempo")
 	log.Println(cmd.Run())
 
-	cmd = exec.Command("nmcli", "conn", "up", "MyTempo")
+	cmd = exec.Command("/usr/bin/nmcli", "conn", "up", "MyTempo")
 	log.Println(cmd.Run())
 }
 
