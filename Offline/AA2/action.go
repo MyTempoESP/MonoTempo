@@ -8,7 +8,7 @@ import (
 
 func ResetWifi() {
 	cmd := exec.Command("sh", "-c", "nmcli conn down MyTempo; nmcli conn up MyTempo")
-	go cmd.Run()
+	go func() { log.Println(cmd.Run()) }()
 }
 
 func ResetarTudo() {
