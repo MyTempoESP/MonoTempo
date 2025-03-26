@@ -107,7 +107,7 @@ mytempo_usb_save_stats() {
 	&& (
 	mytempo_dump_all "select athlete_num, MIN(athlete_time) from athletes_times group by athlete_num" \
 	    &&  cat /tmp/dump* \
-		| awk 'NF {print $0}' > /mnt/MYTEMPO_"$(date +"%H_%M_%S")".txt \
+		| awk 'NF {print $0}' > /mnt/MYTEMPO_"$(date +"%H_%M_%S")"_TAGS_UNICAS.txt \
 	    ;   umount /mnt
     )
 }
@@ -161,6 +161,8 @@ test -e "$MYTEMPO_DATA"/database/N0.db \
 
 while true;
 do
+    rm "$MYTEMPO_DATA"/database/equipamento.db
+    
     # set initial value of tag count
     TAG_COUNT_START_AT=$(mytempo_count_tags)
     export TAG_COUNT_START_AT
