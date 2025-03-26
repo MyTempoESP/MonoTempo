@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -o xtrace
+
 # mytempo directory
 MYTEMPO_DATA=
 
