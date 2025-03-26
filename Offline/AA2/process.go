@@ -279,7 +279,7 @@ func (a *Ay) Process() {
 						tagSet.Clear()
 					}
 				default:
-					continue // no action
+					goto out // no action
 				}
 
 				<-time.After(1 * time.Second) // min 1 sec
@@ -293,6 +293,7 @@ func (a *Ay) Process() {
 					continue
 				}
 			}
+		out:
 
 			time.Sleep(50 * time.Millisecond)
 		}
