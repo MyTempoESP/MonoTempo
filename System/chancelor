@@ -4,44 +4,57 @@ set -o xtrace
 
 # mytempo directory
 MYTEMPO_DATA=
+DATABASE_DIR="$MYTEMPO_DATA"/database
+BACKUP_DIR="$DATABASE_DIR"/backup
+ENVIO_DIR="$DATABASE_DIR"/database/envio
+
+not_empty() {
+    
+    [ "$(ls -A "$1")" ]
+}
 
 mytempo_upload() {
 
-    "$MYTEMPO_DATA/Online/setup.online" "${1:-$MYTEMPO_DATA/database}" upload
+    "$MYTEMPO_DATA"/Online/setup.online "$(realpath "$1")" upload
 }
 
 mytempo_update() {
 
-    "$MYTEMPO_DATA/Online/setup.online" "$MYTEMPO_DATA/database" update
+    "$MYTEMPO_DATA"/Online/setup.online "$DATABASE_DIR" update
 }
 
 mytempo_save() {
 
-    mkdir -p "$1" && mv "$MYTEMPO_DATA"/database/N*.db "$1"
+    # moves all database files to directory specified by $1, which
+    # will be created, along with its parents, if it doesn't exist
+    
+    mkdir -p "$1" && mv "$DATABASE_DIR"/N*.db "$1"
 }
 
 mytempo_backup_to() {
 
-    mytempo_save "$MYTEMPO_DATA/database/$1/$(date +"%d.%m.%Y-%H_%M").$1"
+    # $1 -> envio/backup, destination for the backup file to be created
+    # the database files will be put in a directory named "DAY.MONTH.YEAR-HOUR_MINUTE.(envio/backup)"
+    # under the specified destination.
+    
+    mytempo_save "$DATABASE_DIR"/"$1"/"$(date +"%d.%m.%Y-%H_%M").$1"
 }
 
 mytempo_move_envio_to_backup() {
 
-    mv "$MYTEMPO_DATA"/database/envio/* "$MYTEMPO_DATA/database/backup"
+    not_empty "$ENVIO_DIR" \
+	      && mv "$ENVIO_DIR"/* "$BACKUP_DIR"
 }
 
 mytempo_upload_dir() {
 
-    backup_dir="$MYTEMPO_DATA"/database/$1
+    not_empty "$BACKUP_DIR" \
+	&& for d in "$BACKUP_DIR"/*; do
 
-    # check if directory is not empty
-    [ "$(ls -A "$backup_dir")" ] \
-	&& for d in "$backup_dir"/*; do
-
-	cp "$MYTEMPO_DATA/database/equipamento.db" "$d"
+	cp "$DATABASE_DIR"/equipamento.db "$d"
 
 	# actual volume directory
-	mytempo_upload "$(realpath "$d")"
+	mytempo_upload "$d"
     done
 }
 
@@ -78,14 +91,14 @@ mytempo_dump_db() {
 mytempo_dump_all() {
 
     echo "This may take a while..."
-    
-    for d in "$MYTEMPO_DATA"/database/backup/*
-    do
+
+    not_empty "$BACKUP_DIR" \
+	&& for d in "$BACKUP_DIR"/*; do
 	mytempo_dump_db "$d" "$1" > /tmp/"dump$(basename "$d")"
     done
 
-    for d in "$MYTEMPO_DATA"/database/envio/*
-    do
+    not_empty "$ENVIO_DIR" \
+	&& for d in "$ENVIO_DIR"/*; do
 	mytempo_dump_db "$d" "$1" > /tmp/"dump$(basename "$d")"
     done
 }
@@ -118,10 +131,12 @@ mytempo_usb_save_stats() {
 
 mytempo_clean() {
 
-    # XXX: this looks sus
+    # XXX
+    not_empty "${BACKUP_DIR:?}" \
+	&& rm -rf "${BACKUP_DIR:?}"/*
     
-    rm -rf "$MYTEMPO_DATA"/database/backup/*
-    rm -rf "$MYTEMPO_DATA"/database/envio/*
+    not_empty "${ENVIO_DIR:?}" \
+	&& rm -rf "${ENVIO_DIR:?}"/*
 }
 
 mytempo_count_tags_dir() {
@@ -138,34 +153,33 @@ mytempo_count_tags() {
     # pipe all output of this to /dev/null, since we just want
     # the side effect.
 
-    for d in "$MYTEMPO_DATA"/database/envio/*
-    do
-	# math in shell!!!
+    not_empty "$ENVIO_DIR" \
+	&& for d in "$ENVIO_DIR"/*; do
 	count=$(( $(mytempo_count_tags_dir "$d") + "$count" ))
     done 1> /dev/null 2> /dev/null && echo $count
 }
 
 mytempo_populate_tags() {
 
-    for d in "$MYTEMPO_DATA"/database/envio/*
-    do
-	for i in "$d"/N*.db
-	do
+    not_empty "$ENVIO_DIR" \
+	&& for d in "$ENVIO_DIR"/*; do
+	not_empty "$d" \
+	    && for i in "$d"/N*.db; do
 	    sqlite3 -line "$i" "select distinct athlete_num from athletes_times"
 	done
-    done 2> /dev/null | awk 'NF {print $3}' > "$MYTEMPO_DATA"/database/TAGS
+    done 2> /dev/null | awk 'NF {print $3}' > "$DATABASE_DIR"/TAGS
 }
 
 echo "Chancelor, Version 1.1.0"
 
 echo "Backing up leftover data (if any)"
-test -e "$MYTEMPO_DATA"/database/N0.db \
+test -e "$DATABASE_DIR"/N0.db \
     && mytempo_backup_to backup \
     && mytempo_move_envio_to_backup
 
 while true;
 do
-    rm "$MYTEMPO_DATA"/database/equipamento.db
+    rm "$DATABASE_DIR"/equipamento.db
     
     # set initial value of tag count
     TAG_COUNT_START_AT=$(mytempo_count_tags)
@@ -175,7 +189,7 @@ do
     "$MYTEMPO_DATA"/Offline/setup.offline
 
     # wait for a signal
-    read -r UPLOAD_TYPE < "$MYTEMPO_DATA"/database/sig-upload-data
+    read -r UPLOAD_TYPE < "$DATABASE_DIR"/sig-upload-data
     
     "$MYTEMPO_DATA"/Offline/stop.offline
 
