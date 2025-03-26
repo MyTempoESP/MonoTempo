@@ -111,6 +111,7 @@ func (a *Ay) Process() {
 	NUM_EQUIP, err := strconv.Atoi(os.Getenv("MYTEMPO_DEVID"))
 
 	if err != nil {
+
 		return
 	}
 
@@ -212,6 +213,9 @@ func (a *Ay) Process() {
 				display.ScreenConfirmaUpload()
 			case lcdlogger.SCREEN_UPLOAD_BACKUP:
 				display.ScreenConfirmaUploadBackup()
+
+			case lcdlogger.SCREEN_TAG_RELATORIO:
+
 			}
 
 			display.SwitchScreens()

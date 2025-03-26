@@ -1,0 +1,13 @@
+#!/bin/sh
+
+systemctl disable chancelor
+systemctl disable provost
+
+git reset --hard HEAD
+
+rm shared.env
+rm Offline/AA2/aa2.env
+
+./Offline/stop.offline
+
+docker system prune -a -f --volumes

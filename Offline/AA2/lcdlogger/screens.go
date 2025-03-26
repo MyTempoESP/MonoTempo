@@ -19,6 +19,7 @@ const (
 	SCREEN_INFO_EQUIP
 	SCREEN_UPLOAD
 	SCREEN_UPLOAD_BACKUP
+	SCREEN_TAG_RELATORIO
 
 	SCREEN_COUNT
 )
@@ -191,6 +192,10 @@ func (display *SerialDisplay) ScreenInfoEquip(nome int) {
 			LABEL_ACTION_APAGA, 6,
 		),
 	)
+}
+
+func (display *SerialDisplay) ScreenTagRelatorio() {
+
 }
 
 func (display *SerialDisplay) ScreenConfirmaUpload() {
