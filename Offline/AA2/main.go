@@ -47,7 +47,7 @@ func (a *Ay) StartConsumers() (channel *amqp.Channel, err error) {
 	return
 }
 
-func filhoDaPutaVaiSeFuderArrombado(e) {
+func filhoDaPutaVaiSeFuderArrombado(e error) {
 	cmd := exec.Command("sh", "-c", "echo 'fatal' > /var/monotempo-data/sig-upload-data")
 	err := cmd.Run()
 	log.Println(err, e)
