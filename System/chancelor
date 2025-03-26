@@ -34,7 +34,9 @@ mytempo_upload_dir() {
 
     backup_dir="$MYTEMPO_DATA"/database/$1
 
-    for d in "$backup_dir"/*; do
+    # check if directory is not empty
+    [ "$(ls -A "$backup_dir")" ] \
+	&& for d in "$backup_dir"/*; do
 
 	cp "$MYTEMPO_DATA/database/equipamento.db" "$d"
 
@@ -177,6 +179,8 @@ do
     
     "$MYTEMPO_DATA"/Offline/stop.offline
 
+    mytempo_backup_to envio
+    
     case "$UPLOAD_TYPE" in
 	 "stats") mytempo_usb_save_stats ;;
 	"backup") mytempo_upload_backup ;;
@@ -185,8 +189,6 @@ do
 	 "reset") mytempo_clean ;;
 	"reboot") reboot ;;
     esac
-
-    mytempo_backup_to envio
     
     sleep 5
 done
