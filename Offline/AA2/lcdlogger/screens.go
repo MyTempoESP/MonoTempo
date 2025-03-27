@@ -21,6 +21,7 @@ const (
 	SCREEN_UPLOAD_BACKUP
 	SCREEN_TAG_RELATORIO
 	SCREEN_ATUALIZA
+	SCREEN_REBOOT
 
 	SCREEN_COUNT
 )
@@ -74,6 +75,12 @@ func (display *SerialDisplay) ScreenTags(nome, commVerif int, tags, tagsUnicas F
 			LABEL_ACTION_TELA, 6,
 		),
 	)
+}
+
+func (display *SerialDisplay) ScreenReboot() {
+	display.DrawScreen(
+		"fwd fwd fwd" +
+			"60 83 84 65 82 84 58 32 82 69 73 78 73 67 73 65 82 62 18 64 lbl fwd")
 }
 
 func (display *SerialDisplay) ScreenWifi(nome, commVerif int, leitorOk, wifiOk int, wifiPing int64) {

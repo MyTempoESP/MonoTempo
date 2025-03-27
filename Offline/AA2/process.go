@@ -289,6 +289,11 @@ func (a *Ay) Process() {
 
 						Lte4gPinger.Stop()
 					}
+				case lcdlogger.ACTION_REBOOT:
+					{
+						PCReboot()
+						select {}
+					}
 				case lcdlogger.ACTION_RESET:
 					{
 						hasKey := display.WaitKeyPress(5 * time.Second)
