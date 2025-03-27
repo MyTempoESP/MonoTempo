@@ -101,12 +101,19 @@ func (a *Ay) Process() {
 	//var readerPing atomic.Int64
 
 	var WifiPinger *probing.Pinger
+	var Lte4gPinger *probing.Pinger
 
 	ReaderPinger := pinger.NewPinger(readerIP, &readerState, nil)
-	Lte4gPinger := pinger.NewPinger("192.168.100.1", &lte4gState, nil)
 
-	go Lte4gPinger.Run()
 	go ReaderPinger.Run()
+	go func() {
+		for {
+			Lte4gPinger = pinger.NewPinger("192.168.100.1", &lte4gState, nil)
+			Lte4gPinger.Run()
+			<-time.After(1 * time.Second)
+			log.Println("4gPING STOPPED")
+		}
+	}()
 	go func() {
 		for {
 			WifiPinger = pinger.NewPinger("mytempo.esp.br", &netState, &netPing)
@@ -278,8 +285,9 @@ func (a *Ay) Process() {
 					}
 				case lcdlogger.ACTION_4G_RESET:
 					{
-						PCReboot()
-						select {}
+						Reset4g()
+
+						Lte4gPinger.Stop()
 					}
 				case lcdlogger.ACTION_RESET:
 					{
