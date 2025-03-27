@@ -99,13 +99,13 @@ func (a *Ay) Process() {
 	//var readerPing atomic.Int64
 
 	ReaderPinger := pinger.NewPinger(readerIP, &readerState, nil)
-	WifiPinger := pinger.NewPinger("mytempo.esp.br", &netState, &netPing)
 	Lte4gPinger := pinger.NewPinger("192.168.100.1", &lte4gState, nil)
 
 	go Lte4gPinger.Run()
 	go ReaderPinger.Run()
 	go func() {
 		for {
+			WifiPinger := pinger.NewPinger("mytempo.esp.br", &netState, &netPing)
 			WifiPinger.Run()
 			<-time.After(1 * time.Second)
 			log.Println("PING STOPPED")
