@@ -196,11 +196,11 @@ func (display *SerialDisplay) ScreenInfoEquip(nome int) {
 }
 
 func (display *SerialDisplay) ScreenTagRelatorio() {
-	display.DrawScreen("5 lbl")
+	display.DrawScreen("fwd fwd fwd 33 lbl fwd")
 }
 
 func (display *SerialDisplay) ScreenAtualiza() {
-	display.DrawScreen("10 lbl")
+	display.DrawScreen("fwd fwd fwd 34 lbl fwd")
 }
 
 func (display *SerialDisplay) ScreenConfirmaUpload() {

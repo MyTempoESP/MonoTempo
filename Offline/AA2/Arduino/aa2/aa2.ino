@@ -5,7 +5,7 @@
 #include "nanoFORTH.h"
 #include <string.h>
 
-#define LABEL_COUNT 33
+#define LABEL_COUNT 35
 
 const char* labels[] = {
   "PORTAL   My",
@@ -47,10 +47,13 @@ const char* labels[] = {
   "<START: RESET WIFI>",
   "<START: RESET 4G>",
   "<START: BACKUP USB>",
-  "<START: APAGA TUDO>" // 32
+  "<START: APAGA TUDO>", // 32
+
+	"<START: RELATORIO>",
+	"<START: ATUALIZAR>" // 34
 };
 const int labels_len[LABEL_COUNT] = {
-  11,9,9,12,7,8,6,4,7,7,6,6,5,10,12,11,9,9,9,9,14,7,6,18,17,10,11,19,19,19,17,19,19
+  11,9,9,12,7,8,6,4,7,7,6,6,5,10,12,11,9,9,9,9,14,7,6,18,17,10,11,19,19,19,17,19,19,18,18
 };
 
 #define VALUE_COUNT 9
@@ -223,7 +226,11 @@ forth_label()
 {
   int v;
 
-  if ((v = n4_pop()) >= LABEL_COUNT || v < 0) return;
+  if ((v = n4_pop()) >= LABEL_COUNT || v < 0) {
+		char c,b[VIRT_SCR_COLS];for(int s=n4_pop(),b[s--]='\0';(s<=0)&&(c!=0);c=n4_pop(),b[s--]=c);
+		g_x+=virt_scr_sprintf("%s",b);
+		return;
+	}
 
   g_x = labels_len[v];
 
