@@ -57,6 +57,7 @@ func filhoDaPutaVaiSeFuderArrombado(e error) {
 
 func main() {
 	if constant.VersionNum == "" {
+		log.Println(constant.VersionNum)
 		constant.VersionNum = "0000"
 	}
 
