@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"encoding/json"
+
 	"github.com/MyTempoESP/Reenvio/atleta"
 )
 
@@ -137,11 +138,8 @@ func (reenvio *Reenvio) TentarReenvio(lotes <-chan []atleta.Atleta) (err error) 
 				return
 			}
 
-			err = reenvio.Upload(tempos)
-
-			if err != nil {
-				return
-			}
+			// TODO: log to file
+			log.Println(reenvio.Upload(tempos))
 		case <-timeoutMon:
 			err = fmt.Errorf("Timeout, deixando para enviar depois")
 			return
