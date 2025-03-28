@@ -234,6 +234,8 @@ func (a *Ay) Process() {
 				display.ScreenTagRelatorio()
 			case lcdlogger.SCREEN_ATUALIZA:
 				display.ScreenAtualiza()
+			case lcdlogger.SCREEN_REFRESH:
+				display.ScreenRefresh()
 			}
 
 			display.SwitchScreens()
@@ -273,6 +275,11 @@ func (a *Ay) Process() {
 				case lcdlogger.ACTION_WIFI_RESET:
 					{
 						ResetWifi()
+					}
+				case lcdlogger.ACTION_REFRESH:
+					{
+						Refresh()
+						select {}
 					}
 				case lcdlogger.ACTION_4G_RESET:
 					{

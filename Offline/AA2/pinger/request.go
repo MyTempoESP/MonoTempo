@@ -68,6 +68,8 @@ func NewJSONPinger(state *atomic.Bool) {
 	for {
 		<-tick.C
 
-		state.Store(JSONSimpleRequest(infoRota, data) == nil)
+		err := JSONSimpleRequest(infoRota, data)
+		state.Store(err == nil)
+		log.Println(err)
 	}
 }

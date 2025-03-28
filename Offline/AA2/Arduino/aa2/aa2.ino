@@ -5,7 +5,7 @@
 #include "nanoFORTH.h"
 #include <string.h>
 
-#define LABEL_COUNT 35
+#define LABEL_COUNT 36
 
 const char* labels[] = {
   "PORTAL   My",
@@ -50,10 +50,11 @@ const char* labels[] = {
   "<START: APAGA TUDO>", // 32
 
 	"<START: RELATORIO>",
-	"<START: ATUALIZAR>" // 34
+	"<START: ATUALIZAR>", // 34
+	"<START: RECARREGAR>" // 35
 };
 const int labels_len[LABEL_COUNT] = {
-  11,9,9,12,7,8,6,4,7,7,6,6,5,10,12,11,9,9,9,9,14,7,6,18,17,10,11,19,19,19,17,19,19,18,18
+  11,9,9,12,7,8,6,4,7,7,6,6,5,10,12,11,9,9,9,9,14,7,6,18,17,10,11,19,19,19,17,19,19,18,18,20
 };
 
 #define VALUE_COUNT 11

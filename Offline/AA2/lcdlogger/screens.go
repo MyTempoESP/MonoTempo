@@ -21,6 +21,7 @@ const (
 	SCREEN_UPLOAD_BACKUP
 	SCREEN_TAG_RELATORIO
 	SCREEN_ATUALIZA
+	SCREEN_REFRESH
 	//	SCREEN_REBOOT
 
 	SCREEN_COUNT
@@ -208,6 +209,10 @@ func (display *SerialDisplay) ScreenTagRelatorio() {
 
 func (display *SerialDisplay) ScreenAtualiza() {
 	display.DrawScreen(fmt.Sprintf("fwd %d lbl $%4s hex fwd 34 lbl fwd", LABEL_SIST, c.VersionNum))
+}
+
+func (display *SerialDisplay) ScreenRefresh() {
+	display.DrawScreen("fwd fwd fwd 35 lbl fwd")
 }
 
 func (display *SerialDisplay) ScreenConfirmaUpload() {

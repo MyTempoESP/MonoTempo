@@ -188,7 +188,7 @@ test -e "$DATABASE_DIR"/N0.db \
     && mytempo_backup_to backup \
     && mytempo_move_envio_to_backup
 
-VERSION_NUMBER_AA2=$(git rev-list --count --all)
+VERSION_NUMBER_AA2=$(cd "$MYTEMPO_DATA" && git rev-list --count --all)
 export VERSION_NUMBER_AA2
 
 while true;
@@ -200,7 +200,7 @@ do
     TAG_COUNT_START_AT=$(mytempo_count_tags)
     export TAG_COUNT_START_AT
 
-    echo "Booting version #{$VERSION_NUMBER_AA2:-0}"
+    echo "Booting version #${VERSION_NUMBER_AA2:-0}"
     
     mytempo_populate_tags
     
