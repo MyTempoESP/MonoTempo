@@ -61,23 +61,13 @@ func NewJSONPinger(state *atomic.Bool) {
 	infoRota := fmt.Sprintf("http://%s/status/device", url)
 
 	tick := time.NewTicker(4 * time.Second)
+	data := Form{
+		"deviceId": os.Getenv("MYTEMPO_EQUIP"),
+	}
 
 	for {
 		<-tick.C
 
-		data := Form{
-			"deviceId": os.Getenv("MYTEMPO_EQUIP"),
-		}
-
-		err := JSONSimpleRequest(infoRota, data)
-
-		if err != nil {
-
-			state.Store(false)
-
-			continue
-		}
-
-		state.Store(true)
+		state.Store(JSONSimpleRequest(infoRota, data) == nil)
 	}
 }
