@@ -25,6 +25,6 @@ func UploadBackup()       { CMD("backup") }
 func AtualizarEquip()     { CMD("update") }
 func CreateUSBRelatorio() { CMD("stats") }
 func ResetarTudo()        { CMD("reset") }
-func ResetWifi()          { AUX("wifi") }
+func ResetWifi()          { AUX("reset") }
 func Reset4g()            { AUX("lte4g") }
 func CopyToUSB()          { CMD("save") }

@@ -6,6 +6,7 @@ log objects to functions so they don't really bother us
 */
 
 import (
+	"aa2/constant"
 	"log"
 	"os/exec"
 
@@ -55,6 +56,10 @@ func filhoDaPutaVaiSeFuderArrombado(e error) {
 }
 
 func main() {
+	if constant.VersionNum == "" {
+		constant.VersionNum = "0000"
+	}
+
 	for {
 		var a Ay
 

@@ -188,6 +188,9 @@ test -e "$DATABASE_DIR"/N0.db \
     && mytempo_backup_to backup \
     && mytempo_move_envio_to_backup
 
+VERSION_NUMBER_AA2=$(git rev-list --count --all)
+export VERSION_NUMBER_AA2
+
 while true;
 do
     rm "$DATABASE_DIR"/*-journal

@@ -207,7 +207,7 @@ func (display *SerialDisplay) ScreenTagRelatorio() {
 }
 
 func (display *SerialDisplay) ScreenAtualiza() {
-	display.DrawScreen("fwd fwd fwd 34 lbl fwd")
+	display.DrawScreen(fmt.Sprintf("fwd %d lbl $%4s hex fwd 34 lbl fwd", LABEL_SIST, c.VersionNum))
 }
 
 func (display *SerialDisplay) ScreenConfirmaUpload() {

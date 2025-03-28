@@ -44,7 +44,7 @@ const char* labels[] = {
   "UPLOAD EM ANDAMENTO", // 27
 
   "<START: RESET TELA>",
-  "<START: RESET WIFI>",
+  "<START: RECONECTAR>",
   "<START: RESET 4G>",
   "<START: BACKUP USB>",
   "<START: APAGA TUDO>", // 32
@@ -56,7 +56,7 @@ const int labels_len[LABEL_COUNT] = {
   11,9,9,12,7,8,6,4,7,7,6,6,5,10,12,11,9,9,9,9,14,7,6,18,17,10,11,19,19,19,17,19,19,18,18
 };
 
-#define VALUE_COUNT 9
+#define VALUE_COUNT 11
 
 const char* values[] = {
   "WEB",
@@ -67,7 +67,9 @@ const char* values[] = {
   "X",
   "  ",
   "A",
-  ": "
+  ": ",
+	"SIM",
+	"NAO"
 };
 
 const char code[] PROGMEM =          ///< define preload Forth code here

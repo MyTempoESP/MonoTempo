@@ -153,10 +153,10 @@ func (a *Ay) Process() {
 					ok = flick.DESLIGAD
 				}
 
-				wiok := flick.OK
+				wiok := 10
 				if !netState.Load() {
 
-					wiok = flick.X
+					wiok = 9
 				}
 
 				display.ScreenWifi(
@@ -277,7 +277,6 @@ func (a *Ay) Process() {
 				case lcdlogger.ACTION_4G_RESET:
 					{
 						Reset4g()
-
 						Lte4gPinger.Stop()
 					}
 				case lcdlogger.ACTION_RESET:
@@ -296,7 +295,6 @@ func (a *Ay) Process() {
 					}
 				case lcdlogger.ACTION_TAGS:
 					{
-
 						for i := range 4 {
 							antennas[i].Store(0)
 						}

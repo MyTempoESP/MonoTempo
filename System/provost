@@ -18,10 +18,17 @@ reset_lte4g() {
     nmcli -w 10 conn up chip
 }
 
+reset_all() {
+
+    reset_lte4g
+    reset_wifi
+}
+
 while true
 do
     read -r COMMAND < "$MYTEMPO_DATA"/database/sig-device-operation
 
-    [ "$COMMAND" =  "wifi" ] && reset_wifi
+    [ "$COMMAND" = "reset" ] && reset_all
     [ "$COMMAND" = "lte4g" ] && reset_lte4g
+    [ "$COMMAND" =  "wifi" ] && reset_wifi
 done
