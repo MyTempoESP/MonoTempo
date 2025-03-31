@@ -264,7 +264,7 @@ public:
 #endif
 
   void SetFrequency();
-  void Buzzer();
+  void Buzzer(DevicePara *param);
 
   STATUS close(void);
   STATUS openAndFetchParams(DevicePara *param);
