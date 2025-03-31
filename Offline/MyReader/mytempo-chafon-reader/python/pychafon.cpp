@@ -20,6 +20,7 @@ pychafon_make_reader(PyObject* self, PyObject* args) {
 	DevicePara param;
 
 	DEFER(reader->openAndFetchParams(&param), quit);
+	DEFER(reader->Buzzer(&param), quit);
 
 	Py_RETURN_NONE;
 quit:

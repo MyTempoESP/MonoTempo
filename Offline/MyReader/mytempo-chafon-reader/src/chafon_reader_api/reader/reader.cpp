@@ -63,6 +63,13 @@ STATUS Reader::openAndFetchParams(DevicePara *param) {
   return OK;
 }
 
+void Reader::Buzzer(DevicePara *param) {
+  
+  param->BUZZERTIME = 100;
+
+  result = SetDevicePara(handle, *param);
+}
+
 void Reader::SetFrequency() { // TODO: incomplete
   int region = 0;
 
