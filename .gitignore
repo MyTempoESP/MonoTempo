@@ -2,3 +2,4 @@
 *.env
 database
 .vs
+/Offline/AA2/Arduino/aa2/.vscode
