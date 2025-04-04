@@ -219,8 +219,7 @@ bool parse_time(SafeString &timeField)
   return true;
 }
 
-static void
-parse_data(SafeString &msg)
+bool parse_data(SafeString &msg)
 {
   cSF(field, 11);
 
@@ -232,18 +231,18 @@ parse_data(SafeString &msg)
 
   if (field != "$MYTMP")
   {
-    return;
+    return false;
   }
 
   idx = msg.stoken(field, idx, delims, returnEmptyFields);
 
   if (!field.toInt64_t(g_system_data.tags))
-    return;
+    return false;
 
   idx = msg.stoken(field, idx, delims, returnEmptyFields);
 
   if (!field.toInt(g_system_data.unique_tags))
-    return;
+    return false;
 
   idx = msg.stoken(field, idx, delims, returnEmptyFields);
 
@@ -264,22 +263,24 @@ parse_data(SafeString &msg)
   idx = msg.stoken(field, idx, delims, returnEmptyFields);
 
   if (!field.toInt(g_system_data.sys_version))
-    return;
+    return false;
 
   idx = msg.stoken(field, idx, delims, returnEmptyFields);
 
   if (!field.toInt(g_system_data.backups))
-    return;
+    return false;
 
   idx = msg.stoken(field, idx, delims, returnEmptyFields);
 
   if (!field.toInt(g_system_data.envios))
-    return;
+    return false;
 
   idx = msg.stoken(field, idx, delims, returnEmptyFields);
 
   if (!parse_time(field))
-    return;
+    return false;
+
+  return true;
 }
 
 /* SCREEN_H */
@@ -530,14 +531,10 @@ void handle_serial()
 
     if (serial_reader.startsWith("$MYTMP;"))
     {
-      parse_data(serial_reader);
+      if (parse_data(serial_reader))
+        screen_unlock();
     }
   }
-
-  // parse_data(buf);
-
-  // a successful data receival toggles an UNLOCK
-  screen_unlock();
 }
 
 void handle_buttons()
@@ -565,10 +562,7 @@ void setup()
   while (!Serial)
     ;
 
-  // SafeString::setOutput(Serial); // enable error messages and SafeString.debug() output to be sent to Serial
   serial_reader.connect(Serial); // where SafeStringReader will read from
-  // serial_reader.echoOn();        // echo back all input, by default echo is off
-  // serial_reader.setTimeout(200);
 
   pinMode(BUTTON_START, INPUT_PULLUP);
   pinMode(BUTTON_VANCE, INPUT_PULLUP);
@@ -586,8 +580,6 @@ void loop()
   if (ms - previous_millis >= 5) {
     // if the screen is locked, skip the screen tasks
     // if the screen is waiting for confirmation, skip the screen tasks
-    // if (g_screen_waiting_confirmation)
-    //   goto wait_confirm;
     // if the screen is waiting for confirmation, skip the screen tasks
   
     previous_millis = ms;
