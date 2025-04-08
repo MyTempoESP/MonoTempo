@@ -100,7 +100,7 @@ func checkAction(actionString string, tagSet *intSet.IntSet, tags *atomic.Int64,
 func (a *Ay) Process() {
 
 	var (
-		tags     atomic.Int64
+		pcData   *com.PCData = &com.PCData{}
 		tagsUSB  atomic.Int64
 		antennas [4]atomic.Int64
 		tagSet   intSet.IntSet
@@ -120,7 +120,7 @@ func (a *Ay) Process() {
 
 			if err == nil {
 
-				tags.Store(int64(tags_start_at))
+				pcData.Tags.Store(int64(tags_start_at))
 			}
 		}
 
@@ -137,7 +137,7 @@ func (a *Ay) Process() {
 
 			antennas[(t.Antena-1)%4].Add(1)
 
-			tags.Add(1)
+			pcData.Tags.Add(1)
 			tagsUSB.Add(1)
 
 			tagSet.Insert(t.Epc)
@@ -160,18 +160,16 @@ func (a *Ay) Process() {
 	device.FS = usb.OSFileSystem{}
 
 	var readerIP = os.Getenv("READER_IP")
-	var readerState atomic.Bool
-	var netState atomic.Bool
-	var lte4gState atomic.Bool
 	var Lte4gPinger *probing.Pinger
 
-	go pinger.NewJSONPinger(&netState)
-	ReaderPinger := pinger.NewPinger(readerIP, &readerState, nil)
+	go pinger.NewJSONPinger(&pcData.CommStatus)
+
+	ReaderPinger := pinger.NewPinger(readerIP, &pcData.RfidStatus, nil)
 
 	go ReaderPinger.Run()
 	go func() {
 		for {
-			Lte4gPinger = pinger.NewPinger("192.168.100.1", &lte4gState, nil)
+			Lte4gPinger = pinger.NewPinger("192.168.100.1", &pcData.Lte4Status, nil)
 			Lte4gPinger.Run()
 			<-time.After(1 * time.Second)
 			log.Println("4gPING STOPPED")
@@ -185,13 +183,10 @@ func (a *Ay) Process() {
 		log.Printf("Falha ao converter a versão do sistema: %v, utilizando 0", err)
 	}
 
-	pcData := &com.PCData{}
 	pcData.Tags.Store(0)
 	pcData.UniqueTags.Store(0)
-	pcData.CommStatus.Store(false)
+
 	pcData.WifiStatus.Store(false)
-	pcData.Lte4Status.Store(false)
-	pcData.RfidStatus.Store(false)
 	pcData.SysVersion.Store(int32(sysver))
 
 	backupDirs, err := os.ReadDir("/var/monotempo/backup")
@@ -221,13 +216,9 @@ func (a *Ay) Process() {
 
 			usbOk, _ := device.Check()
 
-			pcData.Tags.Store(tags.Load())
 			pcData.UniqueTags.Store(int32(tagSet.Count()))
 
-			pcData.RfidStatus.Store(readerState.Load())
-			pcData.Lte4Status.Store(lte4gState.Load())
-			pcData.WifiStatus.Store(netState.Load())
-			pcData.CommStatus.Store(netState.Load())
+			pcData.WifiStatus.Store(pcData.CommStatus.Load())
 			pcData.UsbStatus.Store(usbOk)
 
 			pcData.Send(sender)
@@ -235,7 +226,7 @@ func (a *Ay) Process() {
 			actionString, hasAction := sender.Recv()
 
 			if hasAction {
-				checkAction(actionString, &tagSet, &tags, &antennas)
+				checkAction(actionString, &tagSet, &pcData.Tags, &antennas)
 			}
 		}
 	}()
