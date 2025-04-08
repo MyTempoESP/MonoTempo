@@ -352,6 +352,7 @@ const char fill_pattern[20] = "                   ";
 unsigned int g_current_screen = 0;
 unsigned int g_confirm_target = 0; // target screen for events that need confirmation
 
+int g_unlocks;
 bool g_locked;
 bool g_screen_waiting_confirmation;
 int32_t g_screen_waiting_timestamp;
@@ -454,6 +455,13 @@ void screen_build()
 
 void screen_unlock()
 {
+  // we require three unlocks to unlock the screen
+  // this is to prevent accidental unlocks when the screen is locked
+  if (g_unlocks++ < 3)
+    return;
+
+  g_unlocks = 0; // reset the locks
+
   if (!g_locked)
     return;
 
