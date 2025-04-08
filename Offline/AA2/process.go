@@ -119,7 +119,13 @@ func (a *Ay) Process() {
 		}
 	}()
 
-	// Cria uma instância de PCData e inicializa os valores
+	sysver, err := strconv.Atoi(constant.VersionNum)
+
+	if err != nil {
+		sysver = 0
+		log.Printf("Falha ao converter a versão do sistema: %v, utilizando 0", err)
+	}
+
 	pcData := &com.PCData{}
 	pcData.Tags.Store(0)
 	pcData.UniqueTags.Store(0)
@@ -127,22 +133,22 @@ func (a *Ay) Process() {
 	pcData.WifiStatus.Store(false)
 	pcData.Lte4Status.Store(false)
 	pcData.RfidStatus.Store(false)
-	pcData.SysVersion.Store(414)
-	pcData.Backups.Store(0)
-	pcData.Envios.Store(0)
+	pcData.SysVersion.Store(int32(sysver))
+
+	backupDirs, err := os.ReadDir("/var/monotempo/backup")
+
+	if err != nil {
+		log.Printf("Erro ao listar diretórios de backup: %v", err)
+		pcData.Backups.Store(0)
+	} else {
+		pcData.Backups.Store(int32(len(backupDirs)))
+	}
 
 	// Envia os dados iniciais
 	pcData.Send(sender)
 	<-time.After(time.Second * 2)
 
 	//NUM_EQUIP, err := strconv.Atoi(os.Getenv("MYTEMPO_DEVID"))
-
-	sysver, err := strconv.Atoi(constant.VersionNum)
-
-	if err != nil {
-		log.Printf("Falha ao converter a versão do sistema: %v", err)
-		return
-	}
 
 	go func() {
 
@@ -153,18 +159,15 @@ func (a *Ay) Process() {
 
 		for range ticker.C {
 
-			pcData.CommStatus.Store(netState.Load())
+			usbOk, _ := device.Check()
+
+			pcData.Tags.Store(tags.Load())
+			pcData.UniqueTags.Store(int32(tagSet.Count()))
+
 			pcData.RfidStatus.Store(readerState.Load())
 			pcData.Lte4Status.Store(lte4gState.Load())
 			pcData.WifiStatus.Store(netState.Load())
-			pcData.Tags.Store(tags.Load())
-			pcData.UniqueTags.Store(int32(tagSet.Count()))
-			pcData.Backups.Store(0)
-			pcData.Envios.Store(0)
-			pcData.SysVersion.Store(int32(sysver))
-
-			usbOk, _ := device.Check()
-
+			pcData.CommStatus.Store(netState.Load())
 			pcData.UsbStatus.Store(usbOk)
 
 			pcData.Send(sender)

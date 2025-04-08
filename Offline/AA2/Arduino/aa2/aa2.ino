@@ -388,7 +388,7 @@ void screen_build()
     l2 = virt_scr_sprintf(0, 2, "LTE/4G: %2s", g_system_data.lte4_status ? "OK" : "X");
     break;
   case USBCFG_SCREEN:
-    l2 = virt_scr_sprintf(0, 2, "USB: %2s", g_system_data.usb_status ? "OK" : "X");
+    l1 = virt_scr_sprintf(0, 1, "USB: %2s", g_system_data.usb_status ? "OK" : "X");
     break;
   case DATTME_SCREEN:
     l1 = virt_scr_sprintf(0, 1, "Data: %02d/%02d/%04d", g_system_data.day, g_system_data.month, g_system_data.year);
