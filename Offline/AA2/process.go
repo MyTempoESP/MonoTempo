@@ -65,14 +65,14 @@ func checkAction(actionString string, tagSet *intSet.IntSet, tags *atomic.Int64,
 			antennas[1].Store(0)
 			antennas[2].Store(0)
 			antennas[3].Store(0)
-
-			return
 		case NETWORK_ACTION:
 		case NETWORK_MGMT_ACTION:
 			ResetWifi()
+		case DATETIME_ACTION:
+
+		// these actions hang
 		case USBCFG_ACTION:
 			CreateUSBReport()
-		case DATETIME_ACTION:
 		case UPDATE_ACTION:
 			PCUpdate()
 		case UPLOAD_ACTION:
@@ -87,7 +87,7 @@ func checkAction(actionString string, tagSet *intSet.IntSet, tags *atomic.Int64,
 			return
 		}
 
-		select {}
+		<-time.After(time.Second * 3)
 	}
 }
 
