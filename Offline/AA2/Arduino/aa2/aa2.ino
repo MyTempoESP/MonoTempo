@@ -473,6 +473,8 @@ void screen_lock()
 {
   g_current_screen = WAITNG_SCREEN;
   g_locked = true;
+
+  serial_reader.clear(); // clear the serial reader buffer
 }
 
 void screen_next()
