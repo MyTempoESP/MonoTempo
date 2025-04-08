@@ -1,5 +1,5 @@
-github.com/TsukiGva2/comunica_serial v1.2.0 h1:cO4dUiKeevq1OyaM4dhh7+dqpSi2Gm9gFL0PTd9cTq8=
-github.com/TsukiGva2/comunica_serial v1.2.0/go.mod h1:pOIJYNMb0uuzKnEfgwcLFoZqs4vleuWGylMOeN7Nj9E=
+github.com/TsukiGva2/comunica_serial v1.2.1 h1:Qu+nCW7HmADj2t4+y6B5v//fXjjHSEszbJeVouObSvo=
+github.com/TsukiGva2/comunica_serial v1.2.1/go.mod h1:pOIJYNMb0uuzKnEfgwcLFoZqs4vleuWGylMOeN7Nj9E=
 github.com/cenkalti/backoff v2.2.1+incompatible h1:tNowT99t7UNflLxfYYSlKYsBpXdEet03Pg2g16Swow4=
 github.com/cenkalti/backoff v2.2.1+incompatible/go.mod h1:90ReRw6GdpyfrHakVjL/QHaoyV4aDUVVkXQJJJ3NXXM=
 github.com/creack/goselect v0.1.2 h1:2DNy14+JPjRBgPzAd1thbQp4BSIihxcBf0IXhQXDRa0=
