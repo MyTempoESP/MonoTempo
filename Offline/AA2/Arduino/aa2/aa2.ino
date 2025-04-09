@@ -147,7 +147,7 @@ typedef struct PCData
   bool usb_status;
   int sys_version;
   int backups;
-  int envios;
+  int permanent_unique_tags;
 
   // DateTime
   int year;
@@ -288,7 +288,7 @@ bool parse_data(SafeString &msg)
 
   idx = msg.stoken(field, idx, delims, returnEmptyFields);
 
-  if (!field.toInt(g_system_data.envios))
+  if (!field.toInt(g_system_data.permanent_unique_tags))
     return false;
 
   idx = msg.stoken(field, idx, delims, returnEmptyFields);
@@ -414,7 +414,7 @@ void screen_build()
   case UPLOAD_SCREEN:
     l1 = virt_scr_sprintf(0, 1, "Atletas: %"
                                 "d",
-                          g_system_data.unique_tags);
+                          g_system_data.permanent_unique_tags);
     // l2 = virt_scr_sprintf(0, 2, "Pendentes: %" "d", g_system_data.envios);
     break;
   case BACKUP_SCREEN:

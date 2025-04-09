@@ -17,7 +17,7 @@ import (
 	probing "github.com/prometheus-community/pro-bing"
 )
 
-func PopulateTagSet(tagSet *intSet.IntSet) {
+func PopulateTagSet(tagSet *intSet.IntSet, permanentSet *intSet.IntSet) {
 
 	b, err := os.ReadFile("/var/monotempo-data/TAGS")
 
@@ -26,7 +26,7 @@ func PopulateTagSet(tagSet *intSet.IntSet) {
 		return
 	}
 
-	for _, s := range strings.Split(string(b), "\n") {
+	for s := range strings.SplitSeq(string(b), "\n") {
 
 		n, err := strconv.Atoi(s)
 
@@ -36,6 +36,7 @@ func PopulateTagSet(tagSet *intSet.IntSet) {
 		}
 
 		tagSet.Insert(n)
+		permanentSet.Insert(n)
 	}
 }
 
@@ -100,15 +101,14 @@ func checkAction(actionString string, tagSet *intSet.IntSet, tags *atomic.Int64,
 func (a *Ay) Process() {
 
 	var (
-		pcData   *com.PCData = &com.PCData{}
-		tagsUSB  atomic.Int64
-		antennas [4]atomic.Int64
-		tagSet   intSet.IntSet
+		pcData          *com.PCData = &com.PCData{}
+		tagsUSB         atomic.Int64
+		antennas        [4]atomic.Int64
+		tagSet          intSet.IntSet = intSet.New()
+		permanentTagSet intSet.IntSet = intSet.New()
 	)
 
-	tagSet = intSet.New()
-
-	PopulateTagSet(&tagSet)
+	PopulateTagSet(&tagSet, &permanentTagSet)
 
 	tags_start_at := os.Getenv("TAG_COUNT_START_AT")
 
@@ -141,6 +141,7 @@ func (a *Ay) Process() {
 			tagsUSB.Add(1)
 
 			tagSet.Insert(t.Epc)
+			permanentTagSet.Insert(t.Epc)
 		}
 	}()
 
@@ -217,6 +218,7 @@ func (a *Ay) Process() {
 			usbOk, _ := device.Check()
 
 			pcData.UniqueTags.Store(int32(tagSet.Count()))
+			pcData.PermanentUniqueTags.Store(int32(permanentTagSet.Count()))
 
 			pcData.WifiStatus.Store(pcData.CommStatus.Load())
 			pcData.UsbStatus.Store(usbOk)

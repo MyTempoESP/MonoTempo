@@ -3,7 +3,7 @@ module aa2
 go 1.24.2
 
 require (
-	github.com/TsukiGva2/comunica_serial v1.2.1
+	github.com/TsukiGva2/comunica_serial v1.3.0
 	github.com/mytempoesp/rabbit v0.0.1-alpha.0.20240912131652-58dc17b9d7de
 	github.com/prometheus-community/pro-bing v0.7.0
 	github.com/rabbitmq/amqp091-go v1.10.0
