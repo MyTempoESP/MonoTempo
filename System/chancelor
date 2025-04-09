@@ -9,221 +9,221 @@ BACKUP_DIR="$DATABASE_DIR"/backup
 ENVIO_DIR="$DATABASE_DIR"/envio
 
 not_empty() {
-    
-    [ "$(ls -A "$1")" ]
+
+	[ "$(ls -A "$1")" ]
 }
 
 mytempo_upload() {
 
-    "$MYTEMPO_DATA"/Online/setup.online "$(realpath "$1")" upload
+	"$MYTEMPO_DATA"/Online/setup.online "$(realpath "$1")" upload
 }
 
 mytempo_update() {
 
-    "$MYTEMPO_DATA"/Online/setup.online "$DATABASE_DIR" update
+	"$MYTEMPO_DATA"/Online/setup.online "$DATABASE_DIR" update
 }
 
 mytempo_save() {
 
-    # moves all database files to directory specified by $1, which
-    # will be created, along with its parents, if it doesn't exist
-    
-    mkdir -p "$1" && mv "$DATABASE_DIR"/N*.db "$1"
+	# moves all database files to directory specified by $1, which
+	# will be created, along with its parents, if it doesn't exist
+
+	mkdir -p "$1" && mv "$DATABASE_DIR"/N*.db "$1"
 }
 
 mytempo_backup_to() {
 
-    # $1 -> envio/backup, destination for the backup file to be created
-    # the database files will be put in a directory named "DAY.MONTH.YEAR-HOUR_MINUTE.(envio/backup)"
-    # under the specified destination.
-    
-    mytempo_save "$DATABASE_DIR"/"$1"/"$(date +"%d.%m.%Y-%H_%M").$1"
+	# $1 -> envio/backup, destination for the backup file to be created
+	# the database files will be put in a directory named "DAY.MONTH.YEAR-HOUR_MINUTE.(envio/backup)"
+	# under the specified destination.
+
+	mytempo_save "$DATABASE_DIR"/"$1"/"$(date +"%d.%m.%Y-%H_%M").$1"
 }
 
 mytempo_move_envio_to_backup() {
 
-    not_empty "$ENVIO_DIR" \
-	      && mv "$ENVIO_DIR"/* "$BACKUP_DIR"
+	not_empty "$ENVIO_DIR" &&
+		mv "$ENVIO_DIR"/* "$BACKUP_DIR"
 }
 
 mytempo_upload_dir() {
 
-    directory="$DATABASE_DIR/$1"
-    not_empty "$directory" \
-	&& for d in "$directory"/*; do
+	directory="$DATABASE_DIR/$1"
+	not_empty "$directory" &&
+		for d in "$directory"/*; do
 
-	cp "$DATABASE_DIR"/equipamento.db "$d"
+			cp "$DATABASE_DIR"/equipamento.db "$d"
 
-	# actual volume directory
-	mytempo_upload "$d"
-    done
+			# actual volume directory
+			mytempo_upload "$d"
+		done
 }
 
 mytempo_upload_backup() {
 
-    mytempo_update
-    mytempo_upload_dir backup
+	mytempo_update
+	mytempo_upload_dir backup
 }
 
 mytempo_upload_normal() {
 
-    mytempo_update
+	mytempo_update
 
-    # send files in envio directory (
-    mytempo_upload_dir envio
+	# send files in envio directory (
+	mytempo_upload_dir envio
 
-    mytempo_move_envio_to_backup
+	mytempo_move_envio_to_backup
 }
 
 mytempo_dump_db() {
 
-    SQL_QUERY="${2:-select athlete_num, athlete_time from athletes_times}"
-    
-    # XXX: this goes through every db file in directory specified in first arg
-    # ...  and then quotes every line and puts a ',' at the end then passes it
-    # ...  to python and it parses this whole thing as a list and assigns it to 'a'
-    # ...  then it zips every athlete number (which dont exceed 3 digits) with
-    # ...  the corresponding time (everything else in the list which has more than 3
-    # ...  digits). Then for every zipped tuple we print 24 - n of digits in athlete
-    # ...  number and print the time of this athlete.
-    python -c "a=[$( (for i in "$1"/N*.db; do sqlite3 -line "$i" "$SQL_QUERY"; done) | awk 'NF {print "\""$3"\""","}')];print(\"\\n\".join([f\"{\"0\"*(24-len(x))+x}{y}\" for x, y in zip(filter(lambda s: len(s) <= 3, a), filter(lambda s: len(s) > 3, a))]))"
+	SQL_QUERY="${2:-select athlete_num, athlete_time from athletes_times}"
+
+	# XXX: this goes through every db file in directory specified in first arg
+	# ...  and then quotes every line and puts a ',' at the end then passes it
+	# ...  to python and it parses this whole thing as a list and assigns it to 'a'
+	# ...  then it zips every athlete number (which dont exceed 3 digits) with
+	# ...  the corresponding time (everything else in the list which has more than 3
+	# ...  digits). Then for every zipped tuple we print 24 - n of digits in athlete
+	# ...  number and print the time of this athlete.
+	python -c "a=[$( (for i in "$1"/N*.db; do sqlite3 -line "$i" "$SQL_QUERY"; done) | awk 'NF {print "\""$3"\""","}')];print(\"\\n\".join([f\"{\"0\"*(24-len(x))+x}{y}\" for x, y in zip(filter(lambda s: len(s) <= 3, a), filter(lambda s: len(s) > 3, a))]))"
 }
 
 mytempo_dump_all() {
 
-    echo "This may take a while..."
+	echo "This may take a while..."
 
-    not_empty "$BACKUP_DIR" \
-	&& for d in "$BACKUP_DIR"/*; do
-	mytempo_dump_db "$d" "$1" > /tmp/"dump$(basename "$d")"
-    done
+	not_empty "$BACKUP_DIR" &&
+		for d in "$BACKUP_DIR"/*; do
+			mytempo_dump_db "$d" "$1" >/tmp/"dump$(basename "$d")"
+		done
 
-    not_empty "$ENVIO_DIR" \
-	&& for d in "$ENVIO_DIR"/*; do
-	mytempo_dump_db "$d" "$1" > /tmp/"dump$(basename "$d")"
-    done
+	not_empty "$ENVIO_DIR" &&
+		for d in "$ENVIO_DIR"/*; do
+			mytempo_dump_db "$d" "$1" >/tmp/"dump$(basename "$d")"
+		done
 }
 
 mytempo_usb_save() {
 
-    rm -f /tmp/dump*
-    
-    mount /dev/sdb1 /mnt \
-	&& (
-	mytempo_dump_all \
-	    &&  cat /tmp/dump* \
-		| awk 'NF {print $0}' > /mnt/MYTEMPO_"$(date +"%H_%M_%S")".txt \
-	    ;   umount /mnt
-    )
+	rm -f /tmp/dump*
+
+	mount /dev/sdb1 /mnt &&
+		(
+			mytempo_dump_all &&
+				cat /tmp/dump* |
+				awk 'NF {print $0}' >/mnt/MYTEMPO_"$(date +"%H_%M_%S")".txt \
+				;
+			umount /mnt
+		)
 }
 
 mytempo_usb_save_stats() {
 
-    rm -f /tmp/dump*
-    
-    mount /dev/sdb1 /mnt \
-	&& (
-	mytempo_dump_all "select athlete_num, MIN(athlete_time) from athletes_times group by athlete_num" \
-	    &&  cat /tmp/dump* \
-		| awk 'NF {print $0}' > /mnt/MYTEMPO_"$(date +"%H_%M_%S")"_TAGS_UNICAS.txt \
-	    ;   umount /mnt
-    )
+	rm -f /tmp/dump*
+
+	mount /dev/sdb1 /mnt &&
+		(
+			mytempo_dump_all "select athlete_num, MIN(athlete_time) from athletes_times group by athlete_num" &&
+				cat /tmp/dump* |
+				awk 'NF {print $0}' >/mnt/MYTEMPO_"$(date +"%H_%M_%S")"_TAGS_UNICAS.txt \
+				;
+			umount /mnt
+		)
 }
 
 mytempo_clean() {
 
-    # XXX
-    not_empty "${BACKUP_DIR:?}" \
-	&& rm -rf "${BACKUP_DIR:?}"/*
-    
-    not_empty "${ENVIO_DIR:?}" \
-	&& rm -rf "${ENVIO_DIR:?}"/*
+	# XXX
+	not_empty "${BACKUP_DIR:?}" &&
+		rm -rf "${BACKUP_DIR:?}"/*
 
-    rm "$DATABASE_DIR"/TAGS
+	not_empty "${ENVIO_DIR:?}" &&
+		rm -rf "${ENVIO_DIR:?}"/*
+
+	rm "$DATABASE_DIR"/TAGS
 }
 
 mytempo_count_tags_dir() {
 
-    # trivia: what is my tech stack? PAWS, Python AWk and Shell script
-    
-    python -c "print(sum([$( (for i in "$1"/N*.db; do sqlite3 -line "$i" "select COUNT(1) from athletes_times"; done) | awk 'NF {print $3","}')]))"
+	# trivia: what is my tech stack? PAWS, Python AWk and Shell script
+
+	python -c "print(sum([$( (for i in "$1"/N*.db; do sqlite3 -line "$i" "select COUNT(1) from athletes_times"; done) | awk 'NF {print $3","}')]))"
 }
 
 mytempo_count_tags() {
 
-    count=0
+	count=0
 
-    # pipe all output of this to /dev/null, since we just want
-    # the side effect.
+	# pipe all output of this to /dev/null, since we just want
+	# the side effect.
 
-    not_empty "$ENVIO_DIR" \
-	&& for d in "$ENVIO_DIR"/*; do
-	count=$(( $(mytempo_count_tags_dir "$d") + "$count" ))
-    done 1> /dev/null 2> /dev/null && echo $count
+	not_empty "$ENVIO_DIR" &&
+		for d in "$ENVIO_DIR"/*; do
+			count=$(($(mytempo_count_tags_dir "$d") + "$count"))
+		done 1>/dev/null 2>/dev/null && echo $count
 }
 
 mytempo_populate_tags() {
 
-    not_empty "$ENVIO_DIR" \
-	&& for d in "$ENVIO_DIR"/*; do
-	not_empty "$d" \
-	    && for i in "$d"/N*.db; do
-	    sqlite3 -line "$i" "select distinct athlete_num from athletes_times"
-	done
-    done 2> /dev/null | awk 'NF {print $3}' > "$DATABASE_DIR"/TAGS
+	not_empty "$ENVIO_DIR" &&
+		for d in "$ENVIO_DIR"/*; do
+			not_empty "$d" &&
+			for i in "$d"/N*.db; do
+				sqlite3 -line "$i" "select distinct athlete_num from athletes_times"
+			done
+		done 2>/dev/null | awk 'NF {print $3}' >"$DATABASE_DIR"/TAGS
 }
 
 mytempo_do_update() {
 
-    cd "$MYTEMPO_DATA" || exit
-    git pull
-    ./install no_manual_setup
-    reboot
+	cd "$MYTEMPO_DATA" || exit
+	git pull
+	./install no_manual_setup
+	reboot
 }
 
 echo "Chancelor, Version 1.1.0"
 
 echo "Backing up leftover data (if any)"
-test -e "$DATABASE_DIR"/N0.db \
-    && mytempo_backup_to backup \
-    && mytempo_move_envio_to_backup
+test -e "$DATABASE_DIR"/N0.db &&
+	mytempo_backup_to backup &&
+	mytempo_move_envio_to_backup
 
 VERSION_NUMBER_AA2=$(cd "$MYTEMPO_DATA" && git rev-list --count --all)
 export VERSION_NUMBER_AA2
 
-while true;
-do
-    rm "$DATABASE_DIR"/*-journal
-    rm "$DATABASE_DIR"/equipamento.db
-    
-    # set initial value of tag count
-    TAG_COUNT_START_AT=$(mytempo_count_tags)
-    export TAG_COUNT_START_AT
+while true; do
+	rm "$DATABASE_DIR"/*-journal
+	rm "$DATABASE_DIR"/equipamento.db
 
-    echo "Booting version #${VERSION_NUMBER_AA2:-0}"
-    
-    mytempo_populate_tags
-    
-    "$MYTEMPO_DATA"/Offline/setup.offline
+	# set initial value of tag count
+	TAG_COUNT_START_AT=$(mytempo_count_tags)
+	export TAG_COUNT_START_AT
 
-    # wait for a signal
-    read -r UPLOAD_TYPE < "$DATABASE_DIR"/sig-upload-data
-    
-    "$MYTEMPO_DATA"/Offline/stop.offline
+	echo "Booting version #${VERSION_NUMBER_AA2:-0}"
 
-    mytempo_backup_to envio
-    
-    case "$UPLOAD_TYPE" in
-	 "fatal") ;;
+	mytempo_populate_tags
+
+	"$MYTEMPO_DATA"/Offline/setup.offline
+
+	# wait for a signal
+	read -r UPLOAD_TYPE <"$DATABASE_DIR"/sig-upload-data
+
+	"$MYTEMPO_DATA"/Offline/stop.offline
+
+	mytempo_backup_to envio
+
+	case "$UPLOAD_TYPE" in
+	"fatal") ;;
 	"update") mytempo_do_update ;;
-	 "stats") mytempo_usb_save_stats ;;
+	"stats") mytempo_usb_save_stats ;;
 	"backup") mytempo_upload_backup ;;
 	"normal") mytempo_upload_normal ;;
-	  "save") mytempo_usb_save ;;
-	 "reset") mytempo_clean ;;
+	"save") mytempo_usb_save ;;
+	"reset") mytempo_clean ;;
 	"reboot") reboot ;;
-    esac
-    
-    sleep 5
-done
+	esac
 
+	sleep 5
+done
