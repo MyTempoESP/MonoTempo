@@ -17,7 +17,30 @@ import (
 	probing "github.com/prometheus-community/pro-bing"
 )
 
-func PopulateTagSet(tagSet *intSet.IntSet, permanentSet *intSet.IntSet) {
+func countDir(path string) (n int, err error) {
+
+	f, err := os.Open(path)
+
+	if err != nil {
+
+		return
+	}
+
+	list, err := f.Readdirnames(-1)
+
+	f.Close()
+
+	if err != nil {
+
+		return
+	}
+
+	n = len(list)
+
+	return
+}
+
+func populateTagSet(tagSet *intSet.IntSet, permanentSet *intSet.IntSet) {
 
 	b, err := os.ReadFile("/var/monotempo-data/TAGS")
 
@@ -108,7 +131,7 @@ func (a *Ay) Process() {
 		permanentTagSet intSet.IntSet = intSet.New()
 	)
 
-	PopulateTagSet(&tagSet, &permanentTagSet)
+	populateTagSet(&tagSet, &permanentTagSet)
 
 	tags_start_at := os.Getenv("TAG_COUNT_START_AT")
 
@@ -190,13 +213,13 @@ func (a *Ay) Process() {
 	pcData.WifiStatus.Store(false)
 	pcData.SysVersion.Store(int32(sysver))
 
-	backupDirs, err := os.ReadDir("/var/monotempo/backup")
+	backupDirs, err := countDir("/var/monotempo/backup")
 
 	if err != nil {
 		log.Printf("Erro ao listar diretórios de backup: %v", err)
 		pcData.Backups.Store(0)
 	} else {
-		pcData.Backups.Store(int32(len(backupDirs)))
+		pcData.Backups.Store(int32(backupDirs))
 	}
 
 	// Envia os dados iniciais
