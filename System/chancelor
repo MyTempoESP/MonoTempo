@@ -216,6 +216,7 @@ while true; do
 
 	case "$UPLOAD_TYPE" in
 	"fatal") ;;
+	"poweroff") shutdown now ;;
 	"update") mytempo_do_update ;;
 	"stats") mytempo_usb_save_stats ;;
 	"backup") mytempo_upload_backup ;;
