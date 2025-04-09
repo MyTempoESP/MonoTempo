@@ -166,6 +166,8 @@ mytempo_count_tags() {
 
 mytempo_populate_tags() {
 
+	test -e "$DATABASE_DIR"/TAGS && rm "$DATABASE_DIR"/TAGS
+
 	not_empty "$ENVIO_DIR" &&
 		for d in "$ENVIO_DIR"/*; do
 			not_empty "$d" &&
