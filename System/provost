@@ -14,7 +14,7 @@ reset_wifi() {
 reset_lte4g() {
 
 	# find our 4G modem (which is some android shit)
-	DEV=$(nmcli -g "" -f GENERAL.IP-IFACE,GENERAL.PRODUCT d show | grep "Android" -B 1 | head -n 1)
+	DEV=$(nmcli -g "" -f GENERAL.DEVICE,GENERAL.PRODUCT d show | grep "Android" -B 1 | head -n 1)
 	[ -z "$DEV" ] && return
 
 	nmcli conn down chip
