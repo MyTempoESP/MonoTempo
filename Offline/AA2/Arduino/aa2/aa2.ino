@@ -448,7 +448,7 @@ void screen_build()
 		l2 = virt_scr_sprintf(0, 2, "Aguarde...", NULL);
 		break;
 	case WAITON_SCREEN:
-		l2 = virt_scr_sprintf(0, 2, "Aguardando MiniPC", NULL);
+		l2 = virt_scr_sprintf(0, 2, "Inicializando...", NULL);
 		break;
 	}
 

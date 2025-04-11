@@ -6,29 +6,34 @@ MYTEMPO_DATA=
 
 reset_wifi() {
 
-    nmcli conn down MyTempo
-    sleep 2
-    nmcli -w 10 conn up MyTempo
+	nmcli conn down MyTempo
+	sleep 2
+	nmcli -w 10 conn up MyTempo
 }
 
 reset_lte4g() {
 
-    nmcli conn down chip
-    sleep 1
-    nmcli -w 10 conn up chip
+	# find our 4G modem (which is some android shit)
+	DEV=$(nmcli -g "" -f GENERAL.IP-IFACE,GENERAL.PRODUCT d show | grep "Android" -B 1 | head -n 1)
+	[ -z "$DEV" ] && return
+
+	nmcli conn down chip
+	sleep 1
+	nmcli conn modify chip connection.interface-name "$DEV"
+	sleep 1
+	nmcli -w 10 conn up chip
 }
 
 reset_all() {
 
-    reset_lte4g
-    reset_wifi
+	reset_lte4g
+	reset_wifi
 }
 
-while true
-do
-    read -r COMMAND < "$MYTEMPO_DATA"/database/sig-device-operation
+while true; do
+	read -r COMMAND <"$MYTEMPO_DATA"/database/sig-device-operation
 
-    [ "$COMMAND" = "reset" ] && reset_all
-    [ "$COMMAND" = "lte4g" ] && reset_lte4g
-    [ "$COMMAND" =  "wifi" ] && reset_wifi
+	[ "$COMMAND" = "reset" ] && reset_all
+	[ "$COMMAND" = "lte4g" ] && reset_lte4g
+	[ "$COMMAND" = "wifi" ] && reset_wifi
 done
