@@ -211,15 +211,29 @@ func (a *Ay) Process() {
 	pcData.UniqueTags.Store(0)
 
 	pcData.WifiStatus.Store(false)
-	pcData.SysVersion.Store(int32(sysver))
+	pcData.SysVersion = sysver
 
 	backupDirs, err := countDir("/var/monotempo-data/backup")
 
 	if err != nil {
 		log.Printf("Erro ao listar diretórios de backup: %v", err)
-		pcData.Backups.Store(0)
+		pcData.Backups = 0
 	} else {
-		pcData.Backups.Store(int32(backupDirs))
+		pcData.Backups = backupDirs
+	}
+
+	hostname, err := os.Hostname()
+	if err != nil {
+		log.Printf("Erro ao obter o hostname: %v", err)
+		pcData.SysCodeName = 500
+	} else {
+		hostnameNumber, err := strconv.Atoi(strings.TrimPrefix(hostname, "my"))
+		if err != nil {
+			log.Printf("Erro ao converter o hostname para número: %v", err)
+			pcData.SysCodeName = 500
+		} else {
+			pcData.SysCodeName = hostnameNumber
+		}
 	}
 
 	// Envia os dados iniciais

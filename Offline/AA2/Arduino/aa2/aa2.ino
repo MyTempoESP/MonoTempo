@@ -148,6 +148,7 @@ typedef struct PCData
 	bool rfid_status;
 	bool usb_status;
 	int sys_version;
+	int num_serie;
 	int backups;
 	int permanent_unique_tags;
 
@@ -281,6 +282,11 @@ bool parse_data(SafeString &msg)
 	idx = msg.stoken(field, idx, delims, returnEmptyFields);
 
 	if (!field.toInt(g_system_data.sys_version))
+		return false;
+
+	idx = msg.stoken(field, idx, delims, returnEmptyFields);
+
+	if (!field.toInt(g_system_data.num_serie))
 		return false;
 
 	idx = msg.stoken(field, idx, delims, returnEmptyFields);
@@ -454,7 +460,7 @@ void screen_build()
 
 	if (g_current_screen < UPLOAD_SCREEN)
 	{
-		l0 = virt_scr_sprintf(0, 0, "PORTAL my50x", 0);
+		l0 = virt_scr_sprintf(0, 0, "PORTAL my%d", g_system_data.num_serie);
 	}
 
 	virt_scr_fill_from(l0, 0);
