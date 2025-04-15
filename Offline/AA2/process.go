@@ -8,12 +8,11 @@ import (
 	"sync/atomic"
 	"time"
 
+	"aa2/com"
 	"aa2/constant"
 	"aa2/intSet"
 	"aa2/pinger"
 	"aa2/usb"
-
-	com "github.com/TsukiGva2/comunica_serial"
 )
 
 func countDir(path string) (n int, err error) {
@@ -125,7 +124,6 @@ func (a *Ay) Process() {
 	var (
 		pcData          *com.PCData = &com.PCData{}
 		tagsUSB         atomic.Int64
-		antennas        [4]atomic.Int64
 		tagSet          intSet.IntSet = intSet.New()
 		permanentTagSet intSet.IntSet = intSet.New()
 	)
@@ -157,7 +155,7 @@ func (a *Ay) Process() {
 				continue
 			}
 
-			antennas[(t.Antena-1)%4].Add(1)
+			pcData.Antennas[(t.Antena-1)%4].Add(1)
 
 			pcData.Tags.Add(1)
 			tagsUSB.Add(1)
@@ -247,7 +245,7 @@ func (a *Ay) Process() {
 			actionString, hasAction := sender.Recv()
 
 			if hasAction {
-				checkAction(actionString, &tagSet, &pcData.Tags, &antennas)
+				checkAction(actionString, &tagSet, &pcData.Tags, &pcData.Antennas)
 			}
 		}
 	}()

@@ -159,9 +159,16 @@ typedef struct PCData
 	int second;
 } PCData;
 
-constexpr size_t pc_data_size = sizeof(PCData);
+#ifdef READER_HAS_MULTIPLE_ANTENNAS
+int64_t g_antenna0 = 0;
+int64_t g_antenna1 = 0;
+int64_t g_antenna2 = 0;
+int64_t g_antenna3 = 0;
+#endif
 
 PCData g_system_data;
+
+int g_major_version = 1;
 
 // create a SafeString reader to read the struct data
 createSafeStringReader(serial_reader, 80, '\n', true);
@@ -247,6 +254,28 @@ bool parse_data(SafeString &msg)
 		return false;
 	}
 
+#ifdef READER_HAS_MULTIPLE_ANTENNAS
+	idx = msg.stoken(field, idx, delims, returnEmptyFields);
+
+	if (!field.toInt64_t(g_antenna0))
+		return false;
+
+	idx = msg.stoken(field, idx, delims, returnEmptyFields);
+
+	if (!field.toInt64_t(g_antenna1))
+		return false;
+
+	idx = msg.stoken(field, idx, delims, returnEmptyFields);
+
+	if (!field.toInt64_t(g_antenna2))
+		return false;
+
+	idx = msg.stoken(field, idx, delims, returnEmptyFields);
+
+	if (!field.toInt64_t(g_antenna3))
+		return false;
+#endif
+
 	idx = msg.stoken(field, idx, delims, returnEmptyFields);
 
 	if (!field.toInt64_t(g_system_data.tags))
@@ -330,6 +359,26 @@ const char fill_pattern[20] = "                   ";
 | #15 (Shutdown [Helper]) |                         -                        |                                   -                                   |                                              -                                              |
 | Confirmation screen     | - Pressione START para confirmar...              | Waits for user confirmation before an action                          | START: Confirmation                                                                         |
 */
+#ifdef READER_HAS_MULTIPLE_ANTENNAS
+#define INFORM_SCREEN 0
+#define ANTNNA_SCREEN 1
+#define NETWRK_SCREEN 2
+#define NETCFG_SCREEN 3
+#define USBCFG_SCREEN 4
+#define DATTME_SCREEN 5
+#define SYSTEM_SCREEN 6
+#define UPLOAD_SCREEN 7
+#define BACKUP_SCREEN 8
+#define DELETE_SCREEN 9
+#define SHTDWN_SCREEN 10
+#define NAV_SCREENS_COUNT 11
+
+#define OFFMSG_SCREEN 11
+#define CONFRM_SCREEN 12
+#define WAITNG_SCREEN 13
+#define WAITON_SCREEN 14
+#define SCREENS_COUNT 15
+#else
 #define INFORM_SCREEN 0
 #define NETWRK_SCREEN 1
 #define NETCFG_SCREEN 2
@@ -347,6 +396,7 @@ const char fill_pattern[20] = "                   ";
 #define WAITNG_SCREEN 12
 #define WAITON_SCREEN 13
 #define SCREENS_COUNT 14
+#endif
 
 unsigned int g_current_screen = 0;
 unsigned int g_confirm_target = 0; // target screen for events that need confirmation
@@ -359,6 +409,9 @@ int32_t g_screen_waiting_timestamp;
 
 const char desc[SCREENS_COUNT][VIRT_SCR_COLS] = {
     "START:Reset tela   ",
+#ifdef READER_HAS_MULTIPLE_ANTENNAS
+    "                   ",
+#endif
     "                   ",
     "START:Reconectar   ",
     "START:Salvar no USB",
@@ -386,6 +439,34 @@ void screen_build()
 					    "d",
 				      g_system_data.unique_tags);
 		break;
+#ifdef READER_HAS_MULTIPLE_ANTENNAS
+	case ANTNNA_SCREEN:
+
+		int a[4] = {g_antenna0, g_antenna1, g_antenna2, g_antenna3};
+		int postfix[4] = {' ', ' ', ' ', ' '};
+
+		for (int i = 0; i < 4; i++)
+		{
+			if (a[i] > 1000)
+			{
+				a[i] /= 1000;
+				postfix[i] = 'K';
+			}
+			else if (a[i] > 1000000)
+			{
+				a[i] /= 1000000;
+				postfix[i] = 'M';
+			}
+		}
+
+		l1 = virt_scr_sprintf(0, 1, "A0: %ld%c"
+					    " A1: %ld%c",
+				      a[0], postfix[0], a[1], postfix[1]);
+		l2 = virt_scr_sprintf(0, 2, "A3: %ld%c"
+					    " A4: %ld%c",
+				      a[2], postfix[2], a[3], postfix[3]);
+		break;
+#endif
 	case NETWRK_SCREEN:
 		l1 = virt_scr_sprintf(0, 1, "Leitor     : %2s", g_system_data.rfid_status ? "OK" : "X");
 		l2 = virt_scr_sprintf(0, 2, "Comunicando: %3s", g_system_data.comm_status ? "SIM" : "NAO");

@@ -12,4 +12,5 @@ var (
 	ReaderPath         = os.Getenv("READER_PATH")
 	VersionNum         = os.Getenv("VERSION_NUMBER_AA2")
 	SerialPortOverride = os.Getenv("SERIAL_PORT_OVERRIDE")
+	ReaderType         = os.Getenv("MYTEMPO_READER_TYPE")
 )
