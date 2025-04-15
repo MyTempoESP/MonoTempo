@@ -248,7 +248,7 @@ func (a *Ay) Process() {
 				if err == nil {
 					pcData.WifiStatus.Store(hasConn)
 				} else {
-					log.Printf("Erro ao verificar a interface de rede: %v", err)
+					log.Printf("Erro ao verificar a interface '%s': %v", constant.WifiIface, err)
 				}
 			}
 
@@ -258,7 +258,7 @@ func (a *Ay) Process() {
 				if err == nil {
 					pcData.Lte4Status.Store(hasConn)
 				} else {
-					log.Printf("Erro ao verificar a interface de rede: %v", err)
+					log.Printf("Erro ao verificar a interface '%s': %v", constant.Lte4GIface, err)
 				}
 			}
 
