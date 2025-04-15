@@ -25,14 +25,11 @@ func BuscaEquip(equipModelo string, url string) (equip Equipamento, err error) {
 	return
 }
 
-func NewJSONPinger(state *atomic.Bool) {
+func BuscaID(url string) (devid string, err error) {
 
-	url := os.Getenv("MYTEMPO_API_URL")
-	infoRota := fmt.Sprintf("http://%s/status/device", url)
-	devRota := fmt.Sprintf("http://%s/fetch/device", url)
+	equip, err := BuscaEquip(os.Getenv("MYTEMPO_EQUIP"), url)
 
-	equip, err := BuscaEquip(os.Getenv("MYTEMPO_EQUIP"), devRota)
-	devid := "0"
+	devid = "0"
 
 	if err != nil {
 		log.Println("Error fetching device, won't comm", err)
@@ -41,13 +38,33 @@ func NewJSONPinger(state *atomic.Bool) {
 		log.Println("Device ID:", devid)
 	}
 
+	return
+}
+
+func NewJSONPinger(state *atomic.Bool) {
+
+	url := os.Getenv("MYTEMPO_API_URL")
+	infoRota := fmt.Sprintf("http://%s/status/device", url)
+	devRota := fmt.Sprintf("http://%s/fetch/device", url)
+
+	devid, fetchErr := BuscaID(devRota)
+
 	tick := time.NewTicker(4 * time.Second)
+
 	data := Form{
 		"deviceId": devid,
 	}
 
 	for {
 		<-tick.C
+
+		if fetchErr != nil {
+			devid, fetchErr = BuscaID(devRota)
+
+			data = Form{
+				"deviceId": devid,
+			}
+		}
 
 		log.Println("Sending JSON request to", infoRota)
 

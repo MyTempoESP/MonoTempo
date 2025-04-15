@@ -8,9 +8,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"time"
-
-	backoff "github.com/cenkalti/backoff"
 )
 
 /*
@@ -58,9 +55,6 @@ type Form map[string]string
 Execute an HTTP POST request to a JSON api,
 passing a JSON form and getting a response in
 a user-defined struct.
-
-this function retries to make the request up to 20 seconds
-using a backoff algorithm.
 */
 func JSONRequest(url string, data Form, jsonOutput interface{}) (err error) {
 
@@ -74,33 +68,17 @@ func JSONRequest(url string, data Form, jsonOutput interface{}) (err error) {
 		return
 	}
 
-	bf := backoff.NewExponentialBackOff()
-	bf.MaxElapsedTime = 20 * time.Second
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
 
-	err = backoff.Retry(
-		func() (err error) {
+	if err != nil {
+		err = fmt.Errorf("error creating request: %s", err)
 
-			req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+		return
+	}
 
-			if err != nil {
-				err = fmt.Errorf("error creating request: %s", err)
+	req.Header.Set("Content-Type", "application/json")
 
-				return
-			}
-
-			req.Header.Set("Content-Type", "application/json")
-
-			res, err = http.DefaultClient.Do(req)
-
-			if err != nil {
-				log.Println("Error sending request:", err)
-			}
-
-			return
-		},
-
-		bf,
-	)
+	res, err = http.DefaultClient.Do(req)
 
 	if err != nil {
 		return
