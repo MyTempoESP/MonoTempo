@@ -84,21 +84,6 @@ fi
 
 ./build || error "Error while rebuilding the codebase, please file an issue at https://github.com/MyTempoESP/MonoTempo/issues/new?template=BLANK_ISSUE"
 
-if ! [ -e "Net/net.env" ]; then
-
-	echo "Setting up Net/net.env"
-
-	cp Net/net.env.in Net/net.env
-
-	DEV=$(nmcli -g "" -f GENERAL.DEVICE,GENERAL.PRODUCT d show | grep "Android" -B 1 | head -n 1)
-
-	if [ -n "$DEV" ]; then
-		sed -i 's/LTE4G_IFACE=.*$/LTE4G_IFACE='"$DEV"'/' Net/net.env
-	else
-		printf "\033[31;1m%s\033[0m\n" "No 4G modem detected, skipping Net/net.env setup"
-	fi
-fi
-
 # if does not remake env, die
 [ "$REMAKE_ENVIRONMENT" = "no" ] && healthy_breakup "All done! Please reboot for the changes to take effect."
 
