@@ -33,7 +33,6 @@ services:
       - 9.9.9.9
     env_file:
       - AA2/aa2.env
-      - ../Net/net.env
       - ../shared.env
     environment:
       - TAG_COUNT_START_AT=$TAG_COUNT_START_AT
