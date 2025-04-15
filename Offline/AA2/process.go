@@ -10,11 +10,11 @@ import (
 
 	"aa2/constant"
 	"aa2/intSet"
+	"aa2/netcheck"
 	"aa2/pinger"
 	"aa2/usb"
 
 	com "github.com/TsukiGva2/comunica_serial"
-	probing "github.com/prometheus-community/pro-bing"
 )
 
 func countDir(path string) (n int, err error) {
@@ -184,21 +184,12 @@ func (a *Ay) Process() {
 	device.FS = usb.OSFileSystem{}
 
 	var readerIP = os.Getenv("READER_IP")
-	var Lte4gPinger *probing.Pinger
 
 	go pinger.NewJSONPinger(&pcData.CommStatus)
 
 	ReaderPinger := pinger.NewPinger(readerIP, &pcData.RfidStatus, nil)
 
 	go ReaderPinger.Run()
-	go func() {
-		for {
-			Lte4gPinger = pinger.NewPinger("192.168.100.1", &pcData.Lte4Status, nil)
-			Lte4gPinger.Run()
-			<-time.After(1 * time.Second)
-			log.Println("4gPING STOPPED")
-		}
-	}()
 
 	sysver, err := strconv.Atoi(constant.VersionNum)
 
@@ -251,7 +242,26 @@ func (a *Ay) Process() {
 			pcData.UniqueTags.Store(int32(tagSet.Count()))
 			pcData.PermanentUniqueTags.Store(int32(permanentTagSet.Count()))
 
-			pcData.WifiStatus.Store(pcData.CommStatus.Load())
+			if constant.WifiIface != "" {
+				hasConn, err := netcheck.CheckIface(constant.WifiIface)
+
+				if err == nil {
+					pcData.WifiStatus.Store(hasConn)
+				} else {
+					log.Printf("Erro ao verificar a interface de rede: %v", err)
+				}
+			}
+
+			if constant.Lte4GIface != "" {
+				hasConn, err := netcheck.CheckIface(constant.Lte4GIface)
+
+				if err == nil {
+					pcData.Lte4Status.Store(hasConn)
+				} else {
+					log.Printf("Erro ao verificar a interface de rede: %v", err)
+				}
+			}
+
 			pcData.UsbStatus.Store(usbOk)
 
 			pcData.Send(sender)

@@ -21,13 +21,6 @@ func NewPinger(ip string, state *atomic.Bool, ping *atomic.Int64) (p *probing.Pi
 
 	p.Interval = 4 * time.Second
 
-	p.OnSend = func(pkt *probing.Packet) {
-
-		if state != nil {
-			state.Store(false)
-		}
-	}
-
 	p.OnRecv = func(pkt *probing.Packet) {
 
 		if state != nil {
@@ -37,6 +30,12 @@ func NewPinger(ip string, state *atomic.Bool, ping *atomic.Int64) (p *probing.Pi
 		if ping != nil {
 
 			ping.Store(pkt.Rtt.Milliseconds())
+		}
+	}
+
+	p.OnSendError = func(pkt *probing.Packet, err error) {
+		if state != nil {
+			state.Store(false)
 		}
 	}
 
