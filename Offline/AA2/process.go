@@ -243,8 +243,8 @@ func (a *Ay) Process() {
 			}
 
 			select {
-			case <-antennaTicker.C:
-				pcData.SendAntennaReport(sender)
+			//case <-antennaTicker.C:
+			//	pcData.SendAntennaReport(sender)
 			case <-ticker.C:
 				pcData.UniqueTags.Store(int32(tagSet.Count()))
 				pcData.PermanentUniqueTags.Store(int32(permanentTagSet.Count()))
