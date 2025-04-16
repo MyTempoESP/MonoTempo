@@ -67,29 +67,28 @@ func withChecksum(data string) string {
 func (pd *PCData) format() string {
 	currentEpoch := time.Now().Unix()
 
-	f := fmt.Sprintf("MYTMP;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d",
-		pd.Tags.Load(), pd.UniqueTags.Load(), boolToInt(pd.CommStatus.Load()),
-		boolToInt(pd.RfidStatus.Load()), boolToInt(pd.UsbStatus.Load()),
+	f := fmt.Sprintf("MYTMP;%d;%d;%d;%d;%d;%d;%d;%d",
+		boolToInt(pd.CommStatus.Load()), boolToInt(pd.RfidStatus.Load()), boolToInt(pd.UsbStatus.Load()),
 		pd.SysVersion, pd.SysCodeName, pd.Backups, pd.PermanentUniqueTags.Load(), currentEpoch)
 
 	return withChecksum(f)
 }
 
-func (pd *PCData) formatAntennaReport() string {
-	f := fmt.Sprintf("ANTNA;%d;%d;%d;%d",
-		pd.Antennas[0].Load(), pd.Antennas[1].Load(), pd.Antennas[2].Load(),
-		pd.Antennas[3].Load())
+func (pd *PCData) formatTagReport() string {
+	f := fmt.Sprintf("TAGRP;%d;%d;%d;%d;%d;%d",
+		pd.Tags.Load(), pd.UniqueTags.Load(), pd.Antennas[0].Load(),
+		pd.Antennas[1].Load(), pd.Antennas[2].Load(), pd.Antennas[3].Load())
 
 	return withChecksum(f)
 }
 
-func (pd *PCData) SendAntennaReport(sender *SerialSender) {
-	data := pd.formatAntennaReport()
-	log.Println("Sending antenna report:", data)
+func (pd *PCData) SendTagReport(sender *SerialSender) {
+	data := pd.formatTagReport()
+	log.Println("Sending TagReport:", data)
 	sender.SendData(data)
 }
 
-func (pd *PCData) Send(sender *SerialSender) {
+func (pd *PCData) SendPCDataReport(sender *SerialSender) {
 	data := pd.format()
 	log.Println("Sending data:", data)
 	sender.SendData(data)

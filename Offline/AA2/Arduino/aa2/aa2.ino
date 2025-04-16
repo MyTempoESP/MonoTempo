@@ -81,8 +81,6 @@
  * - Added `screen_wait_confirm()` to handle confirmation waiting logic.
  */
 
-#define READER_HAS_MULTIPLE_ANTENNAS
-
 #include <SafeString.h>
 #include <SafeStringReader.h>
 #include <BufferedOutput.h>
@@ -140,10 +138,18 @@ int check_clicked()
 | Backup count         | Int32    | Number of backups currently stored.                        | 6                 | %d                                                                                                                               |
 | Envio count          | Int32    | Number of envios currently stored.                         | 7                 | %d                                                                                                                               |
 */
-typedef struct PCData
+
+typedef struct PCTagData
 {
 	int64_t tags;
 	int unique_tags;
+	int64_t antennas[4];
+} PCTagData;
+
+typedef struct PCData
+{
+	PCTagData tag_data;
+
 	bool comm_status;
 	bool rfid_status;
 	bool usb_status;
@@ -161,16 +167,7 @@ typedef struct PCData
 	int second;
 } PCData;
 
-#ifdef READER_HAS_MULTIPLE_ANTENNAS
-int64_t g_antenna0 = 0;
-int64_t g_antenna1 = 0;
-int64_t g_antenna2 = 0;
-int64_t g_antenna3 = 0;
-#endif
-
 PCData g_system_data;
-
-int g_major_version = 1;
 
 // create a SafeString reader to read the struct data
 createSafeStringReader(serial_reader, 80, '\n', true);
@@ -241,7 +238,7 @@ bool parse_time(SafeString &timeField)
 	return true;
 }
 
-bool parse_data(SafeString &msg)
+bool parse_tag_report(SafeString &msg)
 {
 	cSF(field, 11);
 
@@ -249,22 +246,41 @@ bool parse_data(SafeString &msg)
 	bool returnEmptyFields = true;
 
 	int idx = 0;
+
+	idx = msg.stoken(field, idx, delims, returnEmptyFields);
+
+	if (!field.toInt64_t(g_system_data.tag_data.tags))
+		return false;
+
+	idx = msg.stoken(field, idx, delims, returnEmptyFields);
+
+	if (!field.toInt(g_system_data.tag_data.unique_tags))
+		return false;
+
+	for (int i = 0; i < 4; i++)
+	{
+		idx = msg.stoken(field, idx, delims, returnEmptyFields);
+
+		if (!field.toInt64_t(g_system_data.tag_data.antennas[i]))
+			return false;
+	}
+}
+
+bool parse_pc_data(SafeString &msg)
+{
+	cSF(field, 11);
+
+	char delims[] = ";*";
+	bool returnEmptyFields = true;
+
+	int idx = 0;
+
 	idx = msg.stoken(field, idx, delims, returnEmptyFields);
 
 	if (field != "$MYTMP")
 	{
 		return false;
 	}
-
-	idx = msg.stoken(field, idx, delims, returnEmptyFields);
-
-	if (!field.toInt64_t(g_system_data.tags))
-		return false;
-
-	idx = msg.stoken(field, idx, delims, returnEmptyFields);
-
-	if (!field.toInt(g_system_data.unique_tags))
-		return false;
 
 	idx = msg.stoken(field, idx, delims, returnEmptyFields);
 
@@ -306,40 +322,6 @@ bool parse_data(SafeString &msg)
 	return true;
 }
 
-#ifdef READER_HAS_MULTIPLE_ANTENNAS
-void parse_antenna_data(SafeString &msg)
-{
-	// parse antenna data
-	cSF(antenna, 11);
-	char delims[] = ";*";
-	bool returnEmptyFields = true;
-
-	int idx = 0;
-
-	idx = msg.stoken(antenna, idx, delims, returnEmptyFields);
-
-	if (!antenna.toInt64_t(g_antenna0))
-		return;
-
-	idx = msg.stoken(antenna, idx, delims, returnEmptyFields);
-
-	if (!antenna.toInt64_t(g_antenna1))
-		return;
-
-	idx = msg.stoken(antenna, idx, delims, returnEmptyFields);
-
-	if (!antenna.toInt64_t(g_antenna2))
-		return;
-
-	idx = msg.stoken(antenna, idx, delims, returnEmptyFields);
-
-	if (!antenna.toInt64_t(g_antenna3))
-		return;
-}
-#else
-void parse_antenna_data(SafeString &msg) {}
-#endif
-
 /* SCREEN_H */
 #include <LiquidCrystal_I2C.h>
 #include <string.h>
@@ -373,7 +355,6 @@ const char fill_pattern[20] = "                   ";
 | #15 (Shutdown [Helper]) |                         -                        |                                   -                                   |                                              -                                              |
 | Confirmation screen     | - Pressione START para confirmar...              | Waits for user confirmation before an action                          | START: Confirmation                                                                         |
 */
-#ifdef READER_HAS_MULTIPLE_ANTENNAS
 #define INFORM_SCREEN 0
 #define ANTNNA_SCREEN 1
 #define NETWRK_SCREEN 2
@@ -392,25 +373,6 @@ const char fill_pattern[20] = "                   ";
 #define WAITNG_SCREEN 13
 #define WAITON_SCREEN 14
 #define SCREENS_COUNT 15
-#else
-#define INFORM_SCREEN 0
-#define NETWRK_SCREEN 1
-#define NETCFG_SCREEN 2
-#define USBCFG_SCREEN 3
-#define DATTME_SCREEN 4
-#define SYSTEM_SCREEN 5
-#define UPLOAD_SCREEN 6
-#define BACKUP_SCREEN 7
-#define DELETE_SCREEN 8
-#define SHTDWN_SCREEN 9
-#define NAV_SCREENS_COUNT 10
-
-#define OFFMSG_SCREEN 10
-#define CONFRM_SCREEN 11
-#define WAITNG_SCREEN 12
-#define WAITON_SCREEN 13
-#define SCREENS_COUNT 14
-#endif
 
 unsigned int g_current_screen = 0;
 unsigned int g_confirm_target = 0; // target screen for events that need confirmation
@@ -423,9 +385,7 @@ int32_t g_screen_waiting_timestamp;
 
 const char desc[SCREENS_COUNT][VIRT_SCR_COLS] = {
     "START:Reset tela   ",
-#ifdef READER_HAS_MULTIPLE_ANTENNAS
     "                   ",
-#endif
     "                   ",
     "START:Reconectar   ",
     "START:Salvar no USB",
@@ -448,10 +408,17 @@ void screen_build()
 	switch (g_current_screen)
 	{
 	case INFORM_SCREEN:
-		l1 = virt_scr_sprintf(0, 1, "Regist.: %" PRId32, g_system_data.tags);
+		l1 = virt_scr_sprintf(0, 1, "Regist.: %" PRId32, g_system_data.tag_data.tags);
 		l2 = virt_scr_sprintf(0, 2, "Atletas: %"
 					    "d",
-				      g_system_data.unique_tags);
+				      g_system_data.tag_data.unique_tags);
+		break;
+	case ANTNNA_SCREEN:
+		l1 = virt_scr_sprintf(0, 1, "A1: %" PRId32 " A2: %" PRId32,
+				      g_system_data.tag_data.antennas[0], g_system_data.tag_data.antennas[1]);
+
+		l2 = virt_scr_sprintf(0, 2, "A3: %" PRId32 " A4: %" PRId32,
+				      g_system_data.tag_data.antennas[2], g_system_data.tag_data.antennas[3]);
 		break;
 	case NETWRK_SCREEN:
 		l1 = virt_scr_sprintf(0, 1, "Leitor     : %2s", g_system_data.rfid_status ? "OK" : "X");
@@ -514,14 +481,6 @@ void screen_build()
 		l2 = virt_scr_sprintf(0, 2, "Inicializando...", NULL);
 		break;
 	}
-
-#ifdef READER_HAS_MULTIPLE_ANTENNAS
-	if (g_current_screen == ANTNNA_SCREEN)
-	{
-		l1 = virt_scr_sprintf(0, 1, "A1: %" PRId32 " A2: %" PRId32, g_antenna0, g_antenna1);
-		l2 = virt_scr_sprintf(0, 2, "A3: %" PRId32 " A4: %" PRId32, g_antenna2, g_antenna3);
-	}
-#endif
 
 	if (g_current_screen < UPLOAD_SCREEN)
 	{
@@ -638,8 +597,6 @@ void screen_init()
 	memset(g_virt_scr, '\0', sizeof(g_virt_scr));
 }
 
-#define START_DELIMITER 0x3C
-#define END_DELIMITER 0x3E
 void event_send()
 {
 	// screens that need confirmation
@@ -672,12 +629,13 @@ void handle_serial()
 
 	if (serial_reader.startsWith("$MYTMP;"))
 	{
-		if (parse_data(serial_reader))
+		if (parse_pc_data(serial_reader))
 			screen_unlock();
 	}
-	else if (serial_reader.startsWith("$ANTNA;"))
+	else if (serial_reader.startsWith("$TAGRP;"))
 	{
-		parse_antenna_data(serial_reader);
+		if (parse_tag_report(serial_reader))
+			screen_unlock();
 	}
 }
 
