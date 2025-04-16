@@ -67,7 +67,7 @@ func withChecksum(data string) string {
 func epoch() int64 {
 	unix := time.Now().Unix()
 	_, offset := time.Now().Zone()
-	return unix - int64(offset)
+	return unix + int64(offset)
 }
 
 func (pd *PCData) formatPCDataReport() string {
