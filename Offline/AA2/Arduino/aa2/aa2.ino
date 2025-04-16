@@ -270,8 +270,10 @@ bool parse_pc_data(SafeString &msg)
 	idx = msg.stoken(field, idx, delims, returnEmptyFields);
 
 	// do antenna update
-	if (field.equalsIgnoreCase("A"))
+	if (field.equals("A"))
 	{
+		idx = msg.stoken(field, idx, delims, returnEmptyFields);
+
 		if (!field.toInt64_t(g_system_data.tag_data.antenna1))
 			return false;
 
@@ -290,7 +292,7 @@ bool parse_pc_data(SafeString &msg)
 		if (!field.toInt64_t(g_system_data.tag_data.antenna4))
 			return false;
 	} // do PCData update
-	else if (field.equalsIgnoreCase("P"))
+	else if (field.equals("P"))
 	{
 		idx = msg.stoken(field, idx, delims, returnEmptyFields);
 

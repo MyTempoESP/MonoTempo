@@ -227,10 +227,11 @@ func (a *Ay) Process() {
 
 	go func() {
 
-		// Configura um ticker para enviar dados periodicamente
-		doAntennaReport := time.NewTicker(1 * time.Second)
-		doPCDataReport := time.NewTicker(2 * time.Second)
+		doPCDataReport := time.NewTicker(1 * time.Second)
 		doTagReport := time.NewTicker(120 * time.Millisecond)
+
+		<-doPCDataReport.C
+		doAntennaReport := time.NewTicker(1 * time.Second)
 
 		for {
 			pcData.UniqueTags.Store(int32(tagSet.Count()))
@@ -243,8 +244,10 @@ func (a *Ay) Process() {
 				pcData.UsbStatus.Store(usbOk)
 
 				pcData.SendPCDataReport(sender)
+
 			case <-doAntennaReport.C:
 				pcData.SendAntennaReport(sender)
+
 			case <-doTagReport.C:
 				pcData.SendTagReport(sender)
 			}
