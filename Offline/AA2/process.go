@@ -223,38 +223,36 @@ func (a *Ay) Process() {
 
 	//NUM_EQUIP, err := strconv.Atoi(os.Getenv("MYTEMPO_DEVID"))
 
-	// TODO: revert everything you did today
+	// TODO: revert everything you did today again
 
 	go func() {
 
 		// Configura um ticker para enviar dados periodicamente
-		doPCDataReport := time.NewTicker(1 * time.Second)
-		doTagReport := time.NewTicker(150 * time.Millisecond)
+		doAntennaReport := time.NewTicker(1 * time.Second)
+		doPCDataReport := time.NewTicker(2 * time.Second)
+		doTagReport := time.NewTicker(120 * time.Millisecond)
 
 		for {
+			pcData.UniqueTags.Store(int32(tagSet.Count()))
+
 			select {
 			case <-doPCDataReport.C:
-				usbOk, _ := device.Check()
-
 				pcData.PermanentUniqueTags.Store(int32(permanentTagSet.Count()))
 
+				usbOk, _ := device.Check()
 				pcData.UsbStatus.Store(usbOk)
 
 				pcData.SendPCDataReport(sender)
-			default:
+			case <-doAntennaReport.C:
+				pcData.SendAntennaReport(sender)
+			case <-doTagReport.C:
+				pcData.SendTagReport(sender)
 			}
 
-			select {
-			case <-doTagReport.C:
-				pcData.UniqueTags.Store(int32(tagSet.Count()))
-				pcData.SendTagReport(sender)
+			actionString, hasAction := sender.Recv()
 
-				actionString, hasAction := sender.Recv()
-
-				if hasAction {
-					checkAction(actionString, &tagSet, &pcData.Tags, &pcData.Antennas)
-				}
-			default:
+			if hasAction {
+				checkAction(actionString, &tagSet, &pcData.Tags, &pcData.Antennas)
 			}
 		}
 	}()

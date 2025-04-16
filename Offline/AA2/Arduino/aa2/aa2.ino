@@ -173,7 +173,7 @@ typedef struct PCData
 PCData g_system_data;
 
 // create a SafeString reader to read the struct data
-createSafeStringReader(serial_reader, 80, '\n', true);
+createSafeStringReader(serial_reader, 120, '\n', true);
 createBufferedOutput(serial_writer, 12, BLOCK_IF_FULL, true);
 
 bool check_sum(SafeString &msg)
@@ -241,53 +241,6 @@ bool parse_time(SafeString &timeField)
 	return true;
 }
 
-bool parse_tag_report(SafeString &msg)
-{
-	cSF(field, 11);
-
-	char delims[] = ";*";
-	bool returnEmptyFields = true;
-
-	int idx = 0;
-
-	idx = msg.stoken(field, idx, delims, returnEmptyFields);
-
-	if (field != "$TAGRP")
-	{
-		return false;
-	}
-
-	idx = msg.stoken(field, idx, delims, returnEmptyFields);
-
-	if (!field.toInt64_t(g_system_data.tag_data.tags))
-		return false;
-
-	idx = msg.stoken(field, idx, delims, returnEmptyFields);
-
-	if (!field.toInt(g_system_data.tag_data.unique_tags))
-		return false;
-
-	idx = msg.stoken(field, idx, delims, returnEmptyFields);
-
-	if (!field.toInt64_t(g_system_data.tag_data.antenna1))
-		return false;
-
-	idx = msg.stoken(field, idx, delims, returnEmptyFields);
-
-	if (!field.toInt64_t(g_system_data.tag_data.antenna2))
-		return false;
-
-	idx = msg.stoken(field, idx, delims, returnEmptyFields);
-
-	if (!field.toInt64_t(g_system_data.tag_data.antenna3))
-		return false;
-
-	idx = msg.stoken(field, idx, delims, returnEmptyFields);
-
-	if (!field.toInt64_t(g_system_data.tag_data.antenna4))
-		return false;
-}
-
 bool parse_pc_data(SafeString &msg)
 {
 	cSF(field, 11);
@@ -306,35 +259,71 @@ bool parse_pc_data(SafeString &msg)
 
 	idx = msg.stoken(field, idx, delims, returnEmptyFields);
 
-	g_system_data.comm_status = field.equals("1");
-
-	idx = msg.stoken(field, idx, delims, returnEmptyFields);
-
-	g_system_data.rfid_status = field.equals("1");
-
-	idx = msg.stoken(field, idx, delims, returnEmptyFields);
-
-	g_system_data.usb_status = field.equals("1");
-
-	idx = msg.stoken(field, idx, delims, returnEmptyFields);
-
-	if (!field.toInt(g_system_data.sys_version))
+	if (!field.toInt64_t(g_system_data.tag_data.tags))
 		return false;
 
 	idx = msg.stoken(field, idx, delims, returnEmptyFields);
 
-	if (!field.toInt(g_system_data.num_serie))
+	if (!field.toInt(g_system_data.tag_data.unique_tags))
 		return false;
 
 	idx = msg.stoken(field, idx, delims, returnEmptyFields);
 
-	if (!field.toInt(g_system_data.backups))
-		return false;
+	// do antenna update
+	if (field.equalsIgnoreCase("A"))
+	{
+		if (!field.toInt64_t(g_system_data.tag_data.antenna1))
+			return false;
 
-	idx = msg.stoken(field, idx, delims, returnEmptyFields);
+		idx = msg.stoken(field, idx, delims, returnEmptyFields);
 
-	if (!field.toInt(g_system_data.permanent_unique_tags))
-		return false;
+		if (!field.toInt64_t(g_system_data.tag_data.antenna2))
+			return false;
+
+		idx = msg.stoken(field, idx, delims, returnEmptyFields);
+
+		if (!field.toInt64_t(g_system_data.tag_data.antenna3))
+			return false;
+
+		idx = msg.stoken(field, idx, delims, returnEmptyFields);
+
+		if (!field.toInt64_t(g_system_data.tag_data.antenna4))
+			return false;
+	} // do PCData update
+	else if (field.equalsIgnoreCase("P"))
+	{
+		idx = msg.stoken(field, idx, delims, returnEmptyFields);
+
+		g_system_data.comm_status = field.equals("1");
+
+		idx = msg.stoken(field, idx, delims, returnEmptyFields);
+
+		g_system_data.rfid_status = field.equals("1");
+
+		idx = msg.stoken(field, idx, delims, returnEmptyFields);
+
+		g_system_data.usb_status = field.equals("1");
+
+		idx = msg.stoken(field, idx, delims, returnEmptyFields);
+
+		if (!field.toInt(g_system_data.sys_version))
+			return false;
+
+		idx = msg.stoken(field, idx, delims, returnEmptyFields);
+
+		if (!field.toInt(g_system_data.num_serie))
+			return false;
+
+		idx = msg.stoken(field, idx, delims, returnEmptyFields);
+
+		if (!field.toInt(g_system_data.backups))
+			return false;
+
+		idx = msg.stoken(field, idx, delims, returnEmptyFields);
+
+		if (!field.toInt(g_system_data.permanent_unique_tags))
+			return false;
+	}
 
 	idx = msg.stoken(field, idx, delims, returnEmptyFields);
 
@@ -649,16 +638,11 @@ void handle_serial()
 	if (!check_sum(serial_reader))
 		return;
 
-	if (serial_reader.startsWith("$MYTMP;"))
-	{
-		if (parse_pc_data(serial_reader))
-			screen_unlock();
-	}
-	else if (serial_reader.startsWith("$TAGRP;"))
-	{
-		if (parse_tag_report(serial_reader))
-			screen_unlock();
-	}
+	if (!serial_reader.startsWith("$MYTMP;"))
+		return;
+
+	if (parse_pc_data(serial_reader))
+		screen_unlock();
 }
 
 void handle_buttons()
