@@ -81,6 +81,8 @@
  * - Added `screen_wait_confirm()` to handle confirmation waiting logic.
  */
 
+#define READER_HAS_MULTIPLE_ANTENNAS
+
 #include <SafeString.h>
 #include <SafeStringReader.h>
 #include <BufferedOutput.h>
@@ -254,28 +256,6 @@ bool parse_data(SafeString &msg)
 		return false;
 	}
 
-#ifdef READER_HAS_MULTIPLE_ANTENNAS
-	idx = msg.stoken(field, idx, delims, returnEmptyFields);
-
-	if (!field.toInt64_t(g_antenna0))
-		return false;
-
-	idx = msg.stoken(field, idx, delims, returnEmptyFields);
-
-	if (!field.toInt64_t(g_antenna1))
-		return false;
-
-	idx = msg.stoken(field, idx, delims, returnEmptyFields);
-
-	if (!field.toInt64_t(g_antenna2))
-		return false;
-
-	idx = msg.stoken(field, idx, delims, returnEmptyFields);
-
-	if (!field.toInt64_t(g_antenna3))
-		return false;
-#endif
-
 	idx = msg.stoken(field, idx, delims, returnEmptyFields);
 
 	if (!field.toInt64_t(g_system_data.tags))
@@ -325,6 +305,40 @@ bool parse_data(SafeString &msg)
 
 	return true;
 }
+
+#ifdef READER_HAS_MULTIPLE_ANTENNAS
+void parse_antenna_data(SafeString &msg)
+{
+	// parse antenna data
+	cSF(antenna, 11);
+	char delims[] = ";*";
+	bool returnEmptyFields = true;
+
+	int idx = 0;
+
+	idx = msg.stoken(antenna, idx, delims, returnEmptyFields);
+
+	if (!antenna.toInt64_t(g_antenna0))
+		return;
+
+	idx = msg.stoken(antenna, idx, delims, returnEmptyFields);
+
+	if (!antenna.toInt64_t(g_antenna1))
+		return;
+
+	idx = msg.stoken(antenna, idx, delims, returnEmptyFields);
+
+	if (!antenna.toInt64_t(g_antenna2))
+		return;
+
+	idx = msg.stoken(antenna, idx, delims, returnEmptyFields);
+
+	if (!antenna.toInt64_t(g_antenna3))
+		return;
+}
+#else
+void parse_antenna_data(SafeString &msg) {}
+#endif
 
 /* SCREEN_H */
 #include <LiquidCrystal_I2C.h>
@@ -439,34 +453,6 @@ void screen_build()
 					    "d",
 				      g_system_data.unique_tags);
 		break;
-#ifdef READER_HAS_MULTIPLE_ANTENNAS
-	case ANTNNA_SCREEN:
-
-		int a[4] = {g_antenna0, g_antenna1, g_antenna2, g_antenna3};
-		int postfix[4] = {' ', ' ', ' ', ' '};
-
-		for (int i = 0; i < 4; i++)
-		{
-			if (a[i] > 1000)
-			{
-				a[i] /= 1000;
-				postfix[i] = 'K';
-			}
-			else if (a[i] > 1000000)
-			{
-				a[i] /= 1000000;
-				postfix[i] = 'M';
-			}
-		}
-
-		l1 = virt_scr_sprintf(0, 1, "A0: %ld%c"
-					    " A1: %ld%c",
-				      a[0], postfix[0], a[1], postfix[1]);
-		l2 = virt_scr_sprintf(0, 2, "A3: %ld%c"
-					    " A4: %ld%c",
-				      a[2], postfix[2], a[3], postfix[3]);
-		break;
-#endif
 	case NETWRK_SCREEN:
 		l1 = virt_scr_sprintf(0, 1, "Leitor     : %2s", g_system_data.rfid_status ? "OK" : "X");
 		l2 = virt_scr_sprintf(0, 2, "Comunicando: %3s", g_system_data.comm_status ? "SIM" : "NAO");
@@ -528,6 +514,14 @@ void screen_build()
 		l2 = virt_scr_sprintf(0, 2, "Inicializando...", NULL);
 		break;
 	}
+
+#ifdef READER_HAS_MULTIPLE_ANTENNAS
+	if (g_current_screen == ANTNNA_SCREEN)
+	{
+		l1 = virt_scr_sprintf(0, 1, "A1: %" PRId32 " A2: %" PRId32, g_antenna0, g_antenna1);
+		l2 = virt_scr_sprintf(0, 2, "A3: %" PRId32 " A4: %" PRId32, g_antenna2, g_antenna3);
+	}
+#endif
 
 	if (g_current_screen < UPLOAD_SCREEN)
 	{
@@ -676,11 +670,15 @@ void handle_serial()
 	if (!check_sum(serial_reader))
 		return;
 
-	if (!serial_reader.startsWith("$MYTMP;"))
-		return;
-
-	if (parse_data(serial_reader))
-		screen_unlock();
+	if (serial_reader.startsWith("$MYTMP;"))
+	{
+		if (parse_data(serial_reader))
+			screen_unlock();
+	}
+	else if (serial_reader.startsWith("$ANTNA;"))
+	{
+		parse_antenna_data(serial_reader);
+	}
 }
 
 void handle_buttons()

@@ -226,7 +226,8 @@ func (a *Ay) Process() {
 	go func() {
 
 		// Configura um ticker para enviar dados periodicamente
-		ticker := time.NewTicker(120 * time.Millisecond)
+		ticker := time.NewTicker(150 * time.Millisecond)
+		antennaTicker := time.NewTicker(300 * time.Millisecond)
 
 		defer ticker.Stop()
 		defer sender.Close()
@@ -241,6 +242,11 @@ func (a *Ay) Process() {
 			pcData.UsbStatus.Store(usbOk)
 
 			pcData.Send(sender)
+			select {
+			case <-antennaTicker.C:
+				pcData.SendAntennaReport(sender)
+			default:
+			}
 
 			actionString, hasAction := sender.Recv()
 
