@@ -289,6 +289,9 @@ bool parse_pc_data(SafeString &msg)
 	// do antenna update
 	if (field.equals("A"))
 	{
+		// enable antenna reports if one is actually received
+		g_does_antenna_reports = true;
+
 		idx = msg.stoken(field, idx, delims, returnEmptyFields);
 
 		g_system_data.tag_data.antenna1 = getInt32Field(field);
@@ -403,6 +406,9 @@ const char fill_pattern[20] = "                   ";
 unsigned int g_current_screen = 0;
 unsigned int g_confirm_target = 0; // target screen for events that need confirmation
 unsigned int g_eta = 30;	   // countdown for shutdown message
+
+// wether or not the antenna reports are enabled
+bool g_does_antenna_reports = false;
 
 int g_unlocks;
 bool g_locked;
@@ -579,6 +585,12 @@ void screen_lock(int screen)
 void screen_next()
 {
 	g_current_screen = (g_current_screen + 1) % NAV_SCREENS_COUNT;
+
+	// skip the antenna screen if antenna reports are disabled
+	if (g_current_screen == ANTNNA_SCREEN && !g_does_antenna_reports)
+	{
+		g_current_screen = NETWRK_SCREEN;
+	}
 }
 
 void screen_confirm()
