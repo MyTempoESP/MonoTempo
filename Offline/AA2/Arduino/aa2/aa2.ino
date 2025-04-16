@@ -1,8 +1,8 @@
 /**
  * @file aa2.ino
- * @brief This file contains the implementation of a system for managing and displaying
- *        RFID reader data, network status, and system information on an LCD screen.
- *        It also handles user input through buttons and serial communication.
+ * @brief This file implements a system for managing and displaying RFID reader data,
+ * network status, and system information on an LCD screen.
+ * It also handles user input through buttons and serial communication.
  *
  * @details
  * The system is designed to:
@@ -11,13 +11,19 @@
  * - Parse and process data received via serial communication.
  * - Lock and unlock the screen for specific operations.
  * - Provide confirmation prompts for critical actions.
+ * - Manage power-off countdown and sleep mode.
  *
  * @author Rodrigo Monteiro Junior
  * @date 2025-03-04
+ * @version 2.0
+ *
+ * @copyright (c) 2025 Rodrigo Monteiro Junior
  *
  * @dependencies
  * - SafeString.h: For safe string handling.
  * - SafeStringReader.h: For reading and parsing serial input.
+ * - BufferedOutput.h: For buffered serial output.
+ * - avr/sleep.h: For sleep mode functionality.
  * - LiquidCrystal_I2C.h: For controlling the LCD screen.
  * - Standard C++ libraries: inttypes.h, time.h.
  *
@@ -28,15 +34,17 @@
  *
  * @sections
  * - Data Structures:
- *   - PCData: A struct to hold system data such as tag counts, statuses, and version info.
+ *   - PCTagData: A struct to hold RFID tag data such as counts and antenna statuses.
+ *   - PCData: A struct to hold system data such as tag counts, statuses, version info, and timestamps.
  * - Global Variables:
  *   - g_system_data: Holds the current system data.
  *   - g_current_screen: Tracks the currently displayed screen.
  *   - g_locked: Indicates whether the screen is locked.
  *   - g_screen_waiting_confirmation: Indicates if the system is waiting for user confirmation.
+ *   - g_does_antenna_reports: Indicates if antenna reports are enabled.
  * - Functions:
  *   - check_clicked(): Checks if a button is clicked and returns the button ID.
- *   - parse_data(): Parses serial input to update system data.
+ *   - parse_pc_data(): Parses serial input to update system data.
  *   - parse_time(): Parses and converts a timestamp to a human-readable date and time.
  *   - check_sum(): Validates the checksum of a received serial message.
  *   - screen_build(): Builds the virtual screen content based on the current screen.
@@ -46,6 +54,7 @@
  *   - screen_next(): Navigates to the next screen.
  *   - screen_confirm(): Prepares the system for a confirmation action.
  *   - screen_wait_confirm(): Handles the confirmation waiting state.
+ *   - screen_poweroff_countdown(): Handles the power-off countdown and puts the system into sleep mode.
  *   - event_send(): Sends the current screen's event via serial communication.
  *   - handle_serial(): Handles serial input and updates the system state.
  *   - handle_buttons(): Handles button inputs for navigation and actions.
@@ -59,6 +68,8 @@
  *   - Allow actions like uploading data, resetting, or shutting down.
  * - Confirmation screens:
  *   - Prompt the user for confirmation before critical actions.
+ * - Power-off screen:
+ *   - Displays a countdown before shutting down the system.
  *
  * @constants
  * - BUTTON_VANCE, BUTTON_START: Digital pins for buttons.
@@ -74,11 +85,12 @@
  * @changes
  * - Added `parse_time()` function to handle timestamp parsing and conversion.
  * - Added `check_sum()` function to validate the checksum of serial messages.
- * - Updated `parse_data()` to include parsing of additional fields like timestamps.
+ * - Updated `parse_pc_data()` to include parsing of additional fields like timestamps and antenna data.
  * - Added `handle_serial()` to process serial input and update system state.
  * - Added `handle_buttons()` to handle button inputs for navigation and actions.
  * - Updated `screen_build()` to include new screens and data fields.
  * - Added `screen_wait_confirm()` to handle confirmation waiting logic.
+ * - Added `screen_poweroff_countdown()` to manage power-off countdown and sleep mode.
  */
 
 #include <SafeString.h>
@@ -194,6 +206,7 @@ bool check_sum(SafeString &msg)
 		return false;
 	}
 
+	// skip the first character '$'
 	for (size_t i = 1; i < idx_star; i++)
 	{
 		sum ^= msg[i];
