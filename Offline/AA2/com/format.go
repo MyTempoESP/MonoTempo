@@ -90,6 +90,6 @@ func (pd *PCData) SendTagReport(sender *SerialSender) {
 
 func (pd *PCData) SendPCDataReport(sender *SerialSender) {
 	data := pd.format()
-	log.Println("Sending data:", data)
+	log.Println("Sending PC Data report:", data)
 	sender.SendData(data)
 }

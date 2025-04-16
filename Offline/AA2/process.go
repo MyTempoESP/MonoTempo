@@ -233,6 +233,18 @@ func (a *Ay) Process() {
 
 		for {
 			select {
+			case <-doPCDataReport.C:
+				usbOk, _ := device.Check()
+
+				pcData.PermanentUniqueTags.Store(int32(permanentTagSet.Count()))
+
+				pcData.UsbStatus.Store(usbOk)
+
+				pcData.SendPCDataReport(sender)
+			default:
+			}
+
+			select {
 			case <-doTagReport.C:
 				pcData.UniqueTags.Store(int32(tagSet.Count()))
 				pcData.SendTagReport(sender)
@@ -242,14 +254,7 @@ func (a *Ay) Process() {
 				if hasAction {
 					checkAction(actionString, &tagSet, &pcData.Tags, &pcData.Antennas)
 				}
-			case <-doPCDataReport.C:
-				usbOk, _ := device.Check()
-
-				pcData.PermanentUniqueTags.Store(int32(permanentTagSet.Count()))
-
-				pcData.UsbStatus.Store(usbOk)
-
-				pcData.SendPCDataReport(sender)
+			default:
 			}
 		}
 	}()

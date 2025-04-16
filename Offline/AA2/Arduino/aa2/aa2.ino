@@ -143,7 +143,10 @@ typedef struct PCTagData
 {
 	int64_t tags;
 	int unique_tags;
-	int64_t antennas[4];
+	int64_t antenna1;
+	int64_t antenna2;
+	int64_t antenna3;
+	int64_t antenna4;
 } PCTagData;
 
 typedef struct PCData
@@ -249,6 +252,13 @@ bool parse_tag_report(SafeString &msg)
 
 	idx = msg.stoken(field, idx, delims, returnEmptyFields);
 
+	if (field != "$TAGRP")
+	{
+		return false;
+	}
+
+	idx = msg.stoken(field, idx, delims, returnEmptyFields);
+
 	if (!field.toInt64_t(g_system_data.tag_data.tags))
 		return false;
 
@@ -257,13 +267,25 @@ bool parse_tag_report(SafeString &msg)
 	if (!field.toInt(g_system_data.tag_data.unique_tags))
 		return false;
 
-	for (int i = 0; i < 4; i++)
-	{
-		idx = msg.stoken(field, idx, delims, returnEmptyFields);
+	idx = msg.stoken(field, idx, delims, returnEmptyFields);
 
-		if (!field.toInt64_t(g_system_data.tag_data.antennas[i]))
-			return false;
-	}
+	if (!field.toInt64_t(g_system_data.tag_data.antenna1))
+		return false;
+
+	idx = msg.stoken(field, idx, delims, returnEmptyFields);
+
+	if (!field.toInt64_t(g_system_data.tag_data.antenna2))
+		return false;
+
+	idx = msg.stoken(field, idx, delims, returnEmptyFields);
+
+	if (!field.toInt64_t(g_system_data.tag_data.antenna3))
+		return false;
+
+	idx = msg.stoken(field, idx, delims, returnEmptyFields);
+
+	if (!field.toInt64_t(g_system_data.tag_data.antenna4))
+		return false;
 }
 
 bool parse_pc_data(SafeString &msg)
@@ -415,10 +437,10 @@ void screen_build()
 		break;
 	case ANTNNA_SCREEN:
 		l1 = virt_scr_sprintf(0, 1, "A1: %" PRId32 " A2: %" PRId32,
-				      g_system_data.tag_data.antennas[0], g_system_data.tag_data.antennas[1]);
+				      g_system_data.tag_data.antenna1, g_system_data.tag_data.antenna2);
 
 		l2 = virt_scr_sprintf(0, 2, "A3: %" PRId32 " A4: %" PRId32,
-				      g_system_data.tag_data.antennas[2], g_system_data.tag_data.antennas[3]);
+				      g_system_data.tag_data.antenna3, g_system_data.tag_data.antenna4);
 		break;
 	case NETWRK_SCREEN:
 		l1 = virt_scr_sprintf(0, 1, "Leitor     : %2s", g_system_data.rfid_status ? "OK" : "X");
