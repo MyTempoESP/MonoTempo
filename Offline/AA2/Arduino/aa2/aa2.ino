@@ -141,12 +141,12 @@ int check_clicked()
 
 typedef struct PCTagData
 {
-	int64_t tags;
+	int32_t tags;
 	int unique_tags;
-	int64_t antenna1;
-	int64_t antenna2;
-	int64_t antenna3;
-	int64_t antenna4;
+	int32_t antenna1;
+	int32_t antenna2;
+	int32_t antenna3;
+	int32_t antenna4;
 } PCTagData;
 
 typedef struct PCData
@@ -213,7 +213,7 @@ bool parse_time(SafeString &timeField)
 		return false;
 	}
 
-	if (stime > 2147483647)
+	if (stime > UINT32_MAX)
 	{
 		return false;
 	}
@@ -241,6 +241,24 @@ bool parse_time(SafeString &timeField)
 	return true;
 }
 
+// XXX: gets an int64_t and casts it to a int32_t
+// returns 0 if the value is out of range
+int32_t getInt32Field(SafeString &field)
+{
+	int32_t value = 0;
+	int64_t value64 = 0;
+
+	if (!field.toInt64_t(value64))
+		return 0;
+
+	if (value64 < INT32_MIN || value64 > INT32_MAX)
+		return 0;
+
+	value = static_cast<int32_t>(value64);
+
+	return value;
+}
+
 bool parse_pc_data(SafeString &msg)
 {
 	cSF(field, 11);
@@ -259,8 +277,7 @@ bool parse_pc_data(SafeString &msg)
 
 	idx = msg.stoken(field, idx, delims, returnEmptyFields);
 
-	if (!field.toInt64_t(g_system_data.tag_data.tags))
-		return false;
+	g_system_data.tag_data.tags = getInt32Field(field);
 
 	idx = msg.stoken(field, idx, delims, returnEmptyFields);
 
@@ -274,23 +291,19 @@ bool parse_pc_data(SafeString &msg)
 	{
 		idx = msg.stoken(field, idx, delims, returnEmptyFields);
 
-		if (!field.toInt64_t(g_system_data.tag_data.antenna1))
-			return false;
+		g_system_data.tag_data.antenna1 = getInt32Field(field);
 
 		idx = msg.stoken(field, idx, delims, returnEmptyFields);
 
-		if (!field.toInt64_t(g_system_data.tag_data.antenna2))
-			return false;
+		g_system_data.tag_data.antenna2 = getInt32Field(field);
 
 		idx = msg.stoken(field, idx, delims, returnEmptyFields);
 
-		if (!field.toInt64_t(g_system_data.tag_data.antenna3))
-			return false;
+		g_system_data.tag_data.antenna3 = getInt32Field(field);
 
 		idx = msg.stoken(field, idx, delims, returnEmptyFields);
 
-		if (!field.toInt64_t(g_system_data.tag_data.antenna4))
-			return false;
+		g_system_data.tag_data.antenna4 = getInt32Field(field);
 	} // do PCData update
 	else if (field.equals("P"))
 	{

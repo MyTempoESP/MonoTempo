@@ -119,18 +119,21 @@ func checkAction(actionString string, tagSet *intSet.IntSet, tags *atomic.Int64,
 	}
 }
 
-// Helper to get the earliest of 3 times
-func minTime(a, b, c time.Time) time.Time {
-	if a.Before(b) {
-		if a.Before(c) {
-			return a
-		}
-		return c
+const (
+	STATE_TAG_REPORT = iota
+	STATE_ANTENNA_REPORT
+	STATE_PC_DATA_REPORT
+)
+
+// function for the state transition, it goes: 0, 0, 0, 1, 2, 0 ...
+func statePattern(state int) int {
+	r := state % 5
+
+	if r < 3 {
+		return 0
+	} else {
+		return r - 2
 	}
-	if b.Before(c) {
-		return b
-	}
-	return c
 }
 
 func (a *Ay) Process() {
@@ -241,54 +244,38 @@ func (a *Ay) Process() {
 
 	go func() {
 
-		// Set initial times
-		nextTag := time.Now().Add(120 * time.Millisecond)
-		nextAntenna := time.Now().Add(1 * time.Second)
-		nextPC := time.Now().Add(2 * time.Second)
+		switcherTicker := time.NewTicker(1 * time.Second)
+		sendTicker := time.NewTicker(120 * time.Millisecond)
+		state := STATE_TAG_REPORT
 
-		for {
-			now := time.Now()
-
-			// Determine which event is due next
-			nextEvent := minTime(nextTag, nextAntenna, nextPC)
-
-			sleepDuration := time.Until(nextEvent)
-
-			if sleepDuration > 0 {
-				time.Sleep(sleepDuration)
-				now = time.Now()
-			}
+		for range sendTicker.C {
 
 			pcData.UniqueTags.Store(int32(tagSet.Count()))
 
-			if !now.Before(nextPC) {
-				pcData.PermanentUniqueTags.Store(int32(permanentTagSet.Count()))
+			pcData.PermanentUniqueTags.Store(int32(permanentTagSet.Count()))
 
-				usbOk, _ := device.Check()
-				pcData.UsbStatus.Store(usbOk)
+			usbOk, _ := device.Check()
+			pcData.UsbStatus.Store(usbOk)
 
-				pcData.SendPCDataReport(sender)
-
-				nextPC = nextPC.Add(2 * time.Second)
-				nextAntenna = nextAntenna.Add(1 * time.Second)
-				nextTag = now.Add(120 * time.Millisecond)
-
-			} else if !now.Before(nextAntenna) {
-				pcData.SendAntennaReport(sender)
-
-				nextAntenna = nextAntenna.Add(1 * time.Second)
-				nextTag = now.Add(120 * time.Millisecond)
-
-			} else if !now.Before(nextTag) {
+			switch state {
+			case STATE_TAG_REPORT:
 				pcData.SendTagReport(sender)
-
-				nextTag = nextTag.Add(120 * time.Millisecond)
+			case STATE_ANTENNA_REPORT:
+				pcData.SendAntennaReport(sender)
+			case STATE_PC_DATA_REPORT:
+				pcData.SendPCDataReport(sender)
 			}
 
 			actionString, hasAction := sender.Recv()
 
 			if hasAction {
 				checkAction(actionString, &tagSet, &pcData.Tags, &pcData.Antennas)
+			}
+
+			select {
+			case <-switcherTicker.C:
+				state = statePattern(state)
+			default:
 			}
 		}
 	}()
