@@ -227,7 +227,7 @@ func (a *Ay) Process() {
 
 		// Configura um ticker para enviar dados periodicamente
 		ticker := time.NewTicker(150 * time.Millisecond)
-		antennaTicker := time.NewTicker(300 * time.Millisecond)
+		//antennaTicker := time.NewTicker(300 * time.Millisecond)
 		usbCheck := time.NewTicker(1 * time.Second)
 
 		defer ticker.Stop()
