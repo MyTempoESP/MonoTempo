@@ -7,7 +7,9 @@ import (
 	"os"
 
 	"database/sql"
+
 	"github.com/MyTempoESP/Reenvio/atleta"
+
 	//"sync/atomic"
 
 	_ "modernc.org/sqlite"
@@ -15,6 +17,8 @@ import (
 
 type Baselet struct {
 	Path string
+
+	IsCheckpoint bool // true if this is a checkpoint database
 
 	db     *sql.DB
 	opened bool
@@ -24,7 +28,9 @@ type Baselet struct {
 
 type MADB struct { // client version
 	DatabaseRoot string // path to the database dir
-	databases    []Baselet
+	IsCheckpoint bool   // true if this is a checkpoint database
+
+	databases []Baselet
 }
 
 func NewBaselet(path string) (b Baselet, err error) {
@@ -138,10 +144,12 @@ func (b *Baselet) Monitor() (tempos <-chan atleta.Atleta) {
 
 		b.db.Exec(ATTACH)
 
-		b.ScanCheckpoint(QUERY_LARGADA, t)
-		b.ScanCheckpoint(QUERY_CHEGADA, t)
-
-		return
+		if !b.IsCheckpoint {
+			b.ScanCheckpoint(QUERY_LARGADA, t)
+			b.ScanCheckpoint(QUERY_CHEGADA, t)
+		} else {
+			b.ScanCheckpoint(QUERY_CHECKPOINT, t)
+		}
 	}()
 
 	tempos = t
@@ -205,6 +213,8 @@ func (m *MADB) Add() (err error) {
 
 		return
 	}
+
+	b.IsCheckpoint = m.IsCheckpoint // inherit
 
 	m.databases = append(m.databases, b)
 

@@ -42,6 +42,8 @@ func main() {
 		log.Fatalf("Erro atualizando equipamento: %s\n", err)
 	}
 
+	r.Tempos.IsCheckpoint = r.Equip.Check != 0
+
 	r.Tempos.DatabaseRoot = "/var/monotempo-data/"
 
 	n, err := countDir(r.Tempos.DatabaseRoot)

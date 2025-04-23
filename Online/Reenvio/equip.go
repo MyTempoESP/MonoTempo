@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"database/sql"
+
 	_ "modernc.org/sqlite"
 )
 
@@ -11,6 +12,7 @@ type Equipamento struct {
 	ID      int
 	Nome    string
 	ProvaID int
+	Check   int
 }
 
 func (equip *Equipamento) Atualiza() (err error) {
@@ -24,7 +26,7 @@ func (equip *Equipamento) Atualiza() (err error) {
 
 	defer equip_db.Close()
 
-	query := `SELECT idequip, modelo, event_id FROM equipamento WHERE 1;`
+	query := `SELECT idequip, modelo, event_id, check FROM equipamento WHERE 1;`
 
 	res, err := equip_db.Query(query)
 
@@ -37,7 +39,7 @@ func (equip *Equipamento) Atualiza() (err error) {
 
 	if !res.Next() {
 
-		err = fmt.Errorf("Dados do dispositivo não encontrados.")
+		err = fmt.Errorf("dados do dispositivo não encontrados")
 
 		return
 	}
@@ -46,6 +48,7 @@ func (equip *Equipamento) Atualiza() (err error) {
 		&equip.ID,
 		&equip.Nome,
 		&equip.ProvaID,
+		&equip.Check,
 	)
 
 	if err != nil {

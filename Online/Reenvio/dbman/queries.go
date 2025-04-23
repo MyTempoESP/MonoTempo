@@ -36,8 +36,24 @@ JOIN
 JOIN
 	tracks ON tracks.id LIKE track_id
 WHERE
-	athlete_time > largada AND
 	athlete_time >= chegada
+GROUP BY
+	athlete_num;`
+
+	QUERY_CHECKPOINT = `
+SELECT
+	athlete_num,
+	antenna,
+	track_id,
+	MAX(athlete_time)
+FROM
+	athletes_times
+JOIN
+	athletes ON athletes.num LIKE athlete_num
+JOIN
+	tracks ON tracks.id LIKE track_id
+WHERE
+	athlete_time > largada
 GROUP BY
 	athlete_num;`
 )
