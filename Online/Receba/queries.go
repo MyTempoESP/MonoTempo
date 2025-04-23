@@ -25,8 +25,8 @@ CREATE TABLE equipamento
    id               INTEGER NOT NULL PRIMARY KEY
 ,  idequip          INTEGER NOT NULL
 ,  event_id         INTEGER NOT NULL
-,  check            INTEGER NOT NULL
 ,  modelo           TEXT    NOT NULL
+,  check            INTEGER NOT NULL
 );
 CREATE TABLE event_data
 (
@@ -50,7 +50,7 @@ CREATE TABLE staffs
 ,  nome             TEXT DEFAULT NULL
 ); 
 
-INSERT INTO equipamento(id, idequip, modelo, event_id) VALUES (1,0,'',0); 
+INSERT INTO equipamento(id, idequip, modelo, event_id, check) VALUES (1,0,'',0,0); 
 END TRANSACTION;`
 
 	QUERY_ATUALIZA_EQUIP = `
@@ -59,7 +59,7 @@ END TRANSACTION;`
 	    idequip,
 	    modelo,
 	    event_id,
-	    check,
+	    check
 	)
 	VALUES(1, ?, ?, ?, ?);
 	`
