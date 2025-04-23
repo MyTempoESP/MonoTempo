@@ -90,7 +90,11 @@ func JSONRequest(url string, data Form, jsonOutput interface{}) (err error) {
 
 			req.Header.Set("Content-Type", "application/json")
 
-			res, err = http.DefaultClient.Do(req)
+			client := &http.Client{
+				Timeout: 5 * time.Second, // Set your desired timeout here
+			}
+
+			res, err = client.Do(req)
 
 			if err != nil {
 				log.Println("Error sending request:", err)
