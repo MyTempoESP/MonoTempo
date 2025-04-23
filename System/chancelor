@@ -78,6 +78,7 @@ mytempo_upload_normal() {
 mytempo_dump_db() {
 
 	SQL_QUERY="${2:-select athlete_num, athlete_time from athletes_times}"
+	printf "Query %s\n" "$SQL_QUERY" >>/tmp/dump_query_log
 
 	# XXX: this goes through every db file in directory specified in first arg
 	# ...  and then quotes every line and puts a ',' at the end then passes it
