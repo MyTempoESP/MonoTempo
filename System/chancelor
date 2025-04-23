@@ -79,6 +79,8 @@ mytempo_dump_db() {
 
 	SQL_QUERY="${2:-select athlete_num, athlete_time from athletes_times}"
 
+	for i in "$1"/N*.db; do sqlite3 -line "$i" "$SQL_QUERY"; done | awk 'NF {print "\""$3"\""","}' >/tmp/dump_awkout
+
 	# XXX: this goes through every db file in directory specified in first arg
 	# ...  and then quotes every line and puts a ',' at the end then passes it
 	# ...  to python and it parses this whole thing as a list and assigns it to 'a'
@@ -95,7 +97,6 @@ mytempo_dump_all() {
 
 	not_empty "$BACKUP_DIR" &&
 		for d in "$BACKUP_DIR"/*; do
-			ls "$d"/N*.db >>/tmp/dump_listing
 			mytempo_dump_db "$d" "$1" >/tmp/"dump$(basename "$d")"
 		done
 
