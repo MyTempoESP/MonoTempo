@@ -77,9 +77,26 @@ mytempo_upload_normal() {
 
 mytempo_dump_db() {
 
-	SQL_QUERY="${2:-select athlete_num, athlete_time from athletes_times}"
+	SQL_QUERY="${2:-select athlete_num, athlete_time, antenna from athletes_times}"
 
-	for i in "$1"/N*.db; do sqlite3 -list -separator "," "$i" "$SQL_QUERY"; done | awk 'NF {print "\""$3"\""","}'
+	TODAY=$(date +"%m/%d/%Y")
+
+	for i in "$1"/N*.db; do
+		sqlite3 -list -separator "," "$i" "$SQL_QUERY"
+	done | perl -ne '
+		chomp;
+		@F = split(/,/);
+		
+		$num = $F[0];
+		$tme = $F[1];
+		$ant = $F[2];
+		$day = "'"$TODAY"'"; # faster
+		chomp($day);
+
+		$npre = "0" x (16 - length($num));
+		$apre = "0" x (3 - length($ant));
+
+		print "$apre$ant$npre$num$tme$day;$npre$num;$tme\n";' 2>/dev/null
 }
 
 mytempo_dump_all() {
@@ -119,7 +136,7 @@ mytempo_usb_save_stats() {
 
 	mount /dev/sdb1 /mnt &&
 		(
-			mytempo_dump_all "select athlete_num, MIN(athlete_time) from athletes_times group by athlete_num" &&
+			mytempo_dump_all "select athlete_num, MIN(athlete_time), antenna from athletes_times group by athlete_num" &&
 				cat /tmp/dump* |
 				awk 'NF {print $0}' >/mnt/MYTEMPO_"$(date +"%H_%M_%S")"_TAGS_UNICAS.txt \
 				;
