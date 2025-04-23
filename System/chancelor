@@ -140,6 +140,10 @@ mytempo_usb_save_stats() {
 				cat /tmp/dump* |
 				awk 'NF {print $0}' >/mnt/MYTEMPO_"$(date +"%H_%M_%S")"_TAGS_UNICAS.txt \
 				;
+			cp /tmp/*.log /mnt/ &&
+				cp /tmp/*.err /mnt/ &&
+				cp "$DATABASE_DIR"/TAGS /mnt/ \
+				;
 			umount /mnt
 		)
 }
@@ -211,10 +215,6 @@ export VERSION_NUMBER_AA2
 while true; do
 	rm "$DATABASE_DIR"/*-journal
 	rm "$DATABASE_DIR"/equipamento.db
-
-	cat /tmp/*.log
-	rm /tmp/*.log
-	rm /tmp/*.err
 
 	# set initial value of tag count
 	TAG_COUNT_START_AT=$(mytempo_count_tags)
