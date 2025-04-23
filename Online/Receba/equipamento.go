@@ -4,6 +4,7 @@ type Equipamento struct {
 	ID      int    `json:"id"`
 	Nome    string `json:"modelo"`
 	ProvaID int    `json:"assocProva"`
+	Check   int    `json:"assocCheck"`
 }
 
 func (r *Receba) BuscaEquip(equipModelo string) (equip Equipamento, err error) {
@@ -25,10 +26,7 @@ func (r *Receba) AtualizaEquip(equip Equipamento) (err error) {
 		equip.ID,
 		equip.Nome,
 		equip.ProvaID,
-
-		equip.ID,
-		equip.Nome,
-		equip.ProvaID,
+		equip.Check,
 	)
 
 	return

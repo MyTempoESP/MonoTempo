@@ -18,8 +18,6 @@ func (r *Receba) ConfiguraAPI(url string) {
 	r.StaffRota = fmt.Sprintf("http://%s/fetch/staffs", url)
 	r.ProvaRota = fmt.Sprintf("http://%s/fetch/prova", url)
 	r.InfoRota = fmt.Sprintf("http://%s/status/device", url)
-
-	return
 }
 
 func (r *Receba) Atualiza() {
@@ -123,8 +121,6 @@ func (r *Receba) Atualiza() {
 
 		log.Println(err)
 	}
-
-	return
 }
 
 func (r *Receba) AtualizarAtletas() {
