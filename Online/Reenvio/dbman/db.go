@@ -16,8 +16,7 @@ import (
 )
 
 type Baselet struct {
-	Path string
-
+	Path         string
 	IsCheckpoint bool // true if this is a checkpoint database
 
 	db     *sql.DB
@@ -144,11 +143,12 @@ func (b *Baselet) Monitor() (tempos <-chan atleta.Atleta) {
 
 		b.db.Exec(ATTACH)
 
+		log.Printf("Checkpoint? %t\n", b.IsCheckpoint)
+
 		if !b.IsCheckpoint {
 			b.ScanCheckpoint(QUERY_LARGADA, t)
 			b.ScanCheckpoint(QUERY_CHEGADA, t)
 		} else {
-			log.Println("Rodando checkpoint")
 			b.ScanCheckpoint(QUERY_CHECKPOINT, t)
 		}
 	}()
