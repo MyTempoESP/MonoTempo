@@ -238,6 +238,7 @@ func (a *Ay) Process() {
 		pcData.SendPCDataReport(sender)
 		<-time.After(time.Second * 3)
 	} else {
+		// send the collected reports
 		pcData.SendLogReport(sender, &equipStatus)
 		<-time.After(time.Second * 3) // wake up
 

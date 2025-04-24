@@ -392,8 +392,11 @@ bool parse_pc_data(SafeString &msg)
 
 	idx = msg.stoken(field, idx, delims, returnEmptyFields);
 
-	// do antenna update
-	if (field.equals("A"))
+	if (field.equals("T"))
+	{
+		// do nothing, just short-circuit
+	} // do antenna update
+	else if (field.equals("A"))
 	{
 		// enable antenna reports if one is actually received
 		g_does_antenna_reports = true;
