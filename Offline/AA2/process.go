@@ -230,17 +230,17 @@ func (a *Ay) Process() {
 		pcData.SysCodeName = deviceId
 	}
 
+	pcData.SendPCDataReport(sender)
+	<-time.After(time.Second * 3)
+
 	equipStatus, err := logparse.ParseJSONLog("/var/monotempo-data/logs/pc.log")
 
-	if err != nil {
-		log.Println("Erro ao analisar o log JSON", err)
-
-		pcData.SendPCDataReport(sender)
-	} else {
-		pcData.SendLogReport(sender, &equipStatus)
+	if err == nil {
+		for range 10 {
+			pcData.SendLogReport(sender, &equipStatus)
+			<-time.After(time.Millisecond * 500)
+		}
 	}
-
-	<-time.After(time.Second * 3)
 
 	//NUM_EQUIP, err := strconv.Atoi(os.Getenv("MYTEMPO_DEVID"))
 	// TODO: revert everything you did today again
