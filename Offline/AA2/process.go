@@ -236,9 +236,9 @@ func (a *Ay) Process() {
 	equipStatus, err := logparse.ParseJSONLog("/var/monotempo-data/logs/pc.log")
 
 	if err == nil {
-		for range 10 {
+		for range 5 {
 			pcData.SendLogReport(sender, &equipStatus)
-			<-time.After(time.Millisecond * 500)
+			<-time.After(time.Millisecond * 120)
 		}
 	}
 
