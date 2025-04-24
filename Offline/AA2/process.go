@@ -248,7 +248,7 @@ func (a *Ay) Process() {
 	go func() {
 
 		switcherTicker := time.NewTicker(400 * time.Millisecond)
-		sendTicker := time.NewTicker(200 * time.Millisecond)
+		sendTicker := time.NewTicker(120 * time.Millisecond)
 		state := STATE_TAG_REPORT
 
 		// step counter for state transitions

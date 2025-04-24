@@ -635,7 +635,7 @@ void screen_build(void)
 		break;
 	case LOGRPT_SCREEN:
 		l0 = virt_scr_sprintf(0, 0, "subiu: %d", g_system_logs.uploadcount);
-		l1 = virt_scr_sprintf(0, 1, "dur.med. %dcs", g_system_logs.avgproctime);
+		l1 = virt_scr_sprintf(0, 1, "dur.med. %dms", g_system_logs.avgproctime);
 		l2 = virt_scr_sprintf(0, 2, "erros: %d", g_system_logs.errcount);
 		break;
 
