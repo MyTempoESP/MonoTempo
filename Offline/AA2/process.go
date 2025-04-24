@@ -239,8 +239,9 @@ func (a *Ay) Process() {
 		<-time.After(time.Second * 3)
 	} else {
 		pcData.SendLogReport(sender, &equipStatus)
-		<-time.After(time.Second * 1) // wake up
+		<-time.After(time.Second * 3) // wake up
 
+		// send 2 seconds of logs to boot up the system
 		for range 10 { // 10 * 200 = 2000ms = 2s
 			pcData.SendLogReport(sender, &equipStatus)
 			<-time.After(time.Millisecond * 200)

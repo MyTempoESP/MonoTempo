@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"math"
 	"os"
 )
 
@@ -13,7 +12,7 @@ type EquipStatus struct {
 	Errcount    int
 	Databases   int
 	UploadCount int
-	AvgProctime float64
+	AvgProctime int
 }
 
 func ParseJSONLog(filePath string) (st EquipStatus, err error) {
@@ -28,8 +27,7 @@ func ParseJSONLog(filePath string) (st EquipStatus, err error) {
 	defer f.Close()
 
 	var (
-		dbTotal, dbProc, errs, total, athletes int
-		avg                                    float64
+		dbTotal, dbProc, errs, total, athletes, avg int
 	)
 
 	s := bufio.NewScanner(f)
@@ -54,7 +52,7 @@ func ParseJSONLog(filePath string) (st EquipStatus, err error) {
 				return
 			case "Dados enviados com sucesso":
 				dbProc++
-				avg += m["duration"].(float64)
+				avg += int(m["duration"].(float64) * 1000)
 				athletes += int(m["athlete_count"].(float64))
 			case "Arquivos encontrados, iniciando MADB":
 				dbTotal = int(m["databases"].(float64))
@@ -68,14 +66,10 @@ func ParseJSONLog(filePath string) (st EquipStatus, err error) {
 
 	st.Status = true
 
-	st.AvgProctime = avg / float64(dbProc)
+	st.AvgProctime = avg / dbProc
 	st.Databases = dbTotal
 	st.UploadCount = athletes
 	st.Errcount = errs
-
-	if math.IsNaN(st.AvgProctime) {
-		st.AvgProctime = 0
-	}
 
 	if dbTotal == 0 {
 		st.Status = false

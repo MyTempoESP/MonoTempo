@@ -186,7 +186,7 @@ typedef struct LOGData
 {
 	int uploadcount;
 	int databases;
-	double avgproctime;
+	int avgproctime;
 	int errcount;
 	bool status;
 } LOGData;
@@ -456,12 +456,19 @@ bool parse_pc_data(SafeString &msg)
 	{
 		g_does_log_reports = true;
 
-		g_system_logs.uploadcount = g_system_data.tag_data.tags;
-		g_system_logs.databases = g_system_data.tag_data.unique_tags;
+		idx = msg.stoken(field, idx, delims, returnEmptyFields);
+
+		if (!field.toInt(g_system_logs.uploadcount))
+			return false;
 
 		idx = msg.stoken(field, idx, delims, returnEmptyFields);
 
-		if (!field.toDouble(g_system_logs.avgproctime))
+		if (!field.toInt(g_system_logs.databases))
+			return false;
+
+		idx = msg.stoken(field, idx, delims, returnEmptyFields);
+
+		if (!field.toInt(g_system_logs.avgproctime))
 			return false;
 
 		idx = msg.stoken(field, idx, delims, returnEmptyFields);
@@ -526,13 +533,14 @@ const char fill_pattern[20] = "                   ";
 #define BACKUP_SCREEN 8
 #define DELETE_SCREEN 9
 #define SHTDWN_SCREEN 10
-#define NAV_SCREENS_COUNT 11
+#define LOGRPT_SCREEN 11
+#define NAV_SCREENS_COUNT 12
 
-#define OFFMSG_SCREEN 11
-#define CONFRM_SCREEN 12
-#define WAITNG_SCREEN 13
-#define WAITON_SCREEN 14
-#define SCREENS_COUNT 15
+#define OFFMSG_SCREEN 13
+#define CONFRM_SCREEN 14
+#define WAITNG_SCREEN 15
+#define WAITON_SCREEN 16
+#define SCREENS_COUNT 17
 
 unsigned int g_current_screen = 0;
 unsigned int g_confirm_target = 0; // target screen for events that need confirmation
@@ -559,20 +567,11 @@ const char desc[SCREENS_COUNT][VIRT_SCR_COLS] = {
     "START:Confirma     ",
     "                   ",
     "                   ",
-};
+    "                   "};
 
 void screen_build(void)
 {
 	unsigned int l0 = 0, l1 = 0, l2 = 0;
-
-	if (g_does_log_reports)
-	{
-		l0 = virt_scr_sprintf(0, 0, "subiu: %d", g_system_logs.uploadcount);
-		l1 = virt_scr_sprintf(0, 1, "dur.med. %.2fs", g_system_logs.avgproctime);
-		l2 = virt_scr_sprintf(0, 2, "erros: %d", g_system_logs.errcount);
-
-		goto skip;
-	}
 
 	switch (g_current_screen)
 	{
@@ -631,6 +630,11 @@ void screen_build(void)
 		l0 = virt_scr_sprintf(0, 0, "Desligar o", NULL);
 		l1 = virt_scr_sprintf(0, 1, "equipamento", NULL);
 		break;
+	case LOGRPT_SCREEN:
+		l0 = virt_scr_sprintf(0, 0, "subiu: %d", g_system_logs.uploadcount);
+		l1 = virt_scr_sprintf(0, 1, "dur.med. %dms", g_system_logs.avgproctime);
+		l2 = virt_scr_sprintf(0, 2, "erros: %d", g_system_logs.errcount);
+		break;
 
 		/* end of NAV_SCREENS */
 		/* Extra screens */
@@ -656,12 +660,11 @@ void screen_build(void)
 		l0 = virt_scr_sprintf(0, 0, "PORTAL my%d", g_system_data.num_serie);
 	}
 
-	virt_scr_sprintf(0, 3, "%s", desc[g_current_screen]);
-
-skip:
 	virt_scr_fill_from(l0, 0);
 	virt_scr_fill_from(l1, 1);
 	virt_scr_fill_from(l2, 2);
+
+	virt_scr_sprintf(0, 3, "%s", desc[g_current_screen]);
 }
 
 void screen_poweroff_countdown(void)
@@ -733,6 +736,12 @@ void screen_next(void)
 	if (g_current_screen == ANTNNA_SCREEN && !g_does_antenna_reports)
 	{
 		g_current_screen = NETWRK_SCREEN;
+	}
+
+	// skip the log report screen if log reports are disabled
+	if (g_current_screen == LOGRPT_SCREEN && !g_does_log_reports)
+	{
+		g_current_screen = INFORM_SCREEN;
 	}
 }
 
@@ -823,15 +832,7 @@ void handle_buttons(void)
 	if (g_locked)
 		return;
 
-	int c = check_clicked();
-
-	if (g_does_log_reports && c)
-	{
-		// a keypress exits the log screen
-		g_does_log_reports = false;
-	}
-
-	switch (c)
+	switch (check_clicked())
 	{
 	case BUTTON_VANCE:
 		screen_next();

@@ -123,7 +123,8 @@ func (pd *PCData) SendPCDataReport(sender *SerialSender) {
 func (pd *PCData) SendLogReport(sender *SerialSender, equipStatus *logparse.EquipStatus) {
 	currentEpoch := epoch()
 
-	data := fmt.Sprintf("MYTMP;%d;%d;L;%f;%d;%d;%d",
+	// logs send no tags
+	data := fmt.Sprintf("MYTMP;0;0;L%d;%d;%d;%d;%d;%d",
 		equipStatus.UploadCount, equipStatus.Databases, equipStatus.AvgProctime,
 		equipStatus.Errcount, boolToInt(equipStatus.Status), currentEpoch)
 
