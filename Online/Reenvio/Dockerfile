@@ -10,7 +10,7 @@ COPY go.mod go.sum ./
 RUN go env -w GOCACHE=/go-cache
 RUN go env -w GOMODCACHE=/gomod-cache
 RUN --mount=type=cache,target=/gomod-cache \
-  go mod download
+  go mod download -x
 
 RUN go mod tidy
 
