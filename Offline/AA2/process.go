@@ -243,7 +243,7 @@ func (a *Ay) Process() {
 
 		// send 2 seconds of logs to boot up the system
 		for range 10 { // 10 * 200 = 2000ms = 2s
-			pcData.SendLogReport(sender, &equipStatus)
+			//	pcData.SendLogReport(sender, &equipStatus)
 			<-time.After(time.Millisecond * 200)
 		}
 	}
