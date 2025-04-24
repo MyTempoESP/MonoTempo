@@ -51,11 +51,13 @@ func ParseJSONLog(filePath string) (st EquipStatus, err error) {
 				err = fmt.Errorf("no log data")
 				return
 			case "Dados enviados com sucesso":
-				dbProc++
-				avg += int(m["tempo"].(float64) * 1000)
 				athletes += int(m["athlete_count"].(float64))
 			case "Arquivos encontrados, iniciando MADB":
 				dbTotal = int(m["databases"].(float64))
+			case "Leitura de checkpoint finalizada!":
+				dbProc++
+				// centiseconds
+				avg += int(m["tempo"].(float64) * 100)
 			}
 		}
 
