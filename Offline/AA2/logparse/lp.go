@@ -52,7 +52,7 @@ func ParseJSONLog(filePath string) (st EquipStatus, err error) {
 				return
 			case "Dados enviados com sucesso":
 				dbProc++
-				avg += int(m["duration"].(float64) * 1000)
+				avg += int(m["tempo"].(float64) * 1000)
 				athletes += int(m["athlete_count"].(float64))
 			case "Arquivos encontrados, iniciando MADB":
 				dbTotal = int(m["databases"].(float64))
