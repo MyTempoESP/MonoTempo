@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"time"
 
@@ -96,10 +95,6 @@ func JSONRequest(url string, data Form, jsonOutput interface{}) (err error) {
 
 			res, err = client.Do(req)
 
-			if err != nil {
-				log.Println("Error sending request:", err)
-			}
-
 			return
 		},
 
@@ -140,8 +135,6 @@ func JSONRequest(url string, data Form, jsonOutput interface{}) (err error) {
 	err = json.Unmarshal(body, &check)
 
 	if err != nil {
-		log.Printf("WARN: Can't unmarshal response JSON into type %T, %s\n", check, err)
-
 		/* we can safely ignore this, since it's simply meant for error reporting */
 	}
 
@@ -192,10 +185,6 @@ func GetAction(url string, data Form) (action int, err error) {
 			req.Header.Set("Content-Type", "application/json")
 
 			res, err = http.DefaultClient.Do(req)
-
-			if err != nil {
-				log.Println("Error sending request:", err)
-			}
 
 			return
 		},
@@ -257,7 +246,6 @@ func JSONSimpleRequest(url string, data Form) (err error) {
 	jsonData, err := json.Marshal(data)
 
 	if err != nil {
-		log.Println("Error marshaling JSON:", err)
 		return
 	}
 
@@ -270,7 +258,6 @@ func JSONSimpleRequest(url string, data Form) (err error) {
 			req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
 
 			if err != nil {
-				log.Println("Error creating request:", err)
 
 				return
 			}
@@ -278,10 +265,6 @@ func JSONSimpleRequest(url string, data Form) (err error) {
 			req.Header.Set("Content-Type", "application/json")
 
 			res, err = http.DefaultClient.Do(req)
-
-			if err != nil {
-				log.Println("Error sending request:", err)
-			}
 
 			return
 		},
