@@ -21,7 +21,7 @@ mytempo_upload() {
 
 mytempo_update() {
 
-	"$MYTEMPO_DATA"/Online/setup.online "$DATABASE_DIR" update
+	"$MYTEMPO_DATA"/Online/setup.online "$DATABASE_DIR" update 2>"$LOG_DIR/pc.log"
 }
 
 mytempo_save() {
@@ -52,10 +52,9 @@ mytempo_upload_dir() {
 	directory="$DATABASE_DIR/$1"
 	not_empty "$directory" &&
 		for d in "$directory"/*; do
-			cp "$DATABASE_DIR"/equipamento.db "$d"
-			# actual volume directory
-			mytempo_upload "$d"
-		done 2>"$LOG_DIR/pc.log"
+			cp "$DATABASE_DIR"/equipamento.db "$d" &&
+				mytempo_upload "$d"
+		done 2>>"$LOG_DIR/pc.log"
 }
 
 mytempo_upload_backup() {
