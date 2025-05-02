@@ -36,7 +36,7 @@ type Narrator struct {
 
 func NewFromFile(path string) (n Narrator, err error) {
 
-	n.Enabled = false
+	n.Enabled = true
 	n.characters = make(map[int]string)
 
 	_, err = os.Stat(path)

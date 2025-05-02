@@ -138,10 +138,15 @@ func (a *Ay) Process() {
 	var (
 		pcData          *com.PCData = &com.PCData{}
 		tagsUSB         atomic.Int64
-		tagSet          intSet.IntSet     = intSet.New()
-		permanentTagSet intSet.IntSet     = intSet.New()
-		narrator        narrator.Narrator = narrator.New()
+		tagSet          intSet.IntSet = intSet.New()
+		permanentTagSet intSet.IntSet = intSet.New()
 	)
+
+	narrator, err := narrator.NewFromFile("/var/monotempo-data/Narratorfile")
+
+	if err != nil {
+		log.Println("Running with empty narrator config, error:", err)
+	}
 
 	populateTagSet(&tagSet, &permanentTagSet)
 
