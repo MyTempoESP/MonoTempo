@@ -34,7 +34,7 @@ func (s *IntSet) Exists(n int) bool {
 	return ok
 }
 
-// Inserts 'n' in the set if it's not already
+// Inserts 'n' in the set if it's not already, returns true if n is new in the Set
 func (s *IntSet) Insert(n int) bool {
 
 	if s.Exists(n) {

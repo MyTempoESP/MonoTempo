@@ -12,6 +12,7 @@ import (
 	"aa2/constant"
 	"aa2/intSet"
 	"aa2/logparse"
+	"aa2/narrator"
 	"aa2/pinger"
 	"aa2/usb"
 )
@@ -137,8 +138,9 @@ func (a *Ay) Process() {
 	var (
 		pcData          *com.PCData = &com.PCData{}
 		tagsUSB         atomic.Int64
-		tagSet          intSet.IntSet = intSet.New()
-		permanentTagSet intSet.IntSet = intSet.New()
+		tagSet          intSet.IntSet     = intSet.New()
+		permanentTagSet intSet.IntSet     = intSet.New()
+		narrator        narrator.Narrator = narrator.New()
 	)
 
 	populateTagSet(&tagSet, &permanentTagSet)
@@ -175,6 +177,12 @@ func (a *Ay) Process() {
 
 			tagSet.Insert(t.Epc)
 			permanentTagSet.Insert(t.Epc)
+
+			if narrator.Enabled {
+				// search for the ID in the characters database
+				// and say it.
+				narrator.SearchAndSay(t.Epc)
+			}
 		}
 	}()
 

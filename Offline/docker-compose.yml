@@ -42,6 +42,8 @@ services:
       - /dev:/dev
       - /etc/localtime:/etc/localtime:ro
       - /tmp:/tmp
+    extra_hosts:
+      - "tts.docker:172.17.0.1"
 
   myreader:
     container_name: monotempo_myreader
