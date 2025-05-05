@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -29,6 +30,8 @@ func (r *Receba) Atualiza(logger *zap.Logger) {
 	*/
 	IgnorarForeignKey(r.db)
 
+	var je *JSONError
+
 	r.ConfiguraAPI(os.Getenv("MYTEMPO_API_URL"))
 
 	logger.Debug(fmt.Sprintf("%s;%s;%s;%s;%s", r.AtletasRota, r.DeviceRota, r.StaffRota, r.ProvaRota, r.InfoRota))
@@ -41,10 +44,12 @@ func (r *Receba) Atualiza(logger *zap.Logger) {
 	equip, err := r.BuscaEquip(os.Getenv("MYTEMPO_EQUIP"))
 
 	if err != nil {
-
-		logger.Error("Erro ao buscar o equipamento", zap.Error(err))
-
-		return
+		if errors.As(err, &je) {
+			logger.Warn("Json error", zap.Error(err))
+		} else {
+			logger.Error("Erro ao buscar o equipamento", zap.Error(err))
+			return
+		}
 	}
 
 	equipLogger := logger.With(

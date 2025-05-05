@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -110,15 +111,21 @@ func (reenvio *Reenvio) Upload(atletas []atleta.Atleta, logger *zap.Logger) {
 	*/
 	err = SimpleRawRequest(UrlTempos, data, "application/json")
 
+	var je *JSONError
+
 	if err != nil {
-		logger.Error("Erro ao enviar dados",
-			zap.Error(err),
-			zap.Duration("tempo", time.Since(startTime)),
-		)
+		if errors.As(err, &je) {
+			logger.Warn("Erro no json", zap.Error(err))
+		} else {
+			logger.Error("Erro ao enviar dados",
+				zap.Error(err),
+				zap.Duration("tempo", time.Since(startTime)),
+			)
 
-		Say(err.Error())
+			Say(err.Error())
 
-		return
+			return
+		}
 	}
 
 	logger.Info("Dados enviados com sucesso",

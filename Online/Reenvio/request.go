@@ -32,7 +32,6 @@ type RespostaAPI struct {
 var (
 	ErrNetwork  = errors.New("erro de rede")
 	ErrBodyRead = errors.New("erro lendo body")
-	ErrEncoding = errors.New("erro no formato dos dados")
 )
 
 type APIError struct {
@@ -40,6 +39,14 @@ type APIError struct {
 }
 
 func (e *APIError) Error() string {
+	return e.Message
+}
+
+type JSONError struct {
+	Message string
+}
+
+func (e *JSONError) Error() string {
 	return e.Message
 }
 
@@ -115,7 +122,7 @@ func SimpleRawRequest(url string, data RawForm, contentType string) (err error) 
 
 	if err != nil {
 		/* we can safely ignore this, since it's simply meant for error reporting */
-		err = ErrEncoding
+		err = &JSONError{string(body)}
 	} else {
 		if check.Status == "error" {
 

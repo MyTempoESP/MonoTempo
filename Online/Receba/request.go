@@ -16,7 +16,6 @@ import (
 var (
 	ErrNetwork  = errors.New("erro de rede")
 	ErrBodyRead = errors.New("erro lendo body")
-	ErrEncoding = errors.New("erro no formato dos dados")
 )
 
 type APIError struct {
@@ -24,6 +23,14 @@ type APIError struct {
 }
 
 func (e *APIError) Error() string {
+	return e.Message
+}
+
+type JSONError struct {
+	Message string
+}
+
+func (e *JSONError) Error() string {
 	return e.Message
 }
 
@@ -84,7 +91,7 @@ func JSONRequest(url string, data Form, jsonOutput interface{}) (err error) {
 
 	if err != nil {
 
-		err = ErrEncoding
+		err = &JSONError{""}
 
 		return
 	}
@@ -159,7 +166,7 @@ func JSONRequest(url string, data Form, jsonOutput interface{}) (err error) {
 
 	if err != nil {
 		/* we can safely ignore this, since it's simply meant for error reporting */
-		err = ErrEncoding
+		err = &JSONError{string(body)}
 	} else {
 		if check.Status == "error" {
 
@@ -176,7 +183,7 @@ func JSONRequest(url string, data Form, jsonOutput interface{}) (err error) {
 
 	if err != nil {
 
-		err = ErrEncoding
+		err = &JSONError{string(body)}
 
 		// err = fmt.Errorf("Error unmarshaling response JSON: %s\n", err)
 	}
