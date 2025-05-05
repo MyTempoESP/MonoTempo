@@ -1,5 +1,9 @@
 package main
 
+import (
+	"errors"
+)
+
 type Equipamento struct {
 	ID      int    `json:"id"`
 	Nome    string `json:"modelo"`
@@ -9,11 +13,21 @@ type Equipamento struct {
 
 func (r *Receba) BuscaEquip(equipModelo string) (equip Equipamento, err error) {
 
+	var ae *APIError
+
 	data := Form{
 		"device": equipModelo,
 	}
 
 	err = JSONRequest(r.DeviceRota, data, &equip)
+
+	if errors.Is(err, ErrNetwork) {
+		Say("Erro de rede, verifique a conexão")
+	}
+
+	if errors.As(err, &ae) {
+		Say(err.Error())
+	}
 
 	return
 }

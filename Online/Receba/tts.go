@@ -1,4 +1,4 @@
-package narrator
+package main
 
 import (
 	"log"
@@ -16,7 +16,6 @@ func Say(s string) {
 	log.Println("finalURL:", finalURL)
 
 	resp, err := http.Get(finalURL)
-
 	if err != nil {
 		log.Println("Error:", err)
 		return

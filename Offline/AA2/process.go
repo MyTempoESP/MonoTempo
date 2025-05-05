@@ -116,8 +116,6 @@ func checkAction(actionString string, state *int, tagSet *intSet.IntSet, tags *a
 		case SHUTDOWN_ACTION:
 			PCShutdown()
 			select {}
-		default:
-			return
 		}
 	}
 }

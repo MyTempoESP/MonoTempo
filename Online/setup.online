@@ -7,20 +7,20 @@ usage() {
 
 [ $# -eq 0 ] && usage
 
-env_file=$(dirname $0)/../shared.env
+env_file="$(dirname "$0")"/../shared.env
 
 # if no custom directory is specified, set default
 database=$1
 shift
 
 mytempo_update() {
-	docker run --network=host --env-file=$env_file -v $database:/var/monotempo-data --name receba "receba:1.0"
+	docker run --network=host --add-host=tts.docker:172.17.0.1 --env-file="$env_file" -v "$database":/var/monotempo-data --name receba "receba:1.0"
 	docker wait receba
 	docker remove receba
 }
 
 mytempo_upload() {
-	docker run --network=host --env-file=$env_file -v $database:/var/monotempo-data --name reenvio "reenvio:1.0"
+	docker run --network=host --add-host=tts.docker:172.17.0.1 --env-file="$env_file" -v "$database":/var/monotempo-data --name reenvio "reenvio:1.0"
 	docker wait reenvio
 	docker remove reenvio
 }

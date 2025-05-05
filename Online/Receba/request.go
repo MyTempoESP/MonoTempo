@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 
 	"bytes"
 	"fmt"
@@ -11,6 +12,20 @@ import (
 
 	backoff "github.com/cenkalti/backoff"
 )
+
+var (
+	ErrNetwork  = errors.New("erro de rede")
+	ErrBodyRead = errors.New("erro lendo body")
+	ErrEncoding = errors.New("erro no formato dos dados")
+)
+
+type APIError struct {
+	Message string
+}
+
+func (e *APIError) Error() string {
+	return e.Message
+}
 
 /*
 By Rodrigo Monteiro Junior
@@ -68,7 +83,8 @@ func JSONRequest(url string, data Form, jsonOutput interface{}) (err error) {
 	jsonData, err := json.Marshal(data)
 
 	if err != nil {
-		err = fmt.Errorf("Error marshaling JSON: %s\n", err)
+
+		err = ErrEncoding
 
 		return
 	}
@@ -82,7 +98,6 @@ func JSONRequest(url string, data Form, jsonOutput interface{}) (err error) {
 			req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
 
 			if err != nil {
-				err = fmt.Errorf("Error creating request: %s\n", err)
 
 				return
 			}
@@ -102,13 +117,19 @@ func JSONRequest(url string, data Form, jsonOutput interface{}) (err error) {
 	)
 
 	if err != nil {
+
+		err = ErrNetwork
+
 		return
 	}
 
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
-		err = fmt.Errorf("Error connecting to '%s': got HTTP %d", url, res.StatusCode)
+
+		err = ErrNetwork
+
+		// err = fmt.Errorf("Error connecting to '%s': got HTTP %d", url, res.StatusCode)
 
 		return
 	}
@@ -116,7 +137,9 @@ func JSONRequest(url string, data Form, jsonOutput interface{}) (err error) {
 	body, err := io.ReadAll(res.Body)
 
 	if err != nil {
-		err = fmt.Errorf("Error reading response body: %s\n", err)
+
+		// err = fmt.Errorf("error reading response body: %s", err)
+		err = ErrBodyRead
 
 		return
 	}
@@ -136,12 +159,13 @@ func JSONRequest(url string, data Form, jsonOutput interface{}) (err error) {
 
 	if err != nil {
 		/* we can safely ignore this, since it's simply meant for error reporting */
-	}
+	} else {
+		if check.Status == "error" {
 
-	if check.Status == "error" {
-		err = fmt.Errorf("API returned error status: %s\n", check.Message)
+			err = &APIError{check.Message}
 
-		return
+			return
+		}
 	}
 	/*
 		patch is over
@@ -150,7 +174,10 @@ func JSONRequest(url string, data Form, jsonOutput interface{}) (err error) {
 	err = json.Unmarshal(body, &jsonOutput)
 
 	if err != nil {
-		err = fmt.Errorf("Error unmarshaling response JSON: %s\n", err)
+
+		err = ErrEncoding
+
+		// err = fmt.Errorf("Error unmarshaling response JSON: %s\n", err)
 	}
 
 	return
