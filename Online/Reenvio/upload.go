@@ -116,6 +116,8 @@ func (reenvio *Reenvio) Upload(atletas []atleta.Atleta, logger *zap.Logger) {
 			zap.Duration("tempo", time.Since(startTime)),
 		)
 
+		Say(err.Error())
+
 		return
 	}
 

@@ -2,6 +2,8 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,8 +13,38 @@ import (
 	backoff "github.com/cenkalti/backoff"
 )
 
+/*
+By Rodrigo Monteiro Junior
+ter 10 set 2024 14:24:16 -03
+
+-- FROM V0.2 --
+
+Resposta genérica da API do kerlo
+contendo apenas fields relacionados
+a status e mensagens de sucesso/falha.
+*/
+type RespostaAPI struct {
+	Action  int    `json:"action"`
+	Status  string `json:"status"`
+	Message string `json:"message"`
+}
+
+var (
+	ErrNetwork  = errors.New("erro de rede")
+	ErrBodyRead = errors.New("erro lendo body")
+	ErrEncoding = errors.New("erro no formato dos dados")
+)
+
+type APIError struct {
+	Message string
+}
+
+func (e *APIError) Error() string {
+	return e.Message
+}
+
 const (
-	REQUEST_TIMEOUT = 20 * time.Second
+	REQUEST_TIMEOUT = 10 * time.Second
 )
 
 type Form map[string]string
@@ -46,23 +78,51 @@ func SimpleRawRequest(url string, data RawForm, contentType string) (err error) 
 	)
 
 	if err != nil {
+
+		err = ErrNetwork
+
 		return
 	}
 
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
-		err = fmt.Errorf("error connecting to '%s': got HTTP %d", url, res.StatusCode)
+		err = ErrNetwork
+
+		// err = fmt.Errorf("error connecting to '%s': got HTTP %d", url, res.StatusCode)
 
 		return
 	}
 
-	_, err = io.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 
 	if err != nil {
-		err = fmt.Errorf("error reading response body: %s", err)
+		err = ErrBodyRead
 
 		return
+	}
+
+	/*
+		By Rodrigo Monteiro Junior
+		ter 10 set 2024 14:30:47 -03
+
+		patch for checking a `status` response.
+		(this is a nasty workaround for faster debugging)
+	*/
+	var check RespostaAPI
+
+	err = json.Unmarshal(body, &check)
+
+	if err != nil {
+		/* we can safely ignore this, since it's simply meant for error reporting */
+		err = ErrEncoding
+	} else {
+		if check.Status == "error" {
+
+			err = &APIError{check.Message}
+
+			return
+		}
 	}
 
 	return

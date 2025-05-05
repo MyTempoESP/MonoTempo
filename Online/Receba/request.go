@@ -90,7 +90,7 @@ func JSONRequest(url string, data Form, jsonOutput interface{}) (err error) {
 	}
 
 	bf := backoff.NewExponentialBackOff()
-	bf.MaxElapsedTime = 20 * time.Second
+	bf.MaxElapsedTime = 10 * time.Second
 
 	err = backoff.Retry(
 		func() (err error) {
@@ -159,6 +159,7 @@ func JSONRequest(url string, data Form, jsonOutput interface{}) (err error) {
 
 	if err != nil {
 		/* we can safely ignore this, since it's simply meant for error reporting */
+		err = ErrEncoding
 	} else {
 		if check.Status == "error" {
 
