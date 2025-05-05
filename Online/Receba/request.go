@@ -46,7 +46,6 @@ contendo apenas fields relacionados
 a status e mensagens de sucesso/falha.
 */
 type RespostaAPI struct {
-	Action  int    `json:"action"`
 	Status  string `json:"status"`
 	Message string `json:"message"`
 }
@@ -189,85 +188,6 @@ func JSONRequest(url string, data Form, jsonOutput interface{}, logger *zap.Logg
 		err = nil
 		// err = fmt.Errorf("Error unmarshaling response JSON: %s\n", err)
 	}
-
-	return
-}
-
-func GetAction(url string, data Form) (action int, err error) {
-
-	var res *http.Response
-
-	jsonData, err := json.Marshal(data)
-
-	if err != nil {
-		err = fmt.Errorf("Error marshaling JSON: %s\n", err)
-
-		return
-	}
-
-	bf := backoff.NewExponentialBackOff()
-	bf.MaxElapsedTime = 20 * time.Second
-
-	err = backoff.Retry(
-		func() (err error) {
-
-			req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
-
-			if err != nil {
-				err = fmt.Errorf("Error creating request: %s\n", err)
-
-				return
-			}
-
-			req.Header.Set("Content-Type", "application/json")
-
-			res, err = http.DefaultClient.Do(req)
-
-			return
-		},
-
-		bf,
-	)
-
-	if err != nil {
-		return
-	}
-
-	defer res.Body.Close()
-
-	if res.StatusCode != http.StatusOK {
-		err = fmt.Errorf("Error connecting to '%s': got HTTP %d", url, res.StatusCode)
-
-		return
-	}
-
-	body, err := io.ReadAll(res.Body)
-
-	if err != nil {
-		err = fmt.Errorf("Error reading response body: %s\n", err)
-
-		return
-	}
-
-	//log.Println(string(body)) // XXX: Debugging
-
-	var check RespostaAPI
-
-	err = json.Unmarshal(body, &check)
-
-	if err != nil {
-		err = fmt.Errorf("Error: Can't unmarshal response JSON into type %T. %s\n", check, err)
-
-		return
-	}
-
-	if check.Status == "error" {
-		err = fmt.Errorf("API returned error status: %s\n", check.Message)
-
-		return
-	}
-
-	action = check.Action
 
 	return
 }

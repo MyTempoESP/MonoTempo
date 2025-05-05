@@ -24,7 +24,6 @@ contendo apenas fields relacionados
 a status e mensagens de sucesso/falha.
 */
 type RespostaAPI struct {
-	Action  int    `json:"action"`
 	Status  string `json:"status"`
 	Message string `json:"message"`
 }
