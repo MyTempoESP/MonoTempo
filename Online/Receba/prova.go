@@ -2,6 +2,8 @@ package main
 
 import (
 	"strconv"
+
+	"go.uber.org/zap"
 )
 
 /*
@@ -19,13 +21,13 @@ type Prova struct {
 	Percursos []Percurso `json:"percursos"`
 }
 
-func (r *Receba) BuscaProva(idProva int) (prova Prova, err error) {
+func (r *Receba) BuscaProva(idProva int, logger *zap.Logger) (prova Prova, err error) {
 
 	data := Form{
 		"idProva": strconv.Itoa(idProva),
 	}
 
-	err = JSONRequest(r.ProvaRota, data, &prova)
+	err = JSONRequest(r.ProvaRota, data, &prova, logger)
 
 	return
 }

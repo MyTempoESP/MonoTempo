@@ -2,6 +2,8 @@ package main
 
 import (
 	"errors"
+
+	"go.uber.org/zap"
 )
 
 type Equipamento struct {
@@ -11,7 +13,7 @@ type Equipamento struct {
 	Check   int    `json:"assocCheck"`
 }
 
-func (r *Receba) BuscaEquip(equipModelo string) (equip Equipamento, err error) {
+func (r *Receba) BuscaEquip(equipModelo string, logger *zap.Logger) (equip Equipamento, err error) {
 
 	var ae *APIError
 
@@ -19,7 +21,7 @@ func (r *Receba) BuscaEquip(equipModelo string) (equip Equipamento, err error) {
 		"device": equipModelo,
 	}
 
-	err = JSONRequest(r.DeviceRota, data, &equip)
+	err = JSONRequest(r.DeviceRota, data, &equip, logger)
 
 	if errors.Is(err, ErrNetwork) {
 		Say("Erro de rede, verifique a conexão")

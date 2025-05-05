@@ -11,6 +11,7 @@ import (
 	"time"
 
 	backoff "github.com/cenkalti/backoff"
+	"go.uber.org/zap"
 )
 
 var (
@@ -83,7 +84,7 @@ a user-defined struct.
 this function retries to make the request up to 20 seconds
 using a backoff algorithm.
 */
-func JSONRequest(url string, data Form, jsonOutput interface{}) (err error) {
+func JSONRequest(url string, data Form, jsonOutput interface{}, logger *zap.Logger) (err error) {
 
 	var res *http.Response
 
@@ -165,8 +166,8 @@ func JSONRequest(url string, data Form, jsonOutput interface{}) (err error) {
 	err = json.Unmarshal(body, &check)
 
 	if err != nil {
-		/* we can safely ignore this, since it's simply meant for error reporting */
-		err = &JSONError{string(body)}
+		logger.Warn("Json error", zap.Error(err))
+		err = nil
 	} else {
 		if check.Status == "error" {
 
@@ -183,8 +184,9 @@ func JSONRequest(url string, data Form, jsonOutput interface{}) (err error) {
 
 	if err != nil {
 
-		err = &JSONError{string(body)}
+		logger.Warn("Json error", zap.Error(err))
 
+		err = nil
 		// err = fmt.Errorf("Error unmarshaling response JSON: %s\n", err)
 	}
 

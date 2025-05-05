@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"os"
 
@@ -30,8 +29,6 @@ func (r *Receba) Atualiza(logger *zap.Logger) {
 	*/
 	IgnorarForeignKey(r.db)
 
-	var je *JSONError
-
 	r.ConfiguraAPI(os.Getenv("MYTEMPO_API_URL"))
 
 	logger.Debug(fmt.Sprintf("%s;%s;%s;%s;%s", r.AtletasRota, r.DeviceRota, r.StaffRota, r.ProvaRota, r.InfoRota))
@@ -41,15 +38,11 @@ func (r *Receba) Atualiza(logger *zap.Logger) {
 	logger.Info("Buscando o equipamento")
 
 	// voice assisted function
-	equip, err := r.BuscaEquip(os.Getenv("MYTEMPO_EQUIP"))
+	equip, err := r.BuscaEquip(os.Getenv("MYTEMPO_EQUIP"), logger)
 
 	if err != nil {
-		if errors.As(err, &je) {
-			logger.Warn("Json error", zap.Error(err))
-		} else {
-			logger.Error("Erro ao buscar o equipamento", zap.Error(err))
-			return
-		}
+		logger.Error("Erro ao buscar o equipamento", zap.Error(err))
+		return
 	}
 
 	equipLogger := logger.With(
@@ -72,16 +65,13 @@ func (r *Receba) Atualiza(logger *zap.Logger) {
 
 	equipLogger.Info("Buscando a prova")
 
-	prova, err := r.BuscaProva(equip.ProvaID)
+	prova, err := r.BuscaProva(equip.ProvaID, logger)
 
 	if err != nil {
-		if errors.As(err, &je) {
-			logger.Warn("Json error", zap.Error(err))
-		} else {
-			equipLogger.Error("Erro ao buscar a prova", zap.Error(err))
+		equipLogger.Error("Erro ao buscar a prova", zap.Error(err))
 
-			return
-		}
+		return
+
 	}
 
 	logger = logger.With(
@@ -105,16 +95,12 @@ func (r *Receba) Atualiza(logger *zap.Logger) {
 
 	logger.Info("Prova atualizada, uscando os staffs")
 
-	staff, err := r.BuscaStaff(prova.ID)
+	staff, err := r.BuscaStaff(prova.ID, logger)
 
 	if err != nil {
-		if errors.As(err, &je) {
-			logger.Warn("Json error", zap.Error(err))
-		} else {
-			logger.Error("Erro ao buscar os staffs", zap.Error(err))
+		logger.Error("Erro ao buscar os staffs", zap.Error(err))
 
-			return
-		}
+		return
 	}
 
 	logger = logger.With(
@@ -136,8 +122,6 @@ func (r *Receba) Atualiza(logger *zap.Logger) {
 
 func (r *Receba) AtualizarAtletas(logger *zap.Logger) {
 
-	var je *JSONError
-
 	IgnorarForeignKey(r.db)
 
 	r.ConfiguraAPI(os.Getenv("MYTEMPO_API_URL"))
@@ -148,17 +132,13 @@ func (r *Receba) AtualizarAtletas(logger *zap.Logger) {
 
 	logger.Info("Buscando o equipamento")
 
-	equip, err := r.BuscaEquip(os.Getenv("MYTEMPO_EQUIP"))
+	equip, err := r.BuscaEquip(os.Getenv("MYTEMPO_EQUIP"), logger)
 
 	if err != nil {
 
-		if errors.As(err, &je) {
-			logger.Warn("Json error", zap.Error(err))
-		} else {
-			logger.Error("Erro ao buscar o equipamento", zap.Error(err))
+		logger.Error("Erro ao buscar o equipamento", zap.Error(err))
 
-			return
-		}
+		return
 	}
 
 	logger = logger.With(
@@ -168,16 +148,12 @@ func (r *Receba) AtualizarAtletas(logger *zap.Logger) {
 
 	logger.Info("Equipamento encontrado, buscando os atletas")
 
-	atletas, err := r.BuscaAtletas(equip.ProvaID)
+	atletas, err := r.BuscaAtletas(equip.ProvaID, logger)
 
 	if err != nil {
-		if errors.As(err, &je) {
-			logger.Warn("Json error", zap.Error(err))
-		} else {
-			logger.Error("Erro ao buscar os atletas", zap.Error(err))
+		logger.Error("Erro ao buscar os atletas", zap.Error(err))
 
-			return
-		}
+		return
 	}
 
 	logger = logger.With(zap.Int("athletes_count", len(atletas)))
