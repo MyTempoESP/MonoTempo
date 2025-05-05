@@ -13,6 +13,8 @@ type Equipamento struct {
 	Check   int    `json:"assocCheck"`
 }
 
+var ErrEquipAssoc = errors.New("equip nao assoc")
+
 func (r *Receba) BuscaEquip(equipModelo string, logger *zap.Logger) (equip Equipamento, err error) {
 
 	var ae *APIError
@@ -35,6 +37,7 @@ func (r *Receba) BuscaEquip(equipModelo string, logger *zap.Logger) (equip Equip
 
 	if equip.ProvaID == 0 {
 		Say("Equipamento não associado a este evento")
+		err = ErrEquipAssoc // XXX generic error
 	}
 
 	return
