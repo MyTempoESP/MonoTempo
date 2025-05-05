@@ -92,6 +92,6 @@ func (n *Narrator) Watch() {
 			Say(fmt.Sprintf("%s, Número: %d", character, id))
 		}
 
-		<-time.After(3000)
+		<-time.After(3 * time.Second)
 	}
 }
