@@ -21,7 +21,7 @@ func (r *Receba) ConfiguraAPI(url string) {
 	r.InfoRota = fmt.Sprintf("http://%s/status/device", url)
 }
 
-func (r *Receba) Atualiza(logger *zap.Logger) {
+func (r *Receba) Atualiza(logger *zap.Logger) (err error) {
 
 	/*
 		Ignora os checks de chave estrangeira
@@ -118,9 +118,11 @@ func (r *Receba) Atualiza(logger *zap.Logger) {
 	}
 
 	logger.Info("Staffs atualizados")
+
+	return
 }
 
-func (r *Receba) AtualizarAtletas(logger *zap.Logger) {
+func (r *Receba) AtualizarAtletas(logger *zap.Logger) (err error) {
 
 	IgnorarForeignKey(r.db)
 
@@ -170,6 +172,8 @@ func (r *Receba) AtualizarAtletas(logger *zap.Logger) {
 	}
 
 	logger.Info("Atletas atualizados")
+
+	return
 }
 
 func main() {
@@ -193,6 +197,15 @@ func main() {
 
 	defer r.FechaDB()
 
-	r.Atualiza(logger)
+	err = r.Atualiza(logger)
+
+	if err != nil {
+		os.Exit(1)
+	}
+
 	r.AtualizarAtletas(logger)
+
+	if err != nil {
+		os.Exit(1)
+	}
 }
