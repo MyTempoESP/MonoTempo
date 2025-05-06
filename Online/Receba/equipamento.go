@@ -31,13 +31,15 @@ func (r *Receba) BuscaEquip(equipModelo string, logger *zap.Logger) (equip Equip
 	}
 
 	if errors.As(err, &ae) {
-		Say(err.Error())
+		if ae.Message == "device not found" {
+			Say("Equipamento não associado à este evento")
+		}
 		return
 	}
 
 	if equip.ProvaID == 0 {
-		Say("Equipamento não associado a este evento")
-		err = ErrEquipAssoc // XXX generic error
+		Say("Equipamento não associado à este evento")
+		err = ErrEquipAssoc
 	}
 
 	return

@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"time"
 
 	/* i love this library */
 	backoff "github.com/cenkalti/backoff"
+	"go.uber.org/zap"
 )
 
 /*
@@ -41,14 +41,6 @@ func (e *APIError) Error() string {
 	return e.Message
 }
 
-type JSONError struct {
-	Message string
-}
-
-func (e *JSONError) Error() string {
-	return e.Message
-}
-
 const (
 	REQUEST_TIMEOUT = 10 * time.Second
 )
@@ -56,7 +48,7 @@ const (
 type Form map[string]string
 type RawForm []byte
 
-func SimpleRawRequest(url string, data RawForm, contentType string) (err error) {
+func SimpleRawRequest(url string, data RawForm, contentType string, logger *zap.Logger) (err error) {
 
 	var res *http.Response
 
@@ -68,8 +60,6 @@ func SimpleRawRequest(url string, data RawForm, contentType string) (err error) 
 			req, err := http.NewRequest("POST", url, bytes.NewBuffer(data))
 
 			if err != nil {
-				err = fmt.Errorf("error creating request: %s", err)
-
 				return
 			}
 
@@ -117,11 +107,11 @@ func SimpleRawRequest(url string, data RawForm, contentType string) (err error) 
 	*/
 	var check RespostaAPI
 
-	err = json.Unmarshal(body, &check)
+	jsonErr := json.Unmarshal(body, &check)
 
-	if err != nil {
+	if jsonErr != nil {
 		/* we can safely ignore this, since it's simply meant for error reporting */
-		err = &JSONError{string(body)}
+		logger.Warn("Json error", zap.Error(err))
 	} else {
 		if check.Status == "error" {
 

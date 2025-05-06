@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -108,7 +109,7 @@ func (reenvio *Reenvio) Upload(atletas []atleta.Atleta, logger *zap.Logger) {
 	/*
 		O erro na request não é retornado, apenas lidamos com ele.
 	*/
-	err = SimpleRawRequest(UrlTempos, data, "application/json")
+	err = SimpleRawRequest(UrlTempos, data, "application/json", logger)
 
 	if err != nil {
 		logger.Error("Erro ao enviar dados",
@@ -116,7 +117,17 @@ func (reenvio *Reenvio) Upload(atletas []atleta.Atleta, logger *zap.Logger) {
 			zap.Duration("tempo", time.Since(startTime)),
 		)
 
-		Say(err.Error())
+		if errors.Is(err, ErrNetwork) {
+			Say("Erro de internet, verifique a conexão")
+		}
+
+		var ae *APIError
+
+		if errors.As(err, &ae) {
+			logger.Warn("API Level error detected", zap.Error(err))
+
+			Say(ae.Message)
+		}
 
 		return
 	}

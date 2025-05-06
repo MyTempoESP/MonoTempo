@@ -87,11 +87,11 @@ func JSONRequest(url string, data Form, jsonOutput interface{}, logger *zap.Logg
 
 	var res *http.Response
 
-	jsonData, err := json.Marshal(data)
+	jsonData, jsonErr := json.Marshal(data)
 
-	if err != nil {
+	if jsonErr != nil {
 
-		err = &JSONError{""}
+		logger.Warn("Json error", zap.Error(err))
 
 		return
 	}
@@ -162,11 +162,10 @@ func JSONRequest(url string, data Form, jsonOutput interface{}, logger *zap.Logg
 	*/
 	var check RespostaAPI
 
-	err = json.Unmarshal(body, &check)
+	jsonErr = json.Unmarshal(body, &check)
 
-	if err != nil {
+	if jsonErr != nil {
 		logger.Warn("Json error", zap.Error(err))
-		err = nil
 	} else {
 		if check.Status == "error" {
 
@@ -179,13 +178,12 @@ func JSONRequest(url string, data Form, jsonOutput interface{}, logger *zap.Logg
 		patch is over
 	*/
 
-	err = json.Unmarshal(body, &jsonOutput)
+	jsonErr = json.Unmarshal(body, &jsonOutput)
 
-	if err != nil {
+	if jsonErr != nil {
 
 		logger.Warn("Json error", zap.Error(err))
 
-		err = nil
 		// err = fmt.Errorf("Error unmarshaling response JSON: %s\n", err)
 	}
 
@@ -200,14 +198,14 @@ func JSONSimpleRequest(url string, data Form) (err error) {
 
 	var res *http.Response
 
-	jsonData, err := json.Marshal(data)
+	jsonData, jsonErr := json.Marshal(data)
 
-	if err != nil {
+	if jsonErr != nil {
 		return
 	}
 
 	bf := backoff.NewExponentialBackOff()
-	bf.MaxElapsedTime = 20 * time.Second
+	bf.MaxElapsedTime = 10 * time.Second
 
 	err = backoff.Retry(
 
