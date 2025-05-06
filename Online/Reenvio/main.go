@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"os"
 	"time"
 
@@ -102,6 +103,10 @@ func main() {
 		func() (err error) {
 
 			err = r.TentarReenvio(lotes, r.Logger)
+
+			if errors.Is(err, ErrWrongDate) { // if date is wrong, don't even retry
+				err = backoff.Permanent(err)
+			}
 
 			return
 		},

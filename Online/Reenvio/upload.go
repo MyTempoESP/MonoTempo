@@ -181,6 +181,7 @@ func (reenvio *Reenvio) TentarReenvio(lotes <-chan []atleta.Atleta, logger *zap.
 	*/
 	vl := narrator.New()
 	vl.Enabled = true
+	vl.Watch()
 
 	for {
 		select {
@@ -193,6 +194,7 @@ func (reenvio *Reenvio) TentarReenvio(lotes <-chan []atleta.Atleta, logger *zap.
 
 			if errors.Is(uploadErr, ErrWrongDate) {
 				vl.SayString(ErrWrongDate.Error())
+				err = uploadErr
 			}
 
 		case <-timeoutMon:

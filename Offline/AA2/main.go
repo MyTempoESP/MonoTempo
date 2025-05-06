@@ -10,6 +10,9 @@ import (
 	"log"
 	"os/exec"
 
+	"net/http"
+	_ "net/http/pprof"
+
 	rabbit "github.com/mytempoesp/rabbit"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -60,6 +63,10 @@ func main() {
 		log.Println(constant.VersionNum)
 		constant.VersionNum = "0000"
 	}
+
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 
 	for {
 		var a Ay
