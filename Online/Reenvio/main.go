@@ -124,6 +124,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	vl.Close() // mark stream as ended
-	vl.Watch() // say whatever errors we got
+	vl.Consume() // say whatever errors we got
+	vl.Close()
 }

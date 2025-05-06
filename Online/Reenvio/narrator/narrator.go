@@ -35,3 +35,17 @@ func (n *Narrator) Watch() {
 		<-time.After(5 * time.Second)
 	}
 }
+
+func (n *Narrator) Consume() {
+
+	for {
+		select {
+		case s := <-n.queue:
+			Say(s)
+		default:
+			return
+		}
+
+		<-time.After(5 * time.Second)
+	}
+}
