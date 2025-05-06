@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 
 	"github.com/MyTempoESP/Reenvio/atleta"
+	"github.com/MyTempoESP/Reenvio/narrator"
 	"go.uber.org/zap"
 )
 
@@ -45,7 +46,7 @@ type AtletasForm struct {
 	Atletas       []atleta.Atleta `json:"atletas"`
 }
 
-func (reenvio *Reenvio) Upload(atletas []atleta.Atleta, logger *zap.Logger) {
+func (reenvio *Reenvio) Upload(atletas []atleta.Atleta, voicelog narrator.Narrator, logger *zap.Logger) {
 
 	startTime := time.Now()
 
@@ -118,7 +119,7 @@ func (reenvio *Reenvio) Upload(atletas []atleta.Atleta, logger *zap.Logger) {
 		)
 
 		if errors.Is(err, ErrNetwork) {
-			Say("Erro de internet, verifique a conexão")
+			voicelog.SayString("Erro de internet, verifique a conexão")
 		}
 
 		var ae *APIError
@@ -126,7 +127,7 @@ func (reenvio *Reenvio) Upload(atletas []atleta.Atleta, logger *zap.Logger) {
 		if errors.As(err, &ae) {
 			logger.Warn("API Level error detected", zap.Error(err))
 
-			Say(ae.Message)
+			voicelog.SayString(ae.Message)
 		}
 
 		return
@@ -171,6 +172,9 @@ func (reenvio *Reenvio) TentarReenvio(lotes <-chan []atleta.Atleta, logger *zap.
 		Se houver registros, receba.
 		Caso contrário, não bloqueie o código.
 	*/
+	vl := narrator.New()
+	vl.Enabled = true
+
 	for {
 		select {
 		case tempos, ok = <-lotes:
@@ -178,7 +182,7 @@ func (reenvio *Reenvio) TentarReenvio(lotes <-chan []atleta.Atleta, logger *zap.
 				return
 			}
 
-			reenvio.Upload(tempos, logger)
+			reenvio.Upload(tempos, vl, logger)
 
 		case <-timeoutMon:
 			logger.Warn("Timeout de monitoramento atingido")
