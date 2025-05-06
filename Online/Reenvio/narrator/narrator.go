@@ -22,6 +22,10 @@ func (n *Narrator) SayString(s string) {
 	n.queue <- s
 }
 
+func (n *Narrator) Close() {
+	close(n.queue)
+}
+
 func (n *Narrator) Watch() {
 
 	for s := range n.queue {
