@@ -175,7 +175,7 @@ func JSONRequest(url string, data Form, jsonOutput interface{}, logger *zap.Logg
 		}
 	}
 	/*
-		patch is over
+		sky patch is over
 	*/
 
 	jsonErr = json.Unmarshal(body, &jsonOutput)

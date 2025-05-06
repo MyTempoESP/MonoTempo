@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"encoding/json"
@@ -46,7 +47,9 @@ type AtletasForm struct {
 	Atletas       []atleta.Atleta `json:"atletas"`
 }
 
-func (reenvio *Reenvio) Upload(atletas []atleta.Atleta, voicelog narrator.Narrator, logger *zap.Logger) {
+var ErrWrongDate = errors.New("a data da prova não coincide com a data atual")
+
+func (reenvio *Reenvio) Upload(atletas []atleta.Atleta, voicelog narrator.Narrator, logger *zap.Logger) (err error) {
 
 	startTime := time.Now()
 
@@ -127,7 +130,9 @@ func (reenvio *Reenvio) Upload(atletas []atleta.Atleta, voicelog narrator.Narrat
 		if errors.As(err, &ae) {
 			logger.Warn("API Level error detected", zap.Error(err))
 
-			voicelog.SayString(ae.Message)
+			if strings.ToUpper(ae.Message) == "A DATA DA PROVA NÃO COINCIDE COM A DATA ATUAL." {
+				err = ErrWrongDate
+			}
 		}
 
 		return
@@ -136,6 +141,8 @@ func (reenvio *Reenvio) Upload(atletas []atleta.Atleta, voicelog narrator.Narrat
 	logger.Info("Dados enviados com sucesso",
 		zap.Duration("tempo", time.Since(startTime)),
 	)
+
+	return
 }
 
 /*
@@ -182,7 +189,11 @@ func (reenvio *Reenvio) TentarReenvio(lotes <-chan []atleta.Atleta, logger *zap.
 				return
 			}
 
-			reenvio.Upload(tempos, vl, logger)
+			uploadErr := reenvio.Upload(tempos, vl, logger)
+
+			if errors.Is(uploadErr, ErrWrongDate) {
+				vl.SayString(ErrWrongDate.Error())
+			}
 
 		case <-timeoutMon:
 			logger.Warn("Timeout de monitoramento atingido")

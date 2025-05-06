@@ -1,0 +1,29 @@
+{
+	// Workspace settings
+	"folders": [
+		{
+			"path": "." // Root folder of the project
+		},
+		{
+			"path": "./Online"
+		},
+		{
+			"path": "./Online/Reenvio"
+		},
+		{
+			"path": "./Online/Receba"
+		},
+		{
+			"path": "./Offline"
+		},
+		{
+			"path": "./Offline/AA2"
+		},
+		{
+			"path": "./System"
+		}
+	],
+	"settings": {
+		// Add any specific settings for this workspace here
+	}
+}
