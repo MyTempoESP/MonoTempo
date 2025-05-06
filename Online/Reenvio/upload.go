@@ -130,7 +130,12 @@ func (reenvio *Reenvio) Upload(atletas []atleta.Atleta, voicelog narrator.Narrat
 		if errors.As(err, &ae) {
 			logger.Warn("API Level error detected", zap.Error(err))
 
-			if strings.ToUpper(ae.Message) == "A DATA DA PROVA NÃO COINCIDE COM A DATA ATUAL." {
+			msg := strings.ToUpper(strings.TrimRight(ae.Message, "."))
+
+			logger.Info("checking error type", zap.String("message", msg))
+
+			if msg == "A DATA DA PROVA NÃO COINCIDE COM A DATA ATUAL" {
+				logger.Info("Event date is wrong")
 				err = ErrWrongDate
 			}
 		}
