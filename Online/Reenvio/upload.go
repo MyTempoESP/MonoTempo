@@ -159,7 +159,10 @@ ter 17 set 2024 12:34:47 -03
 Aguarda por dados de reenvio e tenta o envio para a API,
 em caso de erro, redireciona para o Banco de Dados.
 */
-func (reenvio *Reenvio) TentarReenvio(lotes <-chan []atleta.Atleta, vl narrator.Narrator, logger *zap.Logger) (err error) {
+func (reenvio *Reenvio) TentarReenvio(
+	lotes <-chan []atleta.Atleta,
+	vl narrator.Narrator,
+	logger *zap.Logger) (uploaded int, err error) {
 
 	var (
 		tempos []atleta.Atleta
@@ -194,9 +197,13 @@ func (reenvio *Reenvio) TentarReenvio(lotes <-chan []atleta.Atleta, vl narrator.
 
 			uploadErr := reenvio.Upload(tempos, vl, logger)
 
-			if errors.Is(uploadErr, ErrWrongDate) {
-				vl.SayString(ErrWrongDate.Error())
-				err = uploadErr
+			if uploadErr == nil {
+				uploaded++
+			} else {
+				if errors.Is(uploadErr, ErrWrongDate) {
+					vl.SayString(ErrWrongDate.Error())
+					err = uploadErr
+				}
 			}
 
 		case <-timeoutMon:
