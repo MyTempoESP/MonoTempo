@@ -36,6 +36,6 @@ func (n *Narrator) Consume() {
 			return
 		}
 
-		<-time.After(3 * time.Second)
+		<-time.After(4 * time.Second)
 	}
 }

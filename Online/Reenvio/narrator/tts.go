@@ -10,21 +10,17 @@ func Say(s string) {
 
 	params := url.Values{}
 	params.Add("text", s)
+	params.Add("speed", "200") // slower pace for error messages
 
 	finalURL := baseURL + "?" + params.Encode()
-	//log.Println("finalURL:", finalURL)
 
 	resp, err := http.Get(finalURL)
 	if err != nil {
-		//log.Println("Error:", err)
 		return
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		//log.Println("HTTP error status:", resp.Status)
 		return
 	}
-
-	//log.Println("Request successfully sent")
 }
