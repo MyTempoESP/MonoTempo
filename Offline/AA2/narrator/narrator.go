@@ -29,6 +29,6 @@ func (n *Narrator) Watch() {
 
 		Say(strconv.Itoa(id))
 
-		<-time.After(1 * time.Second)
+		<-time.After(2 * time.Second)
 	}
 }
