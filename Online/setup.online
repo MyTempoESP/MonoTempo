@@ -22,7 +22,12 @@ mytempo_update() {
 mytempo_upload() {
 	docker run --network=host --add-host=tts.docker:172.17.0.1 --env-file="$env_file" -v "$database":/var/monotempo-data --name reenvio "reenvio:1.0"
 	docker wait reenvio
+
+	EXITCODE=$?
+
 	docker remove reenvio
+
+	return $EXITCODE
 }
 
 if [ $# -eq 0 ]; then
