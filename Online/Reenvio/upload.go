@@ -201,6 +201,7 @@ func (reenvio *Reenvio) TentarReenvio(
 				logger.Info("Queueing error message", zap.Error(err))
 				vl.SayString(ErrWrongDate.Error())
 				err = uploadErr
+				return
 			}
 
 		case <-timeoutMon:
