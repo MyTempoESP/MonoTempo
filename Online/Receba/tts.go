@@ -10,6 +10,7 @@ func Say(s string) {
 
 	params := url.Values{}
 	params.Add("text", s)
+	params.Add("speed", "200")
 
 	finalURL := baseURL + "?" + params.Encode()
 
