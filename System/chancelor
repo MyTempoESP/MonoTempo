@@ -18,7 +18,8 @@ mytempo_upload() {
 
 	"$MYTEMPO_DATA"/Online/setup.online "$(realpath "$1")" upload
 
-	jq -c 'select(.level == "error").msg | contains("Fatal")' "$LOG_DIR/pc.log" | grep -q "true"
+	# does not find any fatal errors
+	! jq -c 'select(.level == "error").msg | contains("Fatal")' "$LOG_DIR/pc.log" | grep -q "true"
 }
 
 mytempo_update() {
