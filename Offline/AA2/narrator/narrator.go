@@ -2,7 +2,6 @@ package narrator
 
 import (
 	"strconv"
-	"time"
 )
 
 type Narrator struct {
@@ -28,7 +27,5 @@ func (n *Narrator) Watch() {
 	for id := range n.queue {
 
 		Say(strconv.Itoa(id))
-
-		<-time.After(1500 * time.Millisecond)
 	}
 }

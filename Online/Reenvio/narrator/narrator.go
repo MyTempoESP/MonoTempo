@@ -1,9 +1,5 @@
 package narrator
 
-import (
-	"time"
-)
-
 type Narrator struct {
 	Enabled bool
 
@@ -35,7 +31,5 @@ func (n *Narrator) Consume() {
 		default:
 			return
 		}
-
-		<-time.After(4 * time.Second)
 	}
 }

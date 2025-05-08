@@ -10,7 +10,7 @@ func Say(s string) {
 
 	params := url.Values{}
 	params.Add("text", s)
-	params.Add("speed", "200") // slower pace for error messages
+	params.Add("speed", "120") // slower pace for error messages
 
 	finalURL := baseURL + "?" + params.Encode()
 
