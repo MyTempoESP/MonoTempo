@@ -13,6 +13,8 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 
+	"go.uber.org/zap"
+
 	rabbit "github.com/mytempoesp/rabbit"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -59,6 +61,9 @@ func fatal(e error) {
 }
 
 func main() {
+
+	logger, _ := zap.NewProduction()
+
 	if constant.VersionNum == "" {
 		log.Println(constant.VersionNum)
 		constant.VersionNum = "0000"
@@ -70,6 +75,8 @@ func main() {
 
 	for {
 		var a Ay
+
+		a.logger = logger
 
 		err := a.broker.Setup()
 
