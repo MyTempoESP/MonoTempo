@@ -51,7 +51,7 @@ func NewJSONPinger(state *atomic.Bool, logger *zap.Logger) {
 
 	devid, fetchErr := BuscaID(devRota)
 
-	tick := time.NewTicker(4 * time.Second)
+	tick := time.NewTicker(14 * time.Second)
 
 	data := Form{
 		"deviceId": devid,
