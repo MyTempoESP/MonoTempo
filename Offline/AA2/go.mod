@@ -7,12 +7,14 @@ require (
 	github.com/prometheus-community/pro-bing v0.7.0
 	github.com/rabbitmq/amqp091-go v1.10.0
 	go.bug.st/serial v1.6.4
+	go.uber.org/zap v1.27.0
 )
 
 require (
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/creack/goselect v0.1.3 // indirect
 	github.com/google/uuid v1.6.0 // indirect
+	go.uber.org/multierr v1.10.0 // indirect
 	golang.org/x/net v0.39.0 // indirect
 	golang.org/x/sync v0.13.0 // indirect
 	golang.org/x/sys v0.32.0 // indirect

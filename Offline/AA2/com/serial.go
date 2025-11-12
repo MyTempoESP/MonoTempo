@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"go.bug.st/serial"
+	"go.uber.org/zap"
 )
 
 // SerialSender represents a serial communication handler that manages sending
@@ -16,6 +17,8 @@ type SerialSender struct {
 	recvCh   chan string // Channel for receiving data
 	BaudRate int         // Baud rate for the serial communication
 	portName string
+
+	logger *zap.Logger
 }
 
 // NewSerialSender initializes a new SerialSender instance and opens the serial port.
@@ -26,12 +29,18 @@ type SerialSender struct {
 // Returns:
 //   - sender: A pointer to the initialized SerialSender instance.
 //   - err: An error if the initialization or port opening fails.
-func NewSerialSender(baudRate int, portName string) (sender *SerialSender, err error) {
+func NewSerialSender(baudRate int, portName string, logger *zap.Logger) (sender *SerialSender, err error) {
+	logger = logger.With(
+		zap.Int("BaudRate", baudRate),
+		zap.String("PortName", portName),
+	)
+
 	sender = &SerialSender{
 		dataCh:   make(chan string),
 		recvCh:   make(chan string, 10),
 		BaudRate: baudRate,
 		portName: portName,
+		logger:   logger,
 	}
 
 	err = sender.Open()
@@ -64,12 +73,12 @@ func (s *SerialSender) Open() (err error) {
 	for retries < maxRetries {
 		<-time.After(backoff) // Wait for the backoff duration
 
-		log.Println("Attempting to open the serial port...")
+		s.logger.Info("Attempting to open the serial port...")
 
 		if portName == "" {
 			portName, err = GetFirstAvailablePortName()
 			if err != nil {
-				log.Printf("Failed to get available port: %v\n", err)
+				s.logger.Error("Failed to get available port", zap.Error(err))
 				retries++
 				backoff *= 2 // Exponential backoff
 				continue
@@ -84,18 +93,18 @@ func (s *SerialSender) Open() (err error) {
 
 		newPort, err = serial.Open(portName, mode)
 		if err != nil {
-			log.Printf("Failed to open serial port: %v\n", err)
+			s.logger.Error("Failed to open serial port", zap.Error(err))
 			retries++
 			backoff *= 2 // Exponential backoff
 			continue
 		}
 
 		s.port = newPort
-		log.Println("Serial port opened successfully.")
+		s.logger.Info("Serial port opened successfully.")
 		return
 	}
 
-	log.Println("Max retries reached. Unable to open the serial port.")
+	s.logger.Info("Max retries reached. Unable to open the serial port.")
 	return
 }
 
@@ -105,7 +114,7 @@ func (s *SerialSender) listenAndSend() {
 	for data := range s.dataCh {
 		_, err := s.port.Write(append([]byte(data), '\n'))
 		if err != nil {
-			log.Printf("Error writing to serial port: %v\n", err)
+			s.logger.Error("Error writing to serial port", zap.Error(err))
 			s.port.Close()
 			s.Open()
 			continue
@@ -120,7 +129,7 @@ func (s *SerialSender) recvAndSend() {
 		buf := make([]byte, 13)
 		c, err := s.port.Read(buf)
 		if err != nil {
-			log.Printf("Error reading from serial port: %v\n", err)
+			s.logger.Error("Error reading from serial port", zap.Error(err))
 			continue
 		}
 
