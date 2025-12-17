@@ -56,6 +56,7 @@ const (
 	UPDATE_ACTION
 	UPLOAD_ACTION
 	UPLOAD_BACKUP_ACTION
+	VALIDATE_ACTION
 	ERASE_ACTION
 	SHUTDOWN_ACTION
 )
@@ -83,6 +84,9 @@ func UploadData() { CMD("normal") }
 
 // Uploads backup tag data.
 func UploadBackup() { CMD("backup") }
+
+// Sends captured tag data to validation
+func SendValidation() { CMD("validate") }
 
 // Updates the equipment to the latest version.
 func PCUpdate() { CMD("update") }

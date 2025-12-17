@@ -145,17 +145,17 @@ int check_clicked(void)
 }
 
 /*
-| **Data**             | **Type** | **Description**                                            | **Target screen** | **Format**                                                                                                                       |
-|----------------------|----------|------------------------------------------------------------|-------------------|----------------------------------------------------------------------------------------------------------------------------------|
-| Tags                 | Int32    | Number of tags read by the RFID reader.                    | 1                 | %dK (K only included after 10K tags) |
-| Unique-Tags          | Int32    | Number of Unique tags read by the RFID reader.             | 1                 | %d                                                                                                                               |
-| Communication status | Bool     | Status of the connection between the PC and mytempo.esp.br | 2                 | SIM(True) / NÃO(False)                                                                                                           |
-| WI-FI status         | Bool     | Status of the general internet connection of the device.   | 3                 | OK(True) / X(false)                                                                                                              |
-| 4G status            | Bool     | Status of the LTE/4G connection of the device.             | 3                 | OK(True) / X(false)                                                                                                              |
-| Reader status        | Bool     | Status of the RFID reader.                                 | 4                 | OK(True) / X(false)                                                                                                              |
-| System version       | Int32    | Version number of the system.                              | 5                 | %d                                                                                                                               |
-| Backup count         | Int32    | Number of backups currently stored.                        | 6                 | %d                                                                                                                               |
-| Envio count          | Int32    | Number of envios currently stored.                         | 7                 | %d                                                                                                                               |
+| **Data**             | **Type** | **Description**                                            | **Target screen** | **Format**                                                       |
+|----------------------|----------|------------------------------------------------------------|-------------------|------------------------------------------------------------------|
+| Tags                 | Int32    | Number of tags read by the RFID reader.                    | 1                 | %dK (K only included after 10K tags)
+| Unique-Tags          | Int32    | Number of Unique tags read by the RFID reader.             | 1                 | %d                                                               |
+| Communication status | Bool     | Status of the connection between the PC and mytempo.esp.br | 2                 | SIM(True) / NÃO(False)                                           |
+| WI-FI status         | Bool     | Status of the general internet connection of the device.   | 3                 | OK(True) / X(false)                                              |
+| 4G status            | Bool     | Status of the LTE/4G connection of the device.             | 3                 | OK(True) / X(false)                                              |
+| Reader status        | Bool     | Status of the RFID reader.                                 | 4                 | OK(True) / X(false)                                              |
+| System version       | Int32    | Version number of the system.                              | 5                 | %d                                                               |
+| Backup count         | Int32    | Number of backups currently stored.                        | 6                 | %d                                                               |
+| Envio count          | Int32    | Number of envios currently stored.                         | 7                 | %d                                                               |
 */
 
 typedef struct PCTagData
@@ -541,17 +541,18 @@ const char fill_pattern[20] = "                   ";
 #define SYSTEM_SCREEN 6
 #define UPLOAD_SCREEN 7
 #define BACKUP_SCREEN 8
-#define DELETE_SCREEN 9
-#define SHTDWN_SCREEN 10
-#define BATTRY_SCREEN 11
-#define LOGRPT_SCREEN 12
-#define NAV_SCREENS_COUNT 13
+#define VALIDT_SCREEN 9
+#define DELETE_SCREEN 10
+#define SHTDWN_SCREEN 11
+#define BATTRY_SCREEN 12
+#define LOGRPT_SCREEN 13
+#define NAV_SCREENS_COUNT 14
 
-#define OFFMSG_SCREEN 14
-#define CONFRM_SCREEN 15
-#define WAITNG_SCREEN 16
-#define WAITON_SCREEN 17
-#define SCREENS_COUNT 18
+#define OFFMSG_SCREEN 15
+#define CONFRM_SCREEN 16
+#define WAITNG_SCREEN 17
+#define WAITON_SCREEN 18
+#define SCREENS_COUNT 19
 
 unsigned int g_current_screen = 0;
 unsigned int g_confirm_target = 0; // target screen for events that need confirmation
@@ -572,6 +573,7 @@ const char desc[SCREENS_COUNT][VIRT_SCR_COLS] = {
     "START:Atualizar    ",
     "START:Upload Regist",
     "START:Upload Backup",
+	"START:Valida Tags  ",
     "START:Apagar tudo  ",
     "START:Desligar     ",
     "                   ",
@@ -633,6 +635,11 @@ void screen_build(void)
 		l1 = virt_scr_sprintf(0, 1, "Backups: %"
 					    "d",
 				      g_system_data.backups);
+		break;
+	case VALIDT_SCREEN:
+		l1 = virt_scr_sprintf(0, 1, "Validos: %"
+					    "d",
+				      g_system_data.backups + g_system_data.permanent_unique_tags);
 		break;
 	case DELETE_SCREEN:
 		l0 = virt_scr_sprintf(0, 0, "Apagar dados", NULL);

@@ -111,6 +111,9 @@ func checkAction(actionString string, state *int, tagSet *intSet.IntSet, tags *a
 		case UPLOAD_BACKUP_ACTION:
 			UploadBackup()
 			select {}
+		case VALIDATE_ACTION:
+			SendValidation()
+			select {}
 		case ERASE_ACTION:
 			FullReset()
 			select {}
