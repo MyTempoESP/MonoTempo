@@ -73,7 +73,7 @@ func NewJSONPinger(state *atomic.Bool, logger *zap.Logger) {
 				"deviceId": devid,
 			}
 
-			logger = logger.With(
+			logger.Info("Got device id",
 				zap.String("Device ID", devid),
 			)
 		}
