@@ -13,3 +13,6 @@ docker build --network=host --tag="receba:1.0" . || error
 
 cd "$dir"/Reenvio || error
 docker build --network=host --tag="reenvio:1.0" . || error
+
+cd "$dir"/Validate || error
+docker build --network=host --tag="validate:1.0" . || error

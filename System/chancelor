@@ -30,6 +30,14 @@ mytempo_update() {
 	[ -z "$(jq -c "select(.error)" "$LOG_DIR/pc.log")" ]
 }
 
+mytempo_validate() {
+
+	"$MYTEMPO_DATA"/Online/validate.online "$(realpath "$1")"
+
+	# does not find any fatal errors
+	! jq -c 'select(.level == "error").msg | contains("fatal")' "$LOG_DIR/pc.log" | grep -q "true"
+}
+
 mytempo_save() {
 
 	# moves all database files to directory specified by $1, which
@@ -66,6 +74,19 @@ mytempo_upload_dir() {
 		done 2>>"$LOG_DIR/pc.log"
 }
 
+mytempo_validate_dir() {
+
+	directory="$DATABASE_DIR/$1"
+	not_empty "$directory" &&
+		for d in "$directory"/*; do
+			cp "$DATABASE_DIR"/equipamento.db "$d" &&
+				{
+					mytempo_validate "$d" ||
+						break
+				}
+		done 2>>"$LOG_DIR/pc.log"
+}
+
 mytempo_upload_backup() {
 
 	mytempo_update &&
@@ -78,6 +99,13 @@ mytempo_upload_normal() {
 		mytempo_upload_dir envio
 
 	mytempo_move_envio_to_backup
+}
+
+mytempo_upload_validation() {
+	
+	mytempo_update &&
+		mytempo_move_envio_to_backup &&
+		mytempo_validate_dir backup
 }
 
 mytempo_dump_db() {
@@ -251,6 +279,7 @@ while true; do
 	"stats") mytempo_usb_save_stats ;;
 	"backup") mytempo_upload_backup ;;
 	"normal") mytempo_upload_normal ;;
+	"validate") mytempo_upload_validation ;;
 	"reset") mytempo_clean ;;
 	"reboot") reboot ;;
 	esac
