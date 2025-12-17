@@ -134,3 +134,4 @@ if [ "$READER_TYPE" = "impinj" ]; then
 fi
 
 healthy_breakup "All done! Please reboot for the changes to take effect."
+#
