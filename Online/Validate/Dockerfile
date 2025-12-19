@@ -15,7 +15,7 @@ COPY . .
 ENV GOFLAGS="-mod=vendor"
 
 # Build the Go application
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o Reenvio
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o Validate
 
 # Use a smaller base image for the final container
 #FROM debian:buster-slim
@@ -27,7 +27,7 @@ FROM alpine:3.14
 # RUN apk --no-cache add ca-certificates
 
 # Copy the compiled binary from the builder stage
-COPY --from=builder /app/Reenvio /usr/local/bin/Reenvio
+COPY --from=builder /app/Validate /usr/local/bin/Validate
 
 # Command to run the executable
-CMD ["/usr/local/bin/Reenvio"]
+CMD ["/usr/local/bin/Validate"]

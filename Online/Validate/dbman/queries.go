@@ -4,56 +4,9 @@ const (
 	ATTACH = `ATTACH DATABASE '/var/monotempo-data/equipamento.db' AS equip_data;`
 
 	// args: HORA_LARGADA
-	QUERY_LARGADA = `
+	QUERY_ATLETAS = `
 SELECT
-	athlete_num,
-	antenna,
-	track_id,
-	MAX(athlete_time)
+	athlete_num
 FROM
-	athletes_times
-JOIN
-	athletes ON athletes.num LIKE athlete_num
-JOIN
-	tracks ON tracks.id LIKE track_id
-WHERE
-	athlete_time <= largada AND
-	athlete_time >= inicio
-GROUP BY
-	athlete_num;`
-
-	// args: HORA_CHEGADA
-	QUERY_CHEGADA = `
-SELECT
-	athlete_num,
-	antenna,
-	track_id,
-	MIN(athlete_time)
-FROM
-	athletes_times
-JOIN
-	athletes ON athletes.num LIKE athlete_num
-JOIN
-	tracks ON tracks.id LIKE track_id
-WHERE
-	athlete_time >= chegada
-GROUP BY
-	athlete_num;`
-
-	QUERY_CHECKPOINT = `
-SELECT
-	athlete_num,
-	antenna,
-	track_id,
-	MAX(athlete_time)
-FROM
-	athletes_times
-JOIN
-	athletes ON athletes.num LIKE athlete_num
-JOIN
-	tracks ON tracks.id LIKE track_id
-WHERE
-	athlete_time > largada
-GROUP BY
-	athlete_num;`
+	athletes_times`
 )

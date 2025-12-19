@@ -103,7 +103,7 @@ func (b *Baselet) beginMonitor() {
 	b.Tempos = b.Monitor()
 }
 
-func (b *Baselet) ScanCheckpoint(query string, logger *zap.Logger, tempos chan<- atleta.Atleta) {
+func (b *Baselet) Scan(query string, logger *zap.Logger, tempos chan<- atleta.Atleta) {
 
 	startTime := time.Now()
 
@@ -129,9 +129,6 @@ func (b *Baselet) ScanCheckpoint(query string, logger *zap.Logger, tempos chan<-
 
 		err = res.Scan(
 			&at.Numero,
-			&at.Antena,
-			&at.PercursoID,
-			&at.Tempo,
 		)
 
 		if err != nil {
@@ -184,16 +181,8 @@ func (b *Baselet) Monitor() (tempos <-chan atleta.Atleta) {
 			return
 		}
 
-		if !b.IsCheckpoint {
-			logger := b.Logger.With(zap.String("checkpoint_type", "largada"))
-			b.ScanCheckpoint(QUERY_LARGADA, logger, t)
-
-			logger = b.Logger.With(zap.String("checkpoint_type", "chegada"))
-			b.ScanCheckpoint(QUERY_CHEGADA, logger, t)
-		} else {
-			logger := b.Logger.With(zap.String("checkpoint_type", "checkpoint"))
-			b.ScanCheckpoint(QUERY_CHECKPOINT, logger, t)
-		}
+		logger := b.Logger.With(zap.String("checando", "tudo"))
+		b.Scan(QUERY_ATLETAS, logger, t)
 	}()
 
 	tempos = t
