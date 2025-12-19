@@ -46,8 +46,10 @@ func BuscaID(url string) (devid string, err error) {
 func NewJSONPinger(state *atomic.Bool, logger *zap.Logger) {
 
 	url := os.Getenv("MYTEMPO_API_URL")
-	infoRota := fmt.Sprintf("http://%s/status/device", url)
-	devRota := fmt.Sprintf("http://%s/fetch/device", url)
+	security := os.Getenv("API_REQ_SECURITY")
+
+	infoRota := fmt.Sprintf("%s://%s/status/device", security, url)
+	devRota := fmt.Sprintf("%s://%s/fetch/device", security, url)
 
 	devid, fetchErr := BuscaID(devRota)
 
@@ -78,16 +80,17 @@ func NewJSONPinger(state *atomic.Bool, logger *zap.Logger) {
 			)
 		}
 
-		logger.Info("Sending JSON request to INFO URL")
+		logger_new := logger.With(zap.String("device id", devid))
+		logger_new.Info("Sending JSON request to INFO URL")
 
 		err := JSONSimpleRequest(infoRota, data)
 
-		logger.Info("Request terminated")
+		logger_new.Info("Request terminated")
 
 		state.Store(err == nil)
 
 		if err != nil {
-			logger.Error("Request error", zap.Error(err))
+			logger_new.Error("Request error", zap.Error(err))
 		}
 	}
 }

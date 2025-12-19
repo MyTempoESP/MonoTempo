@@ -23,7 +23,7 @@ var (
 		URL para subir os tempos.
 	*/
 	UrlTempos = fmt.Sprintf(
-		"http://%s/valida/chip", os.Getenv("MYTEMPO_API_URL"))
+		"%s://%s/valida/chip", os.Getenv("API_REQ_SECURITY"), os.Getenv("MYTEMPO_API_URL"))
 )
 
 /*
@@ -128,11 +128,6 @@ func (reenvio *Reenvio) Upload(atletas []atleta.Atleta, logger *zap.Logger) (err
 			msg := strings.ToUpper(strings.TrimRight(ae.Message, "."))
 
 			logger.Info("checking error type", zap.String("message", msg))
-
-			if msg == "A DATA DA PROVA NÃO COINCIDE COM A DATA ATUAL" {
-				logger.Info("Event date is wrong")
-				err = ErrWrongDate
-			}
 		}
 
 		return

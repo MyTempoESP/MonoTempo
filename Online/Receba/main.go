@@ -14,11 +14,13 @@ func (r *Receba) FechaDB() {
 
 func (r *Receba) ConfiguraAPI(url string) {
 
-	r.AtletasRota = fmt.Sprintf("http://%s/fetch/prova/atletas", url)
-	r.DeviceRota = fmt.Sprintf("http://%s/fetch/device", url)
-	r.StaffRota = fmt.Sprintf("http://%s/fetch/staffs", url)
-	r.ProvaRota = fmt.Sprintf("http://%s/fetch/prova", url)
-	r.InfoRota = fmt.Sprintf("http://%s/status/device", url)
+	sec := os.Getenv("API_REQ_SECURITY");
+
+	r.AtletasRota = fmt.Sprintf("%s://%s/fetch/prova/atletas", sec, url)
+	r.DeviceRota = fmt.Sprintf("%s://%s/fetch/device", sec, url)
+	r.StaffRota = fmt.Sprintf("%s://%s/fetch/staffs", sec, url)
+	r.ProvaRota = fmt.Sprintf("%s://%s/fetch/prova", sec, url)
+	r.InfoRota = fmt.Sprintf("%s://%s/status/device", sec, url)
 }
 
 func (r *Receba) Atualiza(logger *zap.Logger) (err error) {
