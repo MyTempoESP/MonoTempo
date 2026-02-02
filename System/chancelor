@@ -272,7 +272,7 @@ while true; do
 	# clean up logs
 	echo '{"level":"info","msg":"No data"}' >"$LOG_DIR"/pc.log
 
-	echo '[OPERATION: "$UPLOAD_TYPE"]' >>"$LOG_DIR"/operation.log
+	echo "[OPERATION: '$UPLOAD_TYPE', TIMESTAMP: '$(date +%s)']" >>"$LOG_DIR"/operation.log
 
 	case "$UPLOAD_TYPE" in
 	"fatal") ;;
