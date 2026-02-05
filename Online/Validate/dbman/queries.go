@@ -8,5 +8,7 @@ const (
 SELECT
 	athlete_num
 FROM
-	athletes_times`
+	athletes_times
+GROUP BY
+	athlete_num;`
 )
