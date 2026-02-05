@@ -5,10 +5,8 @@ const (
 
 	// args: HORA_LARGADA
 	QUERY_ATLETAS = `
-SELECT
+SELECT DISTINCT
 	athlete_num
 FROM
-	athletes_times
-GROUP BY
-	athlete_num;`
+	athletes_times;`
 )
