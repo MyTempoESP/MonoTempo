@@ -195,22 +195,26 @@ mytempo_clean() {
 
 mytempo_count_tags_dir() {
 
-	# trivia: what is my tech stack? PAWS, Python AWk and Shell script
-
-	python -c "print(sum([$( (for i in "$1"/N*.db; do sqlite3 -line "$i" "select COUNT(1) from athletes_times"; done) | awk 'NF {print $3","}')]))"
+	count=0
+	for i in "$1"/N*.db; do
+		[ -f "$i" ] || continue
+		n=$(sqlite3 "$i" "SELECT COUNT(1) FROM athletes_times" 2>/dev/null)
+		count=$((count + ${n:-0}))
+	done
+	echo "$count"
 }
 
 mytempo_count_tags() {
 
 	count=0
 
-	# pipe all output of this to /dev/null, since we just want
-	# the side effect.
-
 	not_empty "$ENVIO_DIR" &&
 		for d in "$ENVIO_DIR"/*; do
-			count=$(($(mytempo_count_tags_dir "$d") + "$count"))
-		done 1>/dev/null 2>/dev/null && echo $count
+			n=$(mytempo_count_tags_dir "$d")
+			count=$((count + n))
+		done 2>/dev/null
+
+	echo "$count"
 }
 
 mytempo_populate_tags() {
@@ -221,9 +225,9 @@ mytempo_populate_tags() {
 		for d in "$ENVIO_DIR"/*; do
 			not_empty "$d" &&
 			for i in "$d"/N*.db; do
-				sqlite3 -line "$i" "select distinct athlete_num from athletes_times"
+				sqlite3 "$i" "SELECT DISTINCT athlete_num FROM athletes_times"
 			done
-		done 2>/dev/null | awk 'NF {print $3}' >"$DATABASE_DIR"/TAGS
+		done 2>/dev/null >"$DATABASE_DIR"/TAGS
 }
 
 mytempo_do_update() {

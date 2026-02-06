@@ -3,7 +3,6 @@ package dbman
 import (
 	"fmt"
 	"log"
-	"os"
 	"time"
 
 	"database/sql"
@@ -41,13 +40,6 @@ func NewBaselet(path string) (b Baselet, err error) {
 
 func (b *Baselet) Init() (err error) {
 
-	_, err = os.Create(b.Path)
-
-	if err != nil {
-
-		return
-	}
-
 	err = b.CreateDatabase()
 
 	return
@@ -62,17 +54,9 @@ func (b *Baselet) CreateDatabase() (err error) {
 		return
 	}
 
-	defer db.Close() // flush changes
+	defer db.Close()
 
-	_, err = db.Exec(CREATE_TIME_DATABASE)
-
-	if err != nil {
-
-		return
-	}
-
-	b.db = db
-	b.opened = false
+	_, err = db.Exec(CREATE_TIME_TABLE)
 
 	return
 }
@@ -96,6 +80,13 @@ func (b *Baselet) Open() (err error) {
 
 	if err != nil {
 
+		return
+	}
+
+	_, err = db.Exec(WRITE_PRAGMAS)
+
+	if err != nil {
+		db.Close()
 		return
 	}
 
@@ -123,7 +114,9 @@ func (b *Baselet) Insert(c athlete.Atleta) (err error) {
 	select {
 	case b.data <- c:
 	case <-time.After(2100 * time.Millisecond):
+		log.Printf("WARN: timeout writing athlete %d (time=%s), data dropped\n", c.Numero, c.Tempo)
 		b.Close()
+		err = fmt.Errorf("timeout writing athlete %d (time=%s)", c.Numero, c.Tempo)
 	}
 
 	return
@@ -131,7 +124,7 @@ func (b *Baselet) Insert(c athlete.Atleta) (err error) {
 
 func (b *Baselet) Monitor() chan<- athlete.Atleta {
 
-	data := make(chan athlete.Atleta)
+	data := make(chan athlete.Atleta, 64)
 
 	go func() {
 		for c := range data {

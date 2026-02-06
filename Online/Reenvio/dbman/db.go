@@ -4,14 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"sync"
 	"time"
 
 	"database/sql"
 
 	"github.com/MyTempoESP/Reenvio/atleta"
 	"go.uber.org/zap"
-
-	//"sync/atomic"
 
 	_ "modernc.org/sqlite"
 )
@@ -230,22 +229,33 @@ func (m *MADB) Get() (lotes <-chan []atleta.Atleta) {
 	l := make(chan []atleta.Atleta)
 
 	go func() {
-		defer func() { close(l) }()
+		var wg sync.WaitGroup
+
+		defer func() {
+			wg.Wait()
+			close(l)
+		}()
 
 		for n, b := range m.databases {
-			logger := m.Logger.With(
-				zap.Int("baselet_id", n))
+			wg.Add(1)
 
-			startTime := time.Now()
-			logger.Info("Recebendo lote...")
+			go func(n int, b Baselet) {
+				defer wg.Done()
 
-			a := b.Get()
-			l <- a
+				logger := m.Logger.With(
+					zap.Int("baselet_id", n))
 
-			logger.Info("Lote recebido com sucesso",
-				zap.Duration("duration", time.Since(startTime)),
-				zap.Int("batch_size", len(a)),
-			)
+				startTime := time.Now()
+				logger.Info("Recebendo lote...")
+
+				a := b.Get()
+				l <- a
+
+				logger.Info("Lote recebido com sucesso",
+					zap.Duration("duration", time.Since(startTime)),
+					zap.Int("batch_size", len(a)),
+				)
+			}(n, b)
 		}
 	}()
 
