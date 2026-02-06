@@ -67,6 +67,8 @@ mytempo_upload_dir() {
 }
 
 mytempo_upload_backup() {
+	
+    mytempo_move_envio_to_backup
 
 	mytempo_update &&
 		mytempo_upload_dir backup

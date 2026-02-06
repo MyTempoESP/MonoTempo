@@ -164,7 +164,7 @@ func JSONSimpleRequest(url string, data Form) (err error) {
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{
-		Timeout: 5 * time.Second, // Set your desired timeout here
+		Timeout: 15 * time.Second, // Set your desired timeout here
 	}
 
 	res, err = client.Do(req)

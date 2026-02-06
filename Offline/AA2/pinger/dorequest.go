@@ -6,6 +6,8 @@ import (
 	"os"
 	"sync/atomic"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 type Equipamento struct {
@@ -41,7 +43,7 @@ func BuscaID(url string) (devid string, err error) {
 	return
 }
 
-func NewJSONPinger(state *atomic.Bool) {
+func NewJSONPinger(state *atomic.Bool, logger *zap.Logger) {
 
 	url := os.Getenv("MYTEMPO_API_URL")
 	infoRota := fmt.Sprintf("http://%s/status/device", url)
@@ -49,11 +51,17 @@ func NewJSONPinger(state *atomic.Bool) {
 
 	devid, fetchErr := BuscaID(devRota)
 
-	tick := time.NewTicker(4 * time.Second)
+	tick := time.NewTicker(14 * time.Second)
 
 	data := Form{
 		"deviceId": devid,
 	}
+
+	logger = logger.With(
+		zap.String("Base URL", url),
+		zap.String("Info URL", infoRota),
+		zap.String("Dev URL", devRota),
+	)
 
 	for {
 		<-tick.C
@@ -64,15 +72,22 @@ func NewJSONPinger(state *atomic.Bool) {
 			data = Form{
 				"deviceId": devid,
 			}
+
+			logger.Info("Got device id",
+				zap.String("Device ID", devid),
+			)
 		}
 
-		log.Println("Sending JSON request to", infoRota)
+		logger.Info("Sending JSON request to INFO URL")
 
 		err := JSONSimpleRequest(infoRota, data)
 
-		log.Println("Request terminated")
+		logger.Info("Request terminated")
 
 		state.Store(err == nil)
-		log.Println(err)
+
+		if err != nil {
+			logger.Error("Request error", zap.Error(err))
+		}
 	}
 }

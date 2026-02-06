@@ -3,6 +3,7 @@ package main
 import (
 	rabbit "github.com/mytempoesp/rabbit"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"go.uber.org/zap"
 )
 
 type tag struct {
@@ -17,6 +18,8 @@ type tag struct {
 type Ay struct {
 	broker  rabbit.Rabbit
 	channel *amqp.Channel
+
+	logger *zap.Logger
 
 	Tags <-chan tag
 }

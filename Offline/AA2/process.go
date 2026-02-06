@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -15,6 +14,8 @@ import (
 	"aa2/narrator"
 	"aa2/pinger"
 	"aa2/usb"
+
+	"go.uber.org/zap"
 )
 
 func countDir(path string) (n int, err error) {
@@ -190,10 +191,12 @@ func (a *Ay) Process() {
 	}()
 
 	// Inicializa o SerialSender com uma taxa de baud de 115200
-	sender, err := com.NewSerialSender(115200, constant.SerialPortOverride)
+	sender, err := com.NewSerialSender(115200, constant.SerialPortOverride, a.logger)
 
 	if err != nil {
-		log.Printf("Falha ao inicializar o SerialSender: %v", err)
+		a.logger.Error("Falha ao inicializar o SerialSender",
+			zap.Error(err),
+		)
 		return
 	}
 
@@ -206,7 +209,7 @@ func (a *Ay) Process() {
 
 	var readerIP = os.Getenv("READER_IP")
 
-	go pinger.NewJSONPinger(&pcData.CommStatus)
+	go pinger.NewJSONPinger(&pcData.CommStatus, a.logger)
 
 	ReaderPinger := pinger.NewPinger(readerIP, &pcData.RfidStatus, nil)
 
@@ -216,7 +219,7 @@ func (a *Ay) Process() {
 
 	if err != nil {
 		sysver = 0
-		log.Printf("Falha ao converter a versão do sistema: %v, utilizando 0", err)
+		a.logger.Error("Falha ao converter a versão do sistema, utilizando 0", zap.Error(err))
 	}
 
 	pcData.Tags.Store(0)
@@ -227,7 +230,7 @@ func (a *Ay) Process() {
 	backupDirs, err := countDir("/var/monotempo-data/backup")
 
 	if err != nil {
-		log.Printf("Erro ao listar diretórios de backup: %v", err)
+		a.logger.Error("Erro ao listar diretórios de backup", zap.Error(err))
 		pcData.Backups = 0
 	} else {
 		pcData.Backups = backupDirs
@@ -235,7 +238,7 @@ func (a *Ay) Process() {
 
 	deviceId, err := strconv.Atoi(constant.DeviceId)
 	if err != nil {
-		log.Printf("Erro ao converter o hostname para número: %v", err)
+		a.logger.Error("Erro ao converter o hostname para número", zap.Error(err))
 		pcData.SysCodeName = 500
 	} else {
 		pcData.SysCodeName = deviceId
