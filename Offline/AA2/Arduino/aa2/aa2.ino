@@ -573,7 +573,7 @@ const char desc[SCREENS_COUNT][VIRT_SCR_COLS] = {
     "START:Atualizar    ",
     "START:Upload Regist",
     "START:Upload Backup",
-	"START:Valida Tags  ",
+    "START:Valida Tags  ",
     "START:Apagar tudo  ",
     "START:Desligar     ",
     "                   ",
