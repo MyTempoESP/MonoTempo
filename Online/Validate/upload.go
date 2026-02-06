@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
@@ -23,7 +22,7 @@ var (
 		URL para subir os tempos.
 	*/
 	UrlTempos = fmt.Sprintf(
-		"%s://%s/valida/chip", os.Getenv("API_REQ_SECURITY"), os.Getenv("MYTEMPO_API_URL"))
+		"https://api.mytempo.esp.br/validar_chips" /*os.Getenv("API_REQ_SECURITY"), os.Getenv("MYTEMPO_API_URL")*/)
 )
 
 /*
