@@ -104,8 +104,9 @@ mytempo_upload_normal() {
 mytempo_upload_validation() {
 	
 	mytempo_update &&
-		mytempo_move_envio_to_backup &&
-		mytempo_validate_dir backup
+		(mytempo_move_envio_to_backup \
+            ;
+            mytempo_validate_dir backup)
 }
 
 mytempo_dump_db() {
