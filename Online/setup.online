@@ -16,13 +16,13 @@ shift
 mytempo_update() {
 	docker run --network=host --add-host=tts.docker:172.17.0.1 --env-file="$env_file" -v "$database":/var/monotempo-data --name receba "receba:1.0"
 	docker wait receba
-	docker remove receba
+	docker rm receba
 }
 
 mytempo_upload() {
 	docker run --network=host --add-host=tts.docker:172.17.0.1 --env-file="$env_file" -v "$database":/var/monotempo-data --name reenvio "reenvio:1.0"
 	docker wait reenvio
-	docker remove reenvio
+	docker rm reenvio
 }
 
 if [ $# -eq 0 ]; then
