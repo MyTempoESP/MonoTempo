@@ -328,7 +328,7 @@ test -e "$DATABASE_DIR"/N0.db &&
 
 mytempo_move_envio_to_backup
 
-VERSION_NUMBER_AA2=$(cd "$MYTEMPO_DATA" && git rev-list --count --all)
+VERSION_NUMBER_AA2=$(cd "$MYTEMPO_DATA" && git rev-list --count HEAD)
 export VERSION_NUMBER_AA2
 
 # clean up logs

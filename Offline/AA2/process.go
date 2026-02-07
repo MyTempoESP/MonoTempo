@@ -213,7 +213,14 @@ func (a *Ay) Process() {
 		a.logger.Error("Falha ao converter a versão do sistema, utilizando 0", zap.Error(err))
 	}
 
-    pcData.AutoUploadStatus.Store(os.Getenv("AUTO_UPLOAD_ENABLED") == "1")
+    autoupload, err := strconv.Atoi(constant.AutoUploadEnabled)
+
+	if err != nil {
+		autoupload = 0
+		a.logger.Error("Falha ao obter o estado do envio automatico, utilizando 0", zap.Error(err))
+	}
+
+    pcData.AutoUploadStatus.Store(autoupload != 0)
 
 	pcData.Tags.Store(0)
 	pcData.UniqueTags.Store(0)
