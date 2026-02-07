@@ -175,7 +175,7 @@ typedef struct PCData
 	bool comm_status;
 	bool rfid_status;
 	bool usb_status;
-    bool auto_upload_status;
+  bool auto_upload_status;
 	int sys_version;
 	int num_serie;
 	int backups;

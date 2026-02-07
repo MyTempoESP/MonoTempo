@@ -341,6 +341,7 @@ while true; do
 	# set initial value of tag count
 	TAG_COUNT_START_AT=$(mytempo_count_tags)
 	export TAG_COUNT_START_AT
+    export AUTO_UPLOAD_ENABLED
 
 	echo "Booting version #${VERSION_NUMBER_AA2:-0}"
 
