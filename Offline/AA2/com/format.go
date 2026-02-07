@@ -16,6 +16,7 @@ type PCData struct {
 	Lte4Status          atomic.Bool
 	RfidStatus          atomic.Bool
 	UsbStatus           atomic.Bool
+	AutoUploadStatus    atomic.Bool
 	PermanentUniqueTags atomic.Int32
 	Antennas            [4]atomic.Int64
 
@@ -74,9 +75,10 @@ func epoch() int64 {
 func (pd *PCData) formatPCDataReport() string {
 	currentEpoch := epoch()
 
-	f := fmt.Sprintf("MYTMP;%d;%d;P;%d;%d;%d;%d;%d;%d;%d;%d",
+	f := fmt.Sprintf("MYTMP;%d;%d;P;%d;%d;%d;%d;%d;%d;%d;%d;%d",
 		pd.Tags.Load(), pd.UniqueTags.Load(), boolToInt(pd.CommStatus.Load()),
 		boolToInt(pd.RfidStatus.Load()), boolToInt(pd.UsbStatus.Load()),
+		boolToInt(pd.AutoUploadStatus.Load()),
 		pd.SysVersion, pd.SysCodeName, pd.Backups, pd.PermanentUniqueTags.Load(),
 		currentEpoch)
 

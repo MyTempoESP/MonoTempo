@@ -175,6 +175,7 @@ typedef struct PCData
 	bool comm_status;
 	bool rfid_status;
 	bool usb_status;
+    bool auto_upload_status;
 	int sys_version;
 	int num_serie;
 	int backups;
@@ -443,6 +444,10 @@ bool parse_pc_data(SafeString &msg)
 		g_system_data.usb_status = field.equals("1");
 
 		idx = msg.stoken(field, idx, delims, returnEmptyFields);
+		
+        g_system_data.auto_upload_status = field.equals("1");
+
+		idx = msg.stoken(field, idx, delims, returnEmptyFields);
 
 		if (!field.toInt(g_system_data.sys_version))
 			return false;
@@ -524,8 +529,8 @@ const char fill_pattern[20] = "                   ";
 | Network                 | - Comunicando: (Communication status)            | Displays the communication<br>with mytempo.esp.br                     |                                                                                             |
 | Network Mgmt            | - Wi-Fi: (WI-FI status)<br>- LTE/4G: (4G status) | Displays basic PC network<br>connectivity info.                       | START: Issue a reconnection<br>of both wifi and 4g networks.                                |
 | System                  | - Version: (System version)                      | Displays the system version,<br>i.e. the current update.              | START: Fetch and Install the<br>latest version from github.                                 |
-| Upload                  | - Regist.: (Tags)<br>- Pendentes: (Envio count)  | Displays the current tag<br>count + the number of pending<br>uploads. | START: Upload all tag data<br>currently stored + pending<br>tag data.                       |
-| Upload (Backup)         | - Backups: (Backup count)                        | Displays the number of backups.                                       | START: Upload all backups.                                                                  |
+| AutoUp                  | - Envio Automatico: (SIM/NAO)                    | Displays the current upload mode, Automatico: S/N                     | START: Flip upload mode.                       |
+| Upload                  | - Backups: (Backup count)                        | Displays the number of backups.                                       | START: Upload all backups.                                                                  |
 | #15 (Erase data)        |                         -                        |                                   -                                   |                                              -                                              |
 | #15 (Shutdown)          |                         -                        |                                   -                                   |                                              -                                              |
 
@@ -539,8 +544,8 @@ const char fill_pattern[20] = "                   ";
 #define USBCFG_SCREEN 4
 #define DATTME_SCREEN 5
 #define SYSTEM_SCREEN 6
-#define UPLOAD_SCREEN 7
-#define BACKUP_SCREEN 8
+#define AUTOUP_SCREEN 7
+#define UPLOAD_SCREEN 8
 #define VALIDT_SCREEN 9
 #define DELETE_SCREEN 10
 #define SHTDWN_SCREEN 11
@@ -571,8 +576,8 @@ const char desc[SCREENS_COUNT][VIRT_SCR_COLS] = {
     "START:Salvar no USB",
     "                   ",
     "START:Atualizar    ",
-    "START:Upload Regist",
-    "START:Upload Backup",
+    "START:Ativar/Desat.",
+    "START:Enviar       ",
     "START:Valida Tags  ",
     "START:Apagar tudo  ",
     "START:Desligar     ",
@@ -625,16 +630,11 @@ void screen_build(void)
 
 		/* down here are screens with no Heading, so they can use l0 */
 
-	case UPLOAD_SCREEN:
-		l1 = virt_scr_sprintf(0, 1, "Atletas: %"
-					    "d",
-				      g_system_data.permanent_unique_tags);
-		// l2 = virt_scr_sprintf(0, 2, "Pendentes: %" "d", g_system_data.envios);
+	case AUTOUP_SCREEN:
+		l1 = virt_scr_sprintf(0, 1, "Envio Auto: %3s", g_system_data.auto_upload_status ? "SIM" : "NAO");
 		break;
-	case BACKUP_SCREEN:
-		l1 = virt_scr_sprintf(0, 1, "Backups: %"
-					    "d",
-				      g_system_data.backups);
+	case UPLOAD_SCREEN:
+		l1 = virt_scr_sprintf(0, 1, "Enviar Tempos", NULL);
 		break;
 	case VALIDT_SCREEN:
 		l1 = virt_scr_sprintf(0, 1, "Validos: %"

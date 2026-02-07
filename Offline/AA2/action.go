@@ -18,9 +18,9 @@ import (
 
 - System          : START: Fetch and Install the latest version from github.
 
-- Upload          : START: Upload all tag data currently stored + pending.
+- AutoUp          : START: Toggle auto-upload mode.
 
-- Upload (Backup) : START: Upload all backups.
+- Upload          : START: Upload all backups.
 
 - #15 (Erase data): START: Erase all data from the device.
 
@@ -38,13 +38,13 @@ import (
 
 #define SYSTEM_SCREEN 5
 
-#define UPLOAD_SCREEN 6
+#define AUTOUP_SCREEN 7
 
-#define BACKUP_SCREEN 7
+#define UPLOAD_SCREEN 8
 
-#define DELETE_SCREEN 8
+#define DELETE_SCREEN 10
 
-#define SHTDWN_SCREEN 9
+#define SHTDWN_SCREEN 11
 */
 const (
 	INFO_ACTION = iota
@@ -54,11 +54,11 @@ const (
 	USBCFG_ACTION
 	DATETIME_ACTION
 	UPDATE_ACTION
+    AUTOUPLOAD_ACTION
 	UPLOAD_ACTION
-	UPLOAD_BACKUP_ACTION
+	VALIDATE_ACTION
 	ERASE_ACTION
 	SHUTDOWN_ACTION
-	VALIDATE_ACTION=-1//NOT IMPLEMENTED YET
 )
 
 func CMD(s string) {
@@ -79,11 +79,10 @@ func PCShutdown() { CMD("poweroff") }
 // Reboots the PC.
 func PCReboot() { CMD("reboot") }
 
+func ToggleAutoUpload() { CMD("auto_up") }
+
 // Uploads normal tag data.
 func UploadData() { CMD("normal") }
-
-// Uploads backup tag data.
-func UploadBackup() { CMD("backup") }
 
 // Sends captured tag data to validation
 func SendValidation() { CMD("validate") }

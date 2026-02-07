@@ -11,6 +11,7 @@ LOG_DIR="$DATABASE_DIR"/logs
 
 AUTO_UPLOAD_INTERVAL=240  # auto-upload every 4 minutes (in seconds)
 AUTO_UPLOAD_PID=""
+AUTO_UPLOAD_ENABLED=1
 UPLOAD_LOCK="$DATABASE_DIR/upload.lock"
 
 not_empty() {
@@ -91,20 +92,23 @@ mytempo_validate_dir() {
 		done 2>>"$LOG_DIR/pc.log"
 }
 
-mytempo_upload_backup() {
+mytempo_toggle_autoupload() {
 
-	mytempo_update &&
-		(mytempo_upload_dir backup \
-            ;
-            mytempo_upload_dir envio)
+	if [ "$AUTO_UPLOAD_ENABLED" = 1 ]; then
+		AUTO_UPLOAD_ENABLED=0
+		echo "[AUTO-UPLOAD] Auto-upload disabled"
+	else
+		AUTO_UPLOAD_ENABLED=1
+		echo "[AUTO-UPLOAD] Auto-upload enabled"
+	fi
 }
 
 mytempo_upload_normal() {
 
-	mytempo_update &&
-		mytempo_upload_dir envio
-
 	mytempo_move_envio_to_backup
+
+	mytempo_update &&
+		mytempo_upload_dir backup
 }
 
 mytempo_upload_validation() {
@@ -144,6 +148,11 @@ mytempo_auto_upload_once() {
 }
 
 mytempo_start_auto_upload() {
+
+	if [ "$AUTO_UPLOAD_ENABLED" != 1 ]; then
+		echo "[AUTO-UPLOAD] Auto-upload is disabled, skipping"
+		return 0
+	fi
 
 	(
 		while true; do
@@ -343,15 +352,15 @@ while true; do
 	echo "[OPERATION: '$UPLOAD_TYPE', TIMESTAMP: '$(date +%s)']" >>"$LOG_DIR"/operation.log
 
 	case "$UPLOAD_TYPE" in
-	"fatal") ;;
-	"poweroff") shutdown now ;;
-	"update") mytempo_do_update ;;
-	"stats") mytempo_usb_save_stats ;;
-	"backup") mytempo_upload_backup ;;
-	"normal") mytempo_upload_normal ;;
+	"fatal"   )                           ;;
+	"reboot"  )                    reboot ;;
+	"poweroff")              shutdown now ;;
+	"reset"   ) mytempo_clean             ;;
+	"update"  ) mytempo_do_update         ;;
+	"normal"  ) mytempo_upload_normal     ;;
+	"stats"   ) mytempo_usb_save_stats    ;;
+    "auto_up" ) mytempo_toggle_autoupload ;;
 	"validate") mytempo_upload_validation ;;
-	"reset") mytempo_clean ;;
-	"reboot") reboot ;;
 	esac
 
 	sleep 5
