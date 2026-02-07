@@ -9,6 +9,10 @@ BACKUP_DIR="$DATABASE_DIR"/backup
 ENVIO_DIR="$DATABASE_DIR"/envio
 LOG_DIR="$DATABASE_DIR"/logs
 
+AUTO_UPLOAD_INTERVAL=240  # auto-upload every 4 minutes (in seconds)
+AUTO_UPLOAD_PID=""
+UPLOAD_LOCK="$DATABASE_DIR/upload.lock"
+
 not_empty() {
 
 	[ "$(ls -A "$1")" ]
@@ -104,10 +108,66 @@ mytempo_upload_normal() {
 }
 
 mytempo_upload_validation() {
-	
+
 	mytempo_update &&
 		mytempo_move_envio_to_backup &&
 		mytempo_validate_dir backup
+}
+
+mytempo_acquire_upload_lock() {
+	mkdir "$UPLOAD_LOCK" 2>/dev/null
+}
+
+mytempo_release_upload_lock() {
+	rmdir "$UPLOAD_LOCK" 2>/dev/null
+}
+
+mytempo_auto_upload_once() {
+
+	# skip if nothing to upload in either directory
+	if ! not_empty "$BACKUP_DIR" && ! not_empty "$ENVIO_DIR"; then
+		return 0
+	fi
+
+	if mytempo_acquire_upload_lock; then
+		echo "[AUTO-UPLOAD] Starting automatic upload cycle"
+		{
+			mytempo_update &&
+				mytempo_upload_dir backup &&
+				mytempo_upload_dir envio
+		} || true
+		mytempo_release_upload_lock
+		echo "[AUTO-UPLOAD] Cycle complete"
+	else
+		echo "[AUTO-UPLOAD] Skipped: upload already in progress"
+	fi
+}
+
+mytempo_start_auto_upload() {
+
+	(
+		while true; do
+			sleep "$AUTO_UPLOAD_INTERVAL"
+			mytempo_auto_upload_once
+		done
+	) &
+	AUTO_UPLOAD_PID=$!
+	echo "[AUTO-UPLOAD] Started background uploads every ${AUTO_UPLOAD_INTERVAL}s (PID $AUTO_UPLOAD_PID)"
+}
+
+mytempo_stop_auto_upload() {
+
+	if [ -n "$AUTO_UPLOAD_PID" ]; then
+		kill "$AUTO_UPLOAD_PID" 2>/dev/null
+		wait "$AUTO_UPLOAD_PID" 2>/dev/null
+		AUTO_UPLOAD_PID=""
+		echo "[AUTO-UPLOAD] Stopped background uploads"
+	fi
+
+	# clean up any in-flight upload containers
+	docker rm -f reenvio receba 2>/dev/null || true
+
+	mytempo_release_upload_lock
 }
 
 mytempo_dump_db() {
@@ -236,7 +296,9 @@ mytempo_do_update() {
 	reboot
 }
 
-echo "Chancelor, Version 1.1.0"
+echo "Chancelor, Version 1.2.0"
+
+trap 'mytempo_stop_auto_upload' EXIT INT TERM
 
 echo "Backing up leftover data (if any)"
 test -e "$DATABASE_DIR"/N0.db &&
@@ -264,8 +326,12 @@ while true; do
 
 	"$MYTEMPO_DATA"/Offline/setup.offline
 
+	mytempo_start_auto_upload
+
 	# wait for a signal
 	read -r UPLOAD_TYPE <"$DATABASE_DIR"/sig-upload-data
+
+	mytempo_stop_auto_upload
 
 	"$MYTEMPO_DATA"/Offline/stop.offline
 
