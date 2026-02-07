@@ -5,7 +5,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/MyTempoESP/Reenvio/narrator"
 	backoff "github.com/cenkalti/backoff"
 	"go.uber.org/zap"
 )
@@ -95,9 +94,6 @@ func main() {
 
 	r.Logger.Info("Enviando dados")
 
-	vl := narrator.New()
-	vl.Enabled = true
-
 	bf := backoff.NewExponentialBackOff()
 
 	bf.MaxElapsedTime = 5 * time.Minute
@@ -106,7 +102,7 @@ func main() {
 	err = backoff.Retry(
 		func() (err error) {
 
-			err = r.TentarReenvio(lotes, vl, r.Logger)
+			err = r.TentarReenvio(lotes, r.Logger)
 
 			if errors.Is(err, ErrWrongDate) { // if date is wrong, don't even retry
 				err = backoff.Permanent(err)
@@ -117,9 +113,6 @@ func main() {
 
 		bf,
 	)
-
-	vl.Consume() // say whatever errors we got
-	vl.Close()
 
 	if errors.Is(err, ErrWrongDate) {
 		logger.Error("Erro fatal no reenvio (Data da prova incompativel)", zap.Error(err))

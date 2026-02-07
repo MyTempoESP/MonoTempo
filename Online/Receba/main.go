@@ -39,7 +39,6 @@ func (r *Receba) Atualiza(logger *zap.Logger) (err error) {
 
 	logger.Info("Buscando o equipamento")
 
-	// voice assisted function
 	equip, err := r.BuscaEquip(os.Getenv("MYTEMPO_EQUIP"), logger)
 
 	if err != nil {

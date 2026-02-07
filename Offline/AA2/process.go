@@ -11,7 +11,6 @@ import (
 	"aa2/constant"
 	"aa2/intSet"
 	"aa2/logparse"
-	"aa2/narrator"
 	"aa2/pinger"
 	"aa2/usb"
 
@@ -105,11 +104,11 @@ func checkAction(actionString string, state *int, tagSet *intSet.IntSet, tags *a
 		case UPDATE_ACTION:
 			PCUpdate()
 			select {}
+		case AUTOUPLOAD_ACTION:
+			ToggleAutoUpload()
+			select {}
 		case UPLOAD_ACTION:
 			UploadData()
-			select {}
-		case UPLOAD_BACKUP_ACTION:
-			UploadBackup()
 			select {}
 		case VALIDATE_ACTION:
 			SendValidation()
@@ -143,12 +142,7 @@ func (a *Ay) Process() {
 
 		tagSet          intSet.IntSet = intSet.New()
 		permanentTagSet intSet.IntSet = intSet.New()
-		narratorTagSet  intSet.IntSet = intSet.New()
-
-		narrator = narrator.New()
 	)
-
-	go narrator.Watch()
 
 	populateTagSet(&tagSet, &permanentTagSet)
 
@@ -184,12 +178,6 @@ func (a *Ay) Process() {
 
 			tagSet.Insert(t.Epc)
 			permanentTagSet.Insert(t.Epc)
-
-			if narrator.Enabled && narratorTagSet.Insert(t.Epc) {
-				// search for the ID in the characters database
-				// and say it.
-				narrator.SayNum(t.Epc)
-			}
 		}
 	}()
 

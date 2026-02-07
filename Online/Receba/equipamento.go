@@ -26,19 +26,14 @@ func (r *Receba) BuscaEquip(equipModelo string, logger *zap.Logger) (equip Equip
 	err = JSONRequest(r.DeviceRota, data, &equip, logger)
 
 	if errors.Is(err, ErrNetwork) {
-		Say("Erro de rede, verifique a conexão")
 		return
 	}
 
 	if errors.As(err, &ae) {
-		if ae.Message == "device not found" {
-			Say("Equipamento não associado à este evento")
-		}
 		return
 	}
 
 	if equip.ProvaID == 0 {
-		Say("Equipamento não associado à este evento")
 		err = ErrEquipAssoc
 	}
 
