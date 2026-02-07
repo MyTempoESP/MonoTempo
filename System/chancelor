@@ -2,6 +2,11 @@
 
 #set -o xtrace
 
+next10() {
+    __now="$(date +%s)"
+    echo "$(( ( __now / 600 + 1 ) * 600 - __now ))"
+}
+
 # mytempo directory
 MYTEMPO_DATA=
 DATABASE_DIR="$MYTEMPO_DATA"/database
@@ -9,7 +14,7 @@ BACKUP_DIR="$DATABASE_DIR"/backup
 ENVIO_DIR="$DATABASE_DIR"/envio
 LOG_DIR="$DATABASE_DIR"/logs
 
-AUTO_UPLOAD_INTERVAL=240  # auto-upload every 4 minutes (in seconds)
+AUTO_UPLOAD_INTERVAL="$(next10)"
 AUTO_UPLOAD_PID=""
 AUTO_UPLOAD_ENABLED=1
 UPLOAD_LOCK="$DATABASE_DIR/upload.lock"
@@ -169,7 +174,7 @@ mytempo_start_auto_upload() {
 
 	(
 		while true; do
-			sleep "$AUTO_UPLOAD_INTERVAL"
+			sleep "$AUTO_UPLOAD_INTERVAL"; AUTO_UPLOAD_INTERVAL="$(next10)"
 			mytempo_auto_upload_once
 		done
 	) &
