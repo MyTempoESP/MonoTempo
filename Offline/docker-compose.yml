@@ -37,6 +37,7 @@ services:
     environment:
       - TAG_COUNT_START_AT=$TAG_COUNT_START_AT
       - VERSION_NUMBER_AA2=$VERSION_NUMBER_AA2
+      - AUTO_UPLOAD_ENABLED=$AUTO_UPLOAD_ENABLED
     volumes:
       - ../database:/var/monotempo-data
       - /dev:/dev
