@@ -128,7 +128,18 @@ mytempo_release_upload_lock() {
 
 mytempo_auto_upload_once() {
 
-	# skip if nothing to upload in either directory
+	LIVE_SNAPSHOT="$ENVIO_DIR/auto_upload_live"
+
+	# clean up any previous leftover snapshot
+	rm -rf "$LIVE_SNAPSHOT" 2>/dev/null
+
+	# copy live databases to envio so they get uploaded too
+	if ls "$DATABASE_DIR"/N*.db 1>/dev/null 2>&1; then
+		mkdir -p "$LIVE_SNAPSHOT"
+		cp "$DATABASE_DIR"/N*.db "$LIVE_SNAPSHOT"
+	fi
+
+	# skip if nothing to upload in any directory
 	if ! not_empty "$BACKUP_DIR" && ! not_empty "$ENVIO_DIR"; then
 		return 0
 	fi
@@ -145,6 +156,8 @@ mytempo_auto_upload_once() {
 	else
 		echo "[AUTO-UPLOAD] Skipped: upload already in progress"
 	fi
+
+	rm -rf "$LIVE_SNAPSHOT" 2>/dev/null
 }
 
 mytempo_start_auto_upload() {
