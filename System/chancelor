@@ -147,7 +147,7 @@ mytempo_auto_upload_once() {
     cp "$DATABASE_DIR"/N*.db "$LIVE_SNAPSHOT"
 
     echo "[AUTO-UPLOAD] Listing of to-send SNAPSHOT:"
-    ls "$LIVE_SNAPSHOT"
+    ls "$LIVE_SNAPSHOT" | head -n 10 && echo '[...]truncated'
 
     # if empty, just do it
 
