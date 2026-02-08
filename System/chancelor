@@ -179,12 +179,12 @@ mytempo_start_auto_upload() {
 		return 0
 	fi
 
-    NEXT_AUTO_UPLOAD="$(date -d +"$AUTO_UPLOAD_INTERVAL"min)"
+    NEXT_AUTO_UPLOAD="$(date -d +"$AUTO_UPLOAD_INTERVAL"s)"
 
 	(
 		while true; do
 			sleep "$AUTO_UPLOAD_INTERVAL"; AUTO_UPLOAD_INTERVAL="$(next10)"
-            NEXT_AUTO_UPLOAD="$(date -d +"$AUTO_UPLOAD_INTERVAL"min)"
+            NEXT_AUTO_UPLOAD="$(date -d +"$AUTO_UPLOAD_INTERVAL"s)"
 
 			mytempo_auto_upload_once
 		done
