@@ -14,6 +14,7 @@ BACKUP_DIR="$DATABASE_DIR"/backup
 ENVIO_DIR="$DATABASE_DIR"/envio
 LOG_DIR="$DATABASE_DIR"/logs
 
+NEXT_AUTO_UPLOAD=
 AUTO_UPLOAD_INTERVAL="$(next10)"
 AUTO_UPLOAD_PID=""
 AUTO_UPLOAD_ENABLED=1
@@ -160,12 +161,13 @@ mytempo_auto_upload_once() {
                     mytempo_upload_dir envio)
 		} || true
 		mytempo_release_upload_lock
-		echo "[AUTO-UPLOAD] Cycle complete"
+
+        sleep 10 # just to make sure we don't end too quick
+
+        echo "[AUTO-UPLOAD] Cycle complete, next @ $NEXT_AUTO_UPLOAD"
 	else
 		echo "[AUTO-UPLOAD] Skipped: upload already in progress"
 	fi
-
-    sleep 10 # just to make sure we don't end too quick
 
 	rm -rf "$LIVE_SNAPSHOT" 2>/dev/null
 }
@@ -177,14 +179,19 @@ mytempo_start_auto_upload() {
 		return 0
 	fi
 
+    NEXT_AUTO_UPLOAD="$(date -d +"$AUTO_UPLOAD_INTERVAL"min)"
+
 	(
 		while true; do
 			sleep "$AUTO_UPLOAD_INTERVAL"; AUTO_UPLOAD_INTERVAL="$(next10)"
+            NEXT_AUTO_UPLOAD="$(date -d +"$AUTO_UPLOAD_INTERVAL"min)"
+
 			mytempo_auto_upload_once
 		done
 	) &
 	AUTO_UPLOAD_PID=$!
 	echo "[AUTO-UPLOAD] Started background uploads every 10th minute (PID $AUTO_UPLOAD_PID)"
+    echo "[AUTO-UPLOAD] First auto-upload @ $NEXT_AUTO_UPLOAD"
 }
 
 mytempo_stop_auto_upload() {
