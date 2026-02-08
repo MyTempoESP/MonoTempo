@@ -155,8 +155,9 @@ mytempo_auto_upload_once() {
 		echo "[AUTO-UPLOAD] Starting automatic upload cycle"
 		{
 			mytempo_update &&
-				mytempo_upload_dir backup &&
-				mytempo_upload_dir envio
+				(mytempo_upload_dir backup \
+                    ;
+                    mytempo_upload_dir envio)
 		} || true
 		mytempo_release_upload_lock
 		echo "[AUTO-UPLOAD] Cycle complete"
@@ -183,7 +184,7 @@ mytempo_start_auto_upload() {
 		done
 	) &
 	AUTO_UPLOAD_PID=$!
-	echo "[AUTO-UPLOAD] Started background uploads every ${AUTO_UPLOAD_INTERVAL}s (PID $AUTO_UPLOAD_PID)"
+	echo "[AUTO-UPLOAD] Started background uploads every 10th minute (PID $AUTO_UPLOAD_PID)"
 }
 
 mytempo_stop_auto_upload() {
