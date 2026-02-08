@@ -20,6 +20,10 @@ AUTO_UPLOAD_PID=""
 AUTO_UPLOAD_ENABLED=1
 UPLOAD_LOCK="$DATABASE_DIR/upload.lock"
 
+calculate_next_upload_date() {
+    echo "$(date -d +"$AUTO_UPLOAD_INTERVAL"sec)"
+}
+
 not_empty() {
 
 	[ "$(ls -A "$1")" ]
@@ -179,12 +183,12 @@ mytempo_start_auto_upload() {
 		return 0
 	fi
 
-    NEXT_AUTO_UPLOAD="$(date -d +"$AUTO_UPLOAD_INTERVAL"s)"
+    NEXT_AUTO_UPLOAD="$(calculate_next_upload_date)"
 
 	(
 		while true; do
 			sleep "$AUTO_UPLOAD_INTERVAL"; AUTO_UPLOAD_INTERVAL="$(next10)"
-            NEXT_AUTO_UPLOAD="$(date -d +"$AUTO_UPLOAD_INTERVAL"s)"
+            NEXT_AUTO_UPLOAD="$(calculate_next_upload_date)"
 
 			mytempo_auto_upload_once
 		done
