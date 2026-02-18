@@ -187,6 +187,14 @@ func GetFirstAvailablePortName() (port string, err error) {
 
 	log.Println("Available serial ports:", ports)
 
-	port = ports[0]
+	for _, portName := range(ports) {
+		if strings.Contains(portName, "USB") || strings.Contains(portName, "ACM") {
+			port = portName
+			return
+		}
+	}
+	
+	err = fmt.Errorf("no valid serial ports found")
+
 	return
 }
