@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"time"
+	"strings"
 
 	"go.bug.st/serial"
 	"go.uber.org/zap"
