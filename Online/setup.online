@@ -1,8 +1,8 @@
 #!/bin/sh
 
 usage() {
-	echo "$0 DATA-DIR [CMD]"
-	exit 1
+  echo "$0 DATA-DIR [CMD]"
+  exit 1
 }
 
 [ $# -eq 0 ] && usage
@@ -14,27 +14,27 @@ database=$1
 shift
 
 mytempo_update() {
-	docker run --network=host --env-file="$env_file" -v "$database":/var/monotempo-data --name receba "receba:1.0"
-	docker wait receba
-	docker remove receba
+  docker run --network=host --env-file="$env_file" -v "$database":/var/monotempo-data --name receba "receba:1.0"
+  docker wait receba
+  docker rm receba
 }
 
 mytempo_upload() {
-	docker run --network=host --env-file="$env_file" -v "$database":/var/monotempo-data --name reenvio "reenvio:1.0"
-	docker wait reenvio
-	docker remove reenvio
+  docker run --network=host --env-file="$env_file" -v "$database":/var/monotempo-data --name reenvio "reenvio:1.0"
+  docker wait reenvio
+  docker rm reenvio
 }
 
 if [ $# -eq 0 ]; then
-	mytempo_update
-	mytempo_upload
+  mytempo_update
+  mytempo_upload
 else
-	for _ in $(seq $#); do
-		case "$1" in
-		update) mytempo_update ;;
-		upload) mytempo_upload ;;
-		esac
+  for _ in $(seq $#); do
+    case "$1" in
+    update) mytempo_update ;;
+    upload) mytempo_upload ;;
+    esac
 
-		shift
-	done
+    shift
+  done
 fi
