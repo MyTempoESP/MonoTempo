@@ -42,7 +42,7 @@ func (r *Receba) AtualizaAtletas(atletas []Atleta) (err error) {
 
 	for _, a := range atletas {
 		_, err = r.db.Exec(
-			QUERY_ATUALIZA_ATLETA,
+			queryAtualizaAtleta,
 
 			a.Nome,
 			a.Sexo,

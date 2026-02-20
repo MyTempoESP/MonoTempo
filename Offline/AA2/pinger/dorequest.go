@@ -80,17 +80,17 @@ func NewJSONPinger(state *atomic.Bool, logger *zap.Logger) {
 			)
 		}
 
-		logger_new := logger.With(zap.String("device id", devid))
-		logger_new.Info("Sending JSON request to INFO URL")
+		loggerNew := logger.With(zap.String("device id", devid))
+		loggerNew.Info("Sending JSON request to INFO URL")
 
 		err := JSONSimpleRequest(infoRota, data)
 
-		logger_new.Info("Request terminated")
+		loggerNew.Info("Request terminated")
 
 		state.Store(err == nil)
 
 		if err != nil {
-			logger_new.Error("Request error", zap.Error(err))
+			loggerNew.Error("Request error", zap.Error(err))
 		}
 	}
 }

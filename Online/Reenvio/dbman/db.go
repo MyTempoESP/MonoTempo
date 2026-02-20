@@ -177,7 +177,7 @@ func (b *Baselet) Monitor() (tempos <-chan atleta.Atleta) {
 		defer func() { close(t) }()
 		defer b.Logger.Info("Monitoramento encerrado!")
 
-		_, err := b.db.Exec(ATTACH)
+		_, err := b.db.Exec(attach)
 
 		if err != nil {
 			b.Logger.Error("Erro obtendo dados do equipamento", zap.Error(err))
@@ -186,13 +186,13 @@ func (b *Baselet) Monitor() (tempos <-chan atleta.Atleta) {
 
 		if !b.IsCheckpoint {
 			logger := b.Logger.With(zap.String("checkpoint_type", "largada"))
-			b.ScanCheckpoint(QUERY_LARGADA, logger, t)
+			b.ScanCheckpoint(queryLargada, logger, t)
 
 			logger = b.Logger.With(zap.String("checkpoint_type", "chegada"))
-			b.ScanCheckpoint(QUERY_CHEGADA, logger, t)
+			b.ScanCheckpoint(queryChegada, logger, t)
 		} else {
 			logger := b.Logger.With(zap.String("checkpoint_type", "checkpoint"))
-			b.ScanCheckpoint(QUERY_CHECKPOINT, logger, t)
+			b.ScanCheckpoint(queryCheckpoint, logger, t)
 		}
 	}()
 

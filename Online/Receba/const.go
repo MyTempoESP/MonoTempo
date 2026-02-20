@@ -1,7 +1,7 @@
 package main
 
 const (
-	EXCLUIR   = 2
-	FORMATAR  = 3
-	REINICIAR = 1
+	excluir   = 2
+	formatar  = 3
+	reiniciar = 1
 )

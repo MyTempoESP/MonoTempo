@@ -82,41 +82,41 @@ func checkAction(actionString string, state *int, tagSet *intSet.IntSet, tags *a
 		}
 
 		switch action {
-		case INFO_ACTION:
+		case infoAction:
 			tagSet.Clear()
 			tags.Store(0)
 			antennas[0].Store(0)
 			antennas[1].Store(0)
 			antennas[2].Store(0)
 			antennas[3].Store(0)
-		case ANTENNA_ACTION:
-			*state = STATE_ANTENNA_REPORT
-		case NETWORK_ACTION:
-		case NETWORK_MGMT_ACTION:
+		case antennaAction:
+			*state = stateAntennaReport
+		case networkAction:
+		case networkMgmtAction:
 			ResetWifi()
 			<-time.After(time.Second * 2)
-		case DATETIME_ACTION:
+		case datetimeAction:
 
 		// these actions hang
-		case USBCFG_ACTION:
+		case usbcfgAction:
 			CreateUSBReport()
 			select {}
-		case UPDATE_ACTION:
+		case updateAction:
 			PCUpdate()
 			select {}
-		case AUTOUPLOAD_ACTION:
+		case autouploadAction:
 			ToggleAutoUpload()
 			select {}
-		case UPLOAD_ACTION:
+		case uploadAction:
 			UploadData()
 			select {}
-		case VALIDATE_ACTION:
+		case validateAction:
 			SendValidation()
 			select {}
-		case ERASE_ACTION:
+		case eraseAction:
 			FullReset()
 			select {}
-		case SHUTDOWN_ACTION:
+		case shutdownAction:
 			PCShutdown()
 			select {}
 		}
@@ -124,9 +124,9 @@ func checkAction(actionString string, state *int, tagSet *intSet.IntSet, tags *a
 }
 
 const (
-	STATE_TAG_REPORT = iota
-	STATE_ANTENNA_REPORT
-	STATE_PC_DATA_REPORT
+	stateTagReport = iota
+	stateAntennaReport
+	statePCDataReport
 )
 
 // function for the state transition, it goes: 0, 0, 0, 1, 1, 2, 2 ...
@@ -146,17 +146,17 @@ func (a *Ay) Process() {
 
 	populateTagSet(&tagSet, &permanentTagSet)
 
-	tags_start_at := os.Getenv("TAG_COUNT_START_AT")
+	tagsStartAt := os.Getenv("TAG_COUNT_START_AT")
 
 	go func() {
 
-		if tags_start_at != "" {
+		if tagsStartAt != "" {
 
-			tags_start_at, err := strconv.Atoi(tags_start_at)
+			tagsStartAt, err := strconv.Atoi(tagsStartAt)
 
 			if err == nil {
 
-				pcData.Tags.Store(int64(tags_start_at))
+				pcData.Tags.Store(int64(tagsStartAt))
 			}
 		}
 
@@ -263,7 +263,7 @@ func (a *Ay) Process() {
 
 		switcherTicker := time.NewTicker(400 * time.Millisecond)
 		sendTicker := time.NewTicker(120 * time.Millisecond)
-		state := STATE_TAG_REPORT
+		state := stateTagReport
 
 		// step counter for state transitions
 		c := 0
@@ -278,15 +278,15 @@ func (a *Ay) Process() {
 			pcData.UsbStatus.Store(usbOk)
 
 			switch state {
-			case STATE_TAG_REPORT:
+			case stateTagReport:
 				pcData.SendTagReport(sender)
-			case STATE_ANTENNA_REPORT:
+			case stateAntennaReport:
 				if constant.ReaderType == "impinj" {
 					pcData.SendAntennaReport(sender)
 				} else {
 					pcData.SendPCDataReport(sender)
 				}
-			case STATE_PC_DATA_REPORT:
+			case statePCDataReport:
 				pcData.SendPCDataReport(sender)
 			}
 

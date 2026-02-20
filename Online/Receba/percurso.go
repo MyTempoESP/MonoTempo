@@ -25,7 +25,7 @@ type Percurso struct {
 func (r *Receba) AtualizaPercurso(p Percurso, idProva int) (err error) {
 
 	_, err = r.db.Exec(
-		QUERY_ATUALIZA_PERCURSO,
+		queryAtualizaPercurso,
 
 		p.ID,
 		p.Desc,

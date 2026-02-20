@@ -17,18 +17,18 @@ type Equipamento struct {
 
 func (equip *Equipamento) Atualiza() (err error) {
 
-	equip_db, err := sql.Open("sqlite", "/var/monotempo-data/equipamento.db")
+	equipDB, err := sql.Open("sqlite", "/var/monotempo-data/equipamento.db")
 
 	if err != nil {
 
 		return
 	}
 
-	defer equip_db.Close()
+	defer equipDB.Close()
 
 	query := `SELECT idequip, modelo, event_id, check_id FROM equipamento WHERE 1;`
 
-	res, err := equip_db.Query(query)
+	res, err := equipDB.Query(query)
 
 	if err != nil {
 

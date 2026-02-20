@@ -64,7 +64,7 @@ func (b *Baselet) CreateDatabase() (err error) {
 
 	defer db.Close() // flush changes
 
-	_, err = db.Exec(CREATE_TIME_DATABASE)
+	_, err = db.Exec(createTimeDatabase)
 
 	if err != nil {
 
@@ -148,7 +148,7 @@ func (b *Baselet) Monitor() chan<- athlete.Atleta {
 				func() (err error) {
 
 					_, err = b.db.Exec(
-						INSERT_TIME,
+						insertTime,
 
 						c.Antena,
 						c.Numero,

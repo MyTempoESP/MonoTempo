@@ -174,7 +174,7 @@ func (b *Baselet) Monitor() (tempos <-chan atleta.Atleta) {
 		defer func() { close(t) }()
 		defer b.Logger.Info("Monitoramento encerrado!")
 
-		_, err := b.db.Exec(ATTACH)
+		_, err := b.db.Exec(attach)
 
 		if err != nil {
 			b.Logger.Error("Erro obtendo dados do equipamento", zap.Error(err))
@@ -182,7 +182,7 @@ func (b *Baselet) Monitor() (tempos <-chan atleta.Atleta) {
 		}
 
 		logger := b.Logger.With(zap.String("checando", "tudo"))
-		b.Scan(QUERY_ATLETAS, logger, t)
+		b.Scan(queryAtletas, logger, t)
 	}()
 
 	tempos = t

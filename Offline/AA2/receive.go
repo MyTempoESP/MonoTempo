@@ -67,6 +67,6 @@ func NewExclusiveConsumer(queue string, name string, channel *amqp.Channel) (rec
 func ReceiveAntennas(channel *amqp.Channel) (<-chan tag, error) {
 
 	return NewExclusiveConsumer(
-		ANTENNA_QUEUE, ANTENNA_CONSUMER_NAME, channel,
+		antennaQueue, antennaConsumerName, channel,
 	)
 }

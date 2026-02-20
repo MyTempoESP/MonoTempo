@@ -42,7 +42,7 @@ func (e *APIError) Error() string {
 }
 
 const (
-	REQUEST_TIMEOUT = 10 * time.Second
+	requestTimeout = 10 * time.Second
 )
 
 type Form map[string]string
@@ -53,7 +53,7 @@ func SimpleRawRequest(url string, data RawForm, contentType string, logger *zap.
 	var res *http.Response
 
 	bf := backoff.NewExponentialBackOff()
-	bf.MaxElapsedTime = REQUEST_TIMEOUT
+	bf.MaxElapsedTime = requestTimeout
 
 	err = backoff.Retry(
 		func() (err error) {

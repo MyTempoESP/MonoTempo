@@ -43,7 +43,7 @@ func (r *Receba) BuscaEquip(equipModelo string, logger *zap.Logger) (equip Equip
 func (r *Receba) AtualizaEquip(equip Equipamento) (err error) {
 
 	_, err = r.db.Exec(
-		QUERY_ATUALIZA_EQUIP,
+		queryAtualizaEquip,
 
 		equip.ID,
 		equip.Nome,

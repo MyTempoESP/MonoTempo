@@ -47,18 +47,18 @@ import (
 #define SHTDWN_SCREEN 11
 */
 const (
-	INFO_ACTION = iota
-	ANTENNA_ACTION
-	NETWORK_ACTION
-	NETWORK_MGMT_ACTION
-	USBCFG_ACTION
-	DATETIME_ACTION
-	UPDATE_ACTION
-    AUTOUPLOAD_ACTION
-	UPLOAD_ACTION
-	VALIDATE_ACTION
-	ERASE_ACTION
-	SHUTDOWN_ACTION
+	infoAction = iota
+	antennaAction
+	networkAction
+	networkMgmtAction
+	usbcfgAction
+	datetimeAction
+	updateAction
+	autouploadAction
+	uploadAction
+	validateAction
+	eraseAction
+	shutdownAction
 )
 
 func CMD(s string) {

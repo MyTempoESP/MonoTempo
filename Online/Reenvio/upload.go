@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	REENVIO_INTERVALO     = 23 * time.Second
-	TIMEOUT_MONITORAMENTO = 5 * time.Second
+	reenvioIntervalo     = 23 * time.Second
+	timeoutMonitoramento = 5 * time.Second
 )
 
 var (
@@ -172,10 +172,10 @@ func (reenvio *Reenvio) TentarReenvio(
 		define o tempo gasto esperando um tempo vir da lista.
 	*/
 	timeoutMon := time.After(
-		min(TIMEOUT_MONITORAMENTO, REENVIO_INTERVALO-1),
+		min(timeoutMonitoramento, reenvioIntervalo-1),
 	)
 
-	logger = logger.With(zap.Duration("timeout", TIMEOUT_MONITORAMENTO))
+	logger = logger.With(zap.Duration("timeout", timeoutMonitoramento))
 
 	/*
 		Se houver registros, receba.

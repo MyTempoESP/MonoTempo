@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	CRIA_DB = `
+	criaDB = `
 PRAGMA synchronous = OFF;
 PRAGMA journal_mode = MEMORY;
 BEGIN TRANSACTION;
@@ -53,7 +53,7 @@ CREATE TABLE staffs
 INSERT INTO equipamento(id, idequip, modelo, event_id, check_id) VALUES (1,0,'',0,0);
 END TRANSACTION;`
 
-	QUERY_ATUALIZA_EQUIP = `
+	queryAtualizaEquip = `
 	REPLACE INTO equipamento (
 	    id,
 	    idequip,
@@ -64,7 +64,7 @@ END TRANSACTION;`
 	VALUES(1, ?, ?, ?, ?);
 	`
 
-	QUERY_ATUALIZA_PROVA = `
+	queryAtualizaProva = `
 	REPLACE INTO event_data (
 		id,
 		event_date,
@@ -73,7 +73,7 @@ END TRANSACTION;`
 	VALUES (?, ?, ?)
 	`
 
-	QUERY_ATUALIZA_PERCURSO = `
+	queryAtualizaPercurso = `
 	REPLACE INTO tracks (
 	    id,
 	    race_description,
@@ -85,7 +85,7 @@ END TRANSACTION;`
 	VALUES (?, ?, ?, ?, ?, ?)
 	`
 
-	QUERY_ATUALIZA_ATLETA = `
+	queryAtualizaAtleta = `
 	REPLACE INTO athletes (
 	    name,
 	    sex,
@@ -98,7 +98,7 @@ END TRANSACTION;`
 	VALUES(?, ?, ?, ?, ?, ?, ?);
 	`
 
-	QUERY_ATUALIZA_STAFF = `
+	queryAtualizaStaff = `
 	REPLACE INTO staffs (
 	    id,
 	    event_id,

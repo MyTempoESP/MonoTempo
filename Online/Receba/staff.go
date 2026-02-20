@@ -27,7 +27,7 @@ func (r *Receba) AtualizaStaff(staffs []Staff, idProva int) (err error) {
 
 	for _, staff := range staffs {
 		_, err := r.db.Exec(
-			QUERY_ATUALIZA_STAFF,
+			queryAtualizaStaff,
 
 			staff.ID,
 			idProva,
