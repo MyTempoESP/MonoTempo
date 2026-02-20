@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-
 	"os/exec"
 )
 
@@ -73,37 +72,15 @@ func AUX(s string) {
 	log.Println(err)
 }
 
-// Shuts down the PC. FIXME: Implement poweroff command in chancelor.
-func PCShutdown() { CMD("poweroff") }
-
-// Reboots the PC.
-func PCReboot() { CMD("reboot") }
-
+func PCShutdown()       { CMD("poweroff") }
+func PCReboot()         { CMD("reboot") }
 func ToggleAutoUpload() { CMD("auto_up") }
-
-// Uploads normal tag data.
-func UploadData() { CMD("normal") }
-
-// Sends captured tag data to validation
-func SendValidation() { CMD("validate") }
-
-// Updates the equipment to the latest version.
-func PCUpdate() { CMD("update") }
-
-// Creates a USB report with device statistics.
-func CreateUSBReport() { CMD("stats") }
-
-// Resets all device data.
-func FullReset() { CMD("reset") }
-
-// Resets the Wi-Fi configuration.
-func ResetWifi() { AUX("reset") }
-
-// Refreshes the system state, used for fatal errors.
-func Refresh() { CMD("fatal") }
-
-// Resets the 4G LTE configuration.
-func Reset4g() { AUX("lte4g") }
-
-// Copies data to a USB device.
-func CopyToUSB() { CMD("save") }
+func UploadData()       { CMD("normal") }
+func SendValidation()   { CMD("validate") }
+func PCUpdate()         { CMD("update") }
+func CreateUSBReport()  { CMD("stats") }
+func FullReset()        { CMD("reset") }
+func ResetWifi()        { AUX("reset") }
+func Refresh()          { CMD("fatal") }
+func Reset4g()          { AUX("lte4g") }
+func CopyToUSB()        { CMD("save") }

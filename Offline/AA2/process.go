@@ -1,28 +1,24 @@
 package main
 
 import (
-	"os"
-	"strconv"
-	"strings"
-	"sync/atomic"
-	"time"
-
 	"aa2/com"
 	"aa2/constant"
 	"aa2/intSet"
 	"aa2/logparse"
 	"aa2/pinger"
 	"aa2/usb"
+	"os"
+	"strconv"
+	"strings"
+	"sync/atomic"
+	"time"
 
 	"go.uber.org/zap"
 )
 
 func countDir(path string) (n int, err error) {
-
 	f, err := os.Open(path)
-
 	if err != nil {
-
 		return
 	}
 
@@ -31,7 +27,6 @@ func countDir(path string) (n int, err error) {
 	f.Close()
 
 	if err != nil {
-
 		return
 	}
 
@@ -41,20 +36,15 @@ func countDir(path string) (n int, err error) {
 }
 
 func populateTagSet(tagSet *intSet.IntSet, permanentSet *intSet.IntSet) {
-
 	b, err := os.ReadFile("/var/monotempo-data/TAGS")
-
 	if err != nil {
-
 		return
 	}
 
 	for s := range strings.SplitSeq(string(b), "\n") {
 
 		n, err := strconv.Atoi(s)
-
 		if err != nil {
-
 			continue
 		}
 
@@ -64,7 +54,6 @@ func populateTagSet(tagSet *intSet.IntSet, permanentSet *intSet.IntSet) {
 }
 
 func checkAction(actionString string, state *int, tagSet *intSet.IntSet, tags *atomic.Int64, antennas *[4]atomic.Int64) {
-
 	idx := strings.Index(actionString, "$")
 
 	if idx == -1 {
@@ -73,53 +62,51 @@ func checkAction(actionString string, state *int, tagSet *intSet.IntSet, tags *a
 
 	actionString = actionString[idx:]
 
-	if strings.HasPrefix(actionString, "$MYTMP;") {
-		actionString = strings.TrimPrefix(actionString, "$MYTMP;")
-		action, err := strconv.Atoi(strings.TrimSpace(actionString))
+	actionString, _ = strings.CutPrefix(actionString, "$MYTMP;")
 
-		if err != nil {
-			return
-		}
+	action, err := strconv.Atoi(strings.TrimSpace(actionString))
+	if err != nil {
+		return
+	}
 
-		switch action {
-		case infoAction:
-			tagSet.Clear()
-			tags.Store(0)
-			antennas[0].Store(0)
-			antennas[1].Store(0)
-			antennas[2].Store(0)
-			antennas[3].Store(0)
-		case antennaAction:
-			*state = stateAntennaReport
-		case networkAction:
-		case networkMgmtAction:
-			ResetWifi()
-			<-time.After(time.Second * 2)
-		case datetimeAction:
+	switch action {
+	case infoAction:
+		tagSet.Clear()
+		tags.Store(0)
+		antennas[0].Store(0)
+		antennas[1].Store(0)
+		antennas[2].Store(0)
+		antennas[3].Store(0)
+	case antennaAction:
+		*state = stateAntennaReport
+	case networkAction:
+	case networkMgmtAction:
+		ResetWifi()
+		<-time.After(time.Second * 2)
+	case datetimeAction:
 
-		// these actions hang
-		case usbcfgAction:
-			CreateUSBReport()
-			select {}
-		case updateAction:
-			PCUpdate()
-			select {}
-		case autouploadAction:
-			ToggleAutoUpload()
-			select {}
-		case uploadAction:
-			UploadData()
-			select {}
-		case validateAction:
-			SendValidation()
-			select {}
-		case eraseAction:
-			FullReset()
-			select {}
-		case shutdownAction:
-			PCShutdown()
-			select {}
-		}
+	// these actions hang
+	case usbcfgAction:
+		CreateUSBReport()
+		select {}
+	case updateAction:
+		PCUpdate()
+		select {}
+	case autouploadAction:
+		ToggleAutoUpload()
+		select {}
+	case uploadAction:
+		UploadData()
+		select {}
+	case validateAction:
+		SendValidation()
+		select {}
+	case eraseAction:
+		FullReset()
+		select {}
+	case shutdownAction:
+		PCShutdown()
+		select {}
 	}
 }
 
@@ -135,13 +122,12 @@ func transitionStep(c int) int {
 }
 
 func (a *Ay) Process() {
-
 	var (
-		pcData  *com.PCData = &com.PCData{}
+		pcData  = &com.PCData{}
 		tagsUSB atomic.Int64
 
-		tagSet          intSet.IntSet = intSet.New()
-		permanentTagSet intSet.IntSet = intSet.New()
+		tagSet          = intSet.New()
+		permanentTagSet = intSet.New()
 	)
 
 	populateTagSet(&tagSet, &permanentTagSet)
@@ -149,13 +135,11 @@ func (a *Ay) Process() {
 	tagsStartAt := os.Getenv("TAG_COUNT_START_AT")
 
 	go func() {
-
 		if tagsStartAt != "" {
 
 			tagsStartAt, err := strconv.Atoi(tagsStartAt)
 
 			if err == nil {
-
 				pcData.Tags.Store(int64(tagsStartAt))
 			}
 		}
@@ -163,7 +147,6 @@ func (a *Ay) Process() {
 		for t := range a.Tags {
 
 			if t.Antena == 0 {
-
 				/*
 					Antena 0 não exist
 				*/
@@ -183,7 +166,6 @@ func (a *Ay) Process() {
 
 	// Inicializa o SerialSender com uma taxa de baud de 115200
 	sender, err := com.NewSerialSender(115200, constant.SerialPortOverride, a.logger)
-
 	if err != nil {
 		a.logger.Error("Falha ao inicializar o SerialSender",
 			zap.Error(err),
@@ -194,11 +176,11 @@ func (a *Ay) Process() {
 	// I AM DUMB AS FUCK
 	// defer sender.Close()
 
-	var device = usb.Device{}
+	device := usb.Device{}
 	device.Name = "/dev/sdb"
 	device.FS = usb.OSFileSystem{}
 
-	var readerIP = os.Getenv("READER_IP")
+	readerIP := os.Getenv("READER_IP")
 
 	go pinger.NewJSONPinger(&pcData.CommStatus, a.logger)
 
@@ -207,20 +189,18 @@ func (a *Ay) Process() {
 	go ReaderPinger.Run()
 
 	sysver, err := strconv.Atoi(constant.VersionNum)
-
 	if err != nil {
 		sysver = 0
 		a.logger.Error("Falha ao converter a versão do sistema, utilizando 0", zap.Error(err))
 	}
 
-    autoupload, err := strconv.Atoi(constant.AutoUploadEnabled)
-
+	autoupload, err := strconv.Atoi(constant.AutoUploadEnabled)
 	if err != nil {
 		autoupload = 0
 		a.logger.Error("Falha ao obter o estado do envio automatico, utilizando 0", zap.Error(err))
 	}
 
-    pcData.AutoUploadStatus.Store(autoupload != 0)
+	pcData.AutoUploadStatus.Store(autoupload != 0)
 
 	pcData.Tags.Store(0)
 	pcData.UniqueTags.Store(0)
@@ -236,12 +216,12 @@ func (a *Ay) Process() {
 		pcData.Backups = backupDirs
 	}
 
-	deviceId, err := strconv.Atoi(constant.DeviceId)
+	deviceID, err := strconv.Atoi(constant.DeviceId)
 	if err != nil {
 		a.logger.Error("Erro ao converter o hostname para número", zap.Error(err))
 		pcData.SysCodeName = 500
 	} else {
-		pcData.SysCodeName = deviceId
+		pcData.SysCodeName = deviceID
 	}
 
 	pcData.SendPCDataReport(sender)
@@ -256,11 +236,10 @@ func (a *Ay) Process() {
 		}
 	}
 
-	//NUM_EQUIP, err := strconv.Atoi(os.Getenv("MYTEMPO_DEVID"))
+	// NUM_EQUIP, err := strconv.Atoi(os.Getenv("MYTEMPO_DEVID"))
 	// TODO: revert everything you did today again
 
 	go func() {
-
 		switcherTicker := time.NewTicker(400 * time.Millisecond)
 		sendTicker := time.NewTicker(120 * time.Millisecond)
 		state := stateTagReport
