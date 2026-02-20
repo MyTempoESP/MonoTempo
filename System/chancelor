@@ -4,7 +4,7 @@
 
 next10() {
   __now="$(date +%s)"
-  echo "$(((__now / 600 + 1) * 600 - __now))"
+  echo "$(((__now / 300 + 1) * 300 - __now))"
 }
 
 # mytempo directory
