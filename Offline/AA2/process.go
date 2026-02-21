@@ -220,7 +220,7 @@ func (a *Ay) Process() {
 		pcData.Backups = backupDirs
 	}
 
-	deviceID, err := strconv.Atoi(constant.DeviceId)
+	deviceID, err := strconv.Atoi(constant.DeviceID)
 	if err != nil {
 		a.logger.Error("Erro ao converter o hostname para número", zap.Error(err))
 		pcData.SysCodeName = 500

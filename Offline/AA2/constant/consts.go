@@ -1,3 +1,4 @@
+// Package constant
 package constant
 
 import (
@@ -8,10 +9,10 @@ import (
 var (
 	ProgramTimezone, _ = time.LoadLocation("Brazil/East")
 	Reader             = os.Getenv("READER_NAME")
-	DeviceId           = os.Getenv("MYTEMPO_DEVID")
+	DeviceID           = os.Getenv("MYTEMPO_DEVID")
 	ReaderPath         = os.Getenv("READER_PATH")
 	VersionNum         = os.Getenv("VERSION_NUMBER_AA2")
-    AutoUploadEnabled  = os.Getenv("AUTO_UPLOAD_ENABLED")
+	AutoUploadEnabled  = os.Getenv("AUTO_UPLOAD_ENABLED")
 	SerialPortOverride = os.Getenv("SERIAL_PORT_OVERRIDE")
 	ReaderType         = os.Getenv("MYTEMPO_READER_TYPE")
 )
