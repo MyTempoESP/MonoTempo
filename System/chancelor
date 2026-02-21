@@ -305,7 +305,7 @@ mytempo_delete_old_backups() {
   not_empty "${BACKUP_DIR:?}" || return
 
   for d in "$BACKUP_DIR"/*; do
-    created_at="@$(date -d "$(stat -c "%W" "$d")" +'%d%m')"
+    created_at="$(date -d "@$(stat -c "%W" "$d")" +'%d%m')"
     today="$(date +'%d%m')"
 
     [ "$created_at" = "$today" ] && continue
@@ -318,7 +318,7 @@ mytempo_delete_old_backups() {
   not_empty "${ENVIO_DIR:?}" || return
 
   for d in "$ENVIO_DIR"/*; do
-    created_at="@$(date -d "$(stat -c "%W" "$d")" +'%d%m')"
+    created_at="$(date -d "@$(stat -c "%W" "$d")" +'%d%m')"
     today="$(date +'%d%m')"
 
     [ "$created_at" = "$today" ] && continue
