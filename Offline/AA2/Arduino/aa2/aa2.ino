@@ -111,6 +111,31 @@ constexpr float R1 = 30000.0f;
 constexpr float R2 = 7500.0f;
 float g_batteryf = .0f;
 
+byte signal_outline[] = {
+	B11111,
+	B10001,
+	B10001,
+	B10001,
+	B10001,
+	B10001,
+	B10001,
+	B11111
+};
+
+byte signal_filled[] = {
+	B11111,
+	B11111,
+	B11111,
+	B11111,
+	B11111,
+	B11111,
+	B11111,
+	B11111
+};
+
+#define CHAR_OUTLINE 1
+#define CHAR_FILLED 2
+
 #define BUTTON_VANCE 6
 #define BUTTON_START 7
 
@@ -878,31 +903,6 @@ void handle_buttons(void)
 		break;
 	}
 }
-
-byte signal_outline[] = {
-	B11111,
-	B10001,
-	B10001,
-	B10001,
-	B10001,
-	B10001,
-	B10001,
-	B11111
-};
-
-byte signal_filled[] = {
-	B11111,
-	B11111,
-	B11111,
-	B11111,
-	B11111,
-	B11111,
-	B11111,
-	B11111
-};
-
-#define CHAR_OUTLINE 1
-#define CHAR_FILLED 2
 
 void setup(void)
 {
