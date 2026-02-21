@@ -68,7 +68,7 @@ class ImpinjReader(BaseReader):
 
         factory_args: dict[str, int | bool | list] = dict(
             duration=1,
-            report_every_n_tags=0,  # Keep this at 1 for "real-time" feel
+            report_every_n_tags=None,
             report_timeout_ms=50,  # Send a report at least every 100ms even if no new tags
             antennas=enabled_antennas,
             tx_power=91, # Ensure this is within your reader's max (e.g., 3000 for 30dBm)
