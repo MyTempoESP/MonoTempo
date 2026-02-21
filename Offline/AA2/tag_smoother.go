@@ -9,7 +9,7 @@ import (
 
 const (
 	// smoothWindow is the target duration over which a burst is spread.
-	smoothWindow = 1 * time.Second
+	smoothWindow = 2 * time.Second
 
 	// smoothMaxDelay is the age at which buffered tags are force-flushed.
 	smoothMaxDelay = 12 * time.Second
