@@ -310,6 +310,8 @@ mytempo_delete_old_backups() {
 
     [ "$created_at" = "$today" ] && continue
 
+    printf "[ BACKUP CLEANUP ] Deleting '%s'\n" "$d"
+
     rm -rf "$d"
   done
 
@@ -320,6 +322,8 @@ mytempo_delete_old_backups() {
     today="$(date +'%d%m')"
 
     [ "$created_at" = "$today" ] && continue
+
+    printf "[ ENVIO CLEANUP ] Deleting '%s'\n" "$d"
 
     rm -rf "$d"
   done
