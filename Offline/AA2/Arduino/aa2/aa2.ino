@@ -162,10 +162,10 @@ typedef struct PCTagData
 {
 	int32_t tags;
 	int unique_tags;
-	int32_t antenna1;
-	int32_t antenna2;
-	int32_t antenna3;
-	int32_t antenna4;
+	int antenna1;
+	int antenna2;
+	int antenna3;
+	int antenna4;
 } PCTagData;
 
 typedef struct PCData
@@ -411,22 +411,22 @@ bool parse_pc_data(SafeString &msg)
 
 		idx = msg.stoken(field, idx, delims, returnEmptyFields);
 
-		if (!getInt32Field(field, g_system_data.tag_data.antenna1))
+		if (!field.toInt(g_system_data.tag_data.antenna1))
 			return false;
 
 		idx = msg.stoken(field, idx, delims, returnEmptyFields);
 
-		if (!getInt32Field(field, g_system_data.tag_data.antenna2))
+		if (!field.toInt(g_system_data.tag_data.antenna2))
 			return false;
 
 		idx = msg.stoken(field, idx, delims, returnEmptyFields);
 
-		if (!getInt32Field(field, g_system_data.tag_data.antenna3))
+		if (!field.toInt(g_system_data.tag_data.antenna3))
 			return false;
 
 		idx = msg.stoken(field, idx, delims, returnEmptyFields);
 
-		if (!getInt32Field(field, g_system_data.tag_data.antenna4))
+		if (!field.toInt(g_system_data.tag_data.antenna4))
 			return false;
 	} // do PCData update
 	else if (field.equals("P"))
@@ -588,6 +588,16 @@ const char desc[SCREENS_COUNT][VIRT_SCR_COLS] = {
     "                   ",
     "                   "};
 
+// Write 3 signal bar characters into the virtual screen buffer at (col, row).
+// level: 0 = all outline, 1 = 1 filled + 2 outline, 2 = 2 filled + 1 outline, 3 = all filled
+void virt_scr_signal_bars(int col, int row, int level)
+{
+	for (int i = 0; i < 3; i++)
+	{
+		g_virt_scr[row][col + i] = (i < level) ? CHAR_FILLED : CHAR_OUTLINE;
+	}
+}
+
 void screen_build(void)
 {
 	unsigned int l0 = 0, l1 = 0, l2 = 0;
@@ -601,11 +611,13 @@ void screen_build(void)
 				      g_system_data.tag_data.unique_tags);
 		break;
 	case ANTNNA_SCREEN:
-		l1 = virt_scr_sprintf(0, 1, "A1: %" PRId32 " A2: %" PRId32,
-				      g_system_data.tag_data.antenna1, g_system_data.tag_data.antenna2);
+		l1 = snprintf(g_virt_scr[1], VIRT_SCR_COLS, "A1:    A2:   ");
+		virt_scr_signal_bars(3, 1, g_system_data.tag_data.antenna1);
+		virt_scr_signal_bars(10, 1, g_system_data.tag_data.antenna2);
 
-		l2 = virt_scr_sprintf(0, 2, "A3: %" PRId32 " A4: %" PRId32,
-				      g_system_data.tag_data.antenna3, g_system_data.tag_data.antenna4);
+		l2 = snprintf(g_virt_scr[2], VIRT_SCR_COLS, "A3:    A4:   ");
+		virt_scr_signal_bars(3, 2, g_system_data.tag_data.antenna3);
+		virt_scr_signal_bars(10, 2, g_system_data.tag_data.antenna4);
 		break;
 	case NETWRK_SCREEN:
 		l1 = virt_scr_sprintf(0, 1, "Leitor     : %2s", g_system_data.rfid_status ? "OK" : "X");
@@ -867,9 +879,37 @@ void handle_buttons(void)
 	}
 }
 
+byte signal_outline[] = {
+	B11111,
+	B10001,
+	B10001,
+	B10001,
+	B10001,
+	B10001,
+	B10001,
+	B11111
+};
+
+byte signal_filled[] = {
+	B11111,
+	B11111,
+	B11111,
+	B11111,
+	B11111,
+	B11111,
+	B11111,
+	B11111
+};
+
+#define CHAR_OUTLINE 1
+#define CHAR_FILLED 2
+
 void setup(void)
 {
 	screen_init();
+
+	lcd.createChar(CHAR_OUTLINE, signal_outline);
+	lcd.createChar(CHAR_FILLED, signal_filled);
 
 	Serial.begin(115200);
 	while (!Serial)

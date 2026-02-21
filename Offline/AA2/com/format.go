@@ -18,7 +18,7 @@ type PCData struct {
 	UsbStatus           atomic.Bool
 	AutoUploadStatus    atomic.Bool
 	PermanentUniqueTags atomic.Int32
-	Antennas            [4]atomic.Int64
+	Antennas            [4]AntennaSignal
 
 	// constants
 	SysVersion  int
@@ -89,8 +89,8 @@ func (pd *PCData) formatAntennaReport() string {
 	currentEpoch := epoch()
 
 	f := fmt.Sprintf("MYTMP;%d;%d;A;%d;%d;%d;%d;%d",
-		pd.Tags.Load(), pd.UniqueTags.Load(), pd.Antennas[0].Load(),
-		pd.Antennas[1].Load(), pd.Antennas[2].Load(), pd.Antennas[3].Load(), currentEpoch)
+		pd.Tags.Load(), pd.UniqueTags.Load(), pd.Antennas[0].Level(),
+		pd.Antennas[1].Level(), pd.Antennas[2].Level(), pd.Antennas[3].Level(), currentEpoch)
 
 	return withChecksum(f)
 }
