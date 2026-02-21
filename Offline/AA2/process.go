@@ -1,18 +1,17 @@
 package main
 
 import (
-	"os"
-	"strconv"
-	"strings"
-	"sync/atomic"
-	"time"
-
 	"aa2/com"
 	"aa2/constant"
 	"aa2/intSet"
 	"aa2/logparse"
 	"aa2/pinger"
 	"aa2/usb"
+	"os"
+	"strconv"
+	"strings"
+	"sync/atomic"
+	"time"
 
 	"go.uber.org/zap"
 )
@@ -118,7 +117,7 @@ const (
 )
 
 var (
-	states   = [...]int{0, 0, 0, 1, 1, 1, 1, 2}
+	states   = [...]int{0, 0, 0, 1, 1, 2, 2}
 	maxState = len(states)
 )
 
