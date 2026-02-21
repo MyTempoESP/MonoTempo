@@ -1,17 +1,18 @@
 package main
 
 import (
+	"os"
+	"strconv"
+	"strings"
+	"sync/atomic"
+	"time"
+
 	"aa2/com"
 	"aa2/constant"
 	"aa2/intSet"
 	"aa2/logparse"
 	"aa2/pinger"
 	"aa2/usb"
-	"os"
-	"strconv"
-	"strings"
-	"sync/atomic"
-	"time"
 
 	"go.uber.org/zap"
 )
@@ -116,9 +117,13 @@ const (
 	statePCDataReport
 )
 
-// function for the state transition, it goes: 0, 0, 0, 1, 1, 2, 2 ...
+var (
+	states   = [...]int{0, 0, 0, 1, 1, 1, 1, 2}
+	maxState = len(states)
+)
+
 func transitionStep(c int) int {
-	return (c % 6) / 2
+	return states[c%maxState]
 }
 
 func (a *Ay) Process() {

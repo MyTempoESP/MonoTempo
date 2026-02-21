@@ -1,3 +1,4 @@
+// Package com
 package com
 
 import (
@@ -7,8 +8,8 @@ import (
 
 const (
 	signalWindowDuration = 10 * time.Second
-	signalThresholdLow   = 1.0 // tags/sec
-	signalThresholdHigh  = 5.0 // tags/sec
+	signalThresholdLow   = 10.0 // tags/sec
+	signalThresholdHigh  = 15.0 // tags/sec
 )
 
 type AntennaSignal struct {
