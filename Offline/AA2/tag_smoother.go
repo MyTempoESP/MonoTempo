@@ -12,7 +12,7 @@ const (
 	smoothWindow = 1 * time.Second
 
 	// smoothMaxDelay is the age at which buffered tags are force-flushed.
-	smoothMaxDelay = 2 * time.Second
+	smoothMaxDelay = 12 * time.Second
 
 	// smoothTickInterval is the drain goroutine's wake interval.
 	smoothTickInterval = 10 * time.Millisecond

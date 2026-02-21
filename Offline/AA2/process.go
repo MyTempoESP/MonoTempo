@@ -142,8 +142,17 @@ func (a *Ay) Process() {
 
 	tagsStartAt := os.Getenv("TAG_COUNT_START_AT")
 
+	deviceID, err := strconv.Atoi(constant.DeviceID)
+
+	if err != nil {
+		a.logger.Error("Erro ao converter o hostname para número", zap.Error(err))
+		pcData.SysCodeName = 500
+	} else {
+		pcData.SysCodeName = deviceID
+	}
+
 	var smoother *TagSmoother
-	if constant.ReaderType == "impinj" {
+	if deviceID >= 700 {
 		smoother = newTagSmoother(&pcData.Tags, &pcData.UniqueTags, &pcData.PermanentUniqueTags, &tagSet, &permanentTagSet)
 	}
 
@@ -223,14 +232,6 @@ func (a *Ay) Process() {
 		pcData.Backups = 0
 	} else {
 		pcData.Backups = backupDirs
-	}
-
-	deviceID, err := strconv.Atoi(constant.DeviceID)
-	if err != nil {
-		a.logger.Error("Erro ao converter o hostname para número", zap.Error(err))
-		pcData.SysCodeName = 500
-	} else {
-		pcData.SysCodeName = deviceID
 	}
 
 	pcData.SendPCDataReport(sender)
