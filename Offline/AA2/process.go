@@ -53,7 +53,7 @@ func populateTagSet(tagSet *intSet.IntSet, permanentSet *intSet.IntSet) {
 	}
 }
 
-func checkAction(actionString string, state *int, tagSet *intSet.IntSet, tags *atomic.Int64, antennas *[4]com.AntennaSignal) {
+func checkAction(actionString string, state *int, smoother *TagSmoother, tagSet *intSet.IntSet, permanentTagSet *intSet.IntSet, tags *atomic.Int64, antennas *[4]com.AntennaSignal) {
 	idx := strings.Index(actionString, "$")
 
 	if idx == -1 {
@@ -71,12 +71,16 @@ func checkAction(actionString string, state *int, tagSet *intSet.IntSet, tags *a
 
 	switch action {
 	case infoAction:
-		tagSet.Clear()
-		tags.Store(0)
-		antennas[0].Clear()
-		antennas[1].Clear()
-		antennas[2].Clear()
-		antennas[3].Clear()
+		if smoother != nil {
+			smoother.Clear()
+		} else {
+			tagSet.Clear()
+			permanentTagSet.Clear()
+			tags.Store(0)
+		}
+		for i := range antennas {
+			antennas[i].Clear()
+		}
 	case antennaAction:
 		*state = stateAntennaReport
 	case networkAction:
@@ -138,11 +142,14 @@ func (a *Ay) Process() {
 
 	tagsStartAt := os.Getenv("TAG_COUNT_START_AT")
 
+	var smoother *TagSmoother
+	if constant.ReaderType == "impinj" {
+		smoother = newTagSmoother(&pcData.Tags, &pcData.UniqueTags, &pcData.PermanentUniqueTags, &tagSet, &permanentTagSet)
+	}
+
 	go func() {
 		if tagsStartAt != "" {
-
 			tagsStartAt, err := strconv.Atoi(tagsStartAt)
-
 			if err == nil {
 				pcData.Tags.Store(int64(tagsStartAt))
 			}
@@ -151,20 +158,19 @@ func (a *Ay) Process() {
 		for t := range a.Tags {
 
 			if t.Antena == 0 {
-				/*
-					Antena 0 não exist
-				*/
-
 				continue
 			}
 
 			pcData.Antennas[(t.Antena-1)%4].Record()
-
-			pcData.Tags.Add(1)
 			tagsUSB.Add(1)
 
-			tagSet.Insert(t.Epc)
-			permanentTagSet.Insert(t.Epc)
+			if smoother != nil {
+				smoother.Push(t.Epc)
+			} else {
+				pcData.Tags.Add(1)
+				tagSet.Insert(t.Epc)
+				permanentTagSet.Insert(t.Epc)
+			}
 		}
 	}()
 
@@ -177,8 +183,7 @@ func (a *Ay) Process() {
 		return
 	}
 
-	// I AM DUMB AS FUCK
-	// defer sender.Close()
+	// sender is intentionally never closed; it must outlive the process.
 
 	device := usb.Device{}
 	device.Name = "/dev/sdb"
@@ -253,9 +258,10 @@ func (a *Ay) Process() {
 
 		for range sendTicker.C {
 
-			pcData.UniqueTags.Store(int32(tagSet.Count()))
-
-			pcData.PermanentUniqueTags.Store(int32(permanentTagSet.Count()))
+			if smoother == nil {
+				pcData.UniqueTags.Store(int32(tagSet.Count()))
+				pcData.PermanentUniqueTags.Store(int32(permanentTagSet.Count()))
+			}
 
 			usbOk, _ := device.Check()
 			pcData.UsbStatus.Store(usbOk)
@@ -276,12 +282,12 @@ func (a *Ay) Process() {
 			actionString, hasAction := sender.Recv()
 
 			if hasAction {
-				checkAction(actionString, &state, &tagSet, &pcData.Tags, &pcData.Antennas)
+				checkAction(actionString, &state, smoother, &tagSet, &permanentTagSet, &pcData.Tags, &pcData.Antennas)
 			}
 
 			select {
 			case <-switcherTicker.C:
-				c += 1 // step
+				c++
 				state = transitionStep(c)
 			default:
 			}
