@@ -107,7 +107,7 @@ func (s *TagSmoother) drain() {
 
 	now := time.Now()
 
-	const ticksPerWindow = int(smoothWindow / smoothTickInterval) // 100
+	ticksPerWindow := int(smoothWindow / smoothTickInterval)
 
 	// Ceiling division: always release at least 1 per tick.
 	release := (n + ticksPerWindow - 1) / ticksPerWindow
