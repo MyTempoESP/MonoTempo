@@ -300,32 +300,34 @@ mytempo_clean() {
   rm "$DATABASE_DIR"/TAGS
 }
 
+made_today() {
+  today="$(date +'%d%m')"
+  created_at="$(date -d "@$(stat -c "%W" "$d")" +'%d%m')"
+  [ "$created_at" = "$today" ]
+}
+
 mytempo_delete_old_backups() {
 
   not_empty "${BACKUP_DIR:?}" || return
 
   for d in "$BACKUP_DIR"/*; do
-    created_at="$(date -d "@$(stat -c "%W" "$d")" +'%d%m')"
-    today="$(date +'%d%m')"
-
-    [ "$created_at" = "$today" ] && continue
-
+    made_today "$d" && continue
     printf "[ BACKUP CLEANUP ] Deleting '%s'\n" "$d"
-
     rm -rf "$d"
   done
 
   not_empty "${ENVIO_DIR:?}" || return
 
   for d in "$ENVIO_DIR"/*; do
-    created_at="$(date -d "@$(stat -c "%W" "$d")" +'%d%m')"
-    today="$(date +'%d%m')"
-
-    [ "$created_at" = "$today" ] && continue
-
+    made_today "$d" && continue
     printf "[ ENVIO CLEANUP ] Deleting '%s'\n" "$d"
-
     rm -rf "$d"
+  done
+
+  for i in "$DATABASE_DIR"/N*.db; do
+    made_today "$i" && continue
+    printf "[ DB CLEANUP ] Deleting '%s'\n" "$i"
+    rm -f "$i"
   done
 }
 
@@ -375,6 +377,9 @@ echo "Chancelor, Version 1.2.0"
 
 trap 'mytempo_stop_auto_upload' EXIT INT TERM
 
+echo "Deleting old files"
+mytempo_delete_old_backups
+
 echo "Backing up leftover data (if any)"
 test -e "$DATABASE_DIR"/N0.db &&
   mytempo_backup_to backup
@@ -390,8 +395,6 @@ echo '{"level":"info","msg":"No data"}' >"$LOG_DIR"/pc.log
 while true; do
   rm "$DATABASE_DIR"/*-journal
   rm "$DATABASE_DIR"/equipamento.db
-
-  mytempo_delete_old_backups
 
   # set initial value of tag count
   TAG_COUNT_START_AT=$(mytempo_count_tags)
