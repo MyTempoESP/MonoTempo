@@ -41,9 +41,11 @@ type smoothEntry struct {
 }
 
 type smoother struct {
-	mu        sync.Mutex
-	pending   []smoothEntry
-	dripCarry float64 // fractional drip accumulator across ticks
+	mu          sync.Mutex
+	pending     []smoothEntry
+	dripRate    float64 // tags/tick — snapshotted on each new arrival burst
+	dripCarry   float64 // fractional accumulator across ticks
+	lastDrained int     // pending count after previous drain (detects new arrivals)
 
 	// counters
 	totalTags  atomic.Int64
@@ -78,6 +80,9 @@ func (s *smoother) drain() (pending, released int) {
 	s.mu.Lock()
 	n := len(s.pending)
 	if n == 0 {
+		s.dripRate = 0
+		s.dripCarry = 0
+		s.lastDrained = 0
 		s.lastReleased = 0
 		s.lastArrived = 0
 		s.mu.Unlock()
@@ -85,10 +90,14 @@ func (s *smoother) drain() (pending, released int) {
 	}
 
 	now := time.Now()
-	ticksPerWindow := int(smoothWindow / smoothTickInterval)
-	ticksPerWindow = max(1, ticksPerWindow)
+	ticksPerWindow := max(1, int(smoothWindow/smoothTickInterval))
 
-	s.dripCarry += float64(n) / float64(ticksPerWindow)
+	// New tags arrived since last drain — re-snapshot the rate.
+	if n > s.lastDrained {
+		s.dripRate = float64(n) / float64(ticksPerWindow)
+	}
+
+	s.dripCarry += s.dripRate
 	release := int(s.dripCarry)
 	s.dripCarry -= float64(release)
 
@@ -99,6 +108,7 @@ func (s *smoother) drain() (pending, released int) {
 	}
 	if forced > release {
 		release = forced
+		s.dripRate = 0
 		s.dripCarry = 0 // reset carry after a force-flush
 	}
 	if release > n {
@@ -108,6 +118,7 @@ func (s *smoother) drain() (pending, released int) {
 	batch := make([]smoothEntry, release)
 	copy(batch, s.pending[:release])
 	s.pending = s.pending[release:]
+	s.lastDrained = n - release
 	arrived := s.lastArrived
 	s.lastArrived = 0
 	s.mu.Unlock()

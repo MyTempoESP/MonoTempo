@@ -31,9 +31,11 @@ type smoothEntry struct {
 // Antenna recording is NOT handled here; callers must call
 // pcData.Antennas[...].Record() directly.
 type TagSmoother struct {
-	mu        sync.Mutex
-	pending   []smoothEntry
-	dripCarry float64 // fractional drip accumulator across ticks
+	mu          sync.Mutex
+	pending     []smoothEntry
+	dripRate    float64 // tags/tick — snapshotted on each new arrival burst
+	dripCarry   float64 // fractional accumulator across ticks
+	lastDrained int     // pending count after previous drain (detects new arrivals)
 
 	pcTags            *atomic.Int64
 	pcUniqueTags      *atomic.Int32
@@ -74,7 +76,9 @@ func (s *TagSmoother) Push(epc int) {
 func (s *TagSmoother) Clear() {
 	s.mu.Lock()
 	s.pending = s.pending[:0]
+	s.dripRate = 0
 	s.dripCarry = 0
+	s.lastDrained = 0
 	s.pcTags.Store(0)
 	s.pcUniqueTags.Store(0)
 	s.pcPermanentUnique.Store(0)
@@ -94,15 +98,19 @@ func (s *TagSmoother) run() {
 
 // drain releases the appropriate number of buffered entries per tick.
 //
-// Drip rate: a fractional accumulator advances by N/ticksPerWindow each tick,
-// where ticksPerWindow = smoothWindow / smoothTickInterval = 40.
-// This spreads N tags evenly over the full window regardless of how small N is.
+// Drip rate: snapshotted once when new tags arrive (n > lastDrained) as
+// N/ticksPerWindow and held constant until the next arrival burst.  This
+// gives a perfectly uniform drip — the old approach recomputed the rate from
+// the shrinking buffer each tick, which caused the rate to decay and stutter.
 //
 // Any entry older than smoothMaxDelay is released unconditionally.
 func (s *TagSmoother) drain() {
 	s.mu.Lock()
 	n := len(s.pending)
 	if n == 0 {
+		s.dripRate = 0
+		s.dripCarry = 0
+		s.lastDrained = 0
 		s.mu.Unlock()
 		return
 	}
@@ -114,7 +122,12 @@ func (s *TagSmoother) drain() {
 		ticksPerWindow = 1
 	}
 
-	s.dripCarry += float64(n) / float64(ticksPerWindow)
+	// New tags arrived since the previous drain — re-snapshot the rate.
+	if n > s.lastDrained {
+		s.dripRate = float64(n) / float64(ticksPerWindow)
+	}
+
+	s.dripCarry += s.dripRate
 	release := int(s.dripCarry)
 	s.dripCarry -= float64(release)
 
@@ -126,6 +139,7 @@ func (s *TagSmoother) drain() {
 	}
 	if forced > release {
 		release = forced
+		s.dripRate = 0
 		s.dripCarry = 0 // reset carry after a force-flush
 	}
 	if release > n {
@@ -135,6 +149,7 @@ func (s *TagSmoother) drain() {
 	batch := make([]smoothEntry, release)
 	copy(batch, s.pending[:release])
 	s.pending = s.pending[release:]
+	s.lastDrained = n - release
 	s.mu.Unlock()
 
 	for _, e := range batch {
