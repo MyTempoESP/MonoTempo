@@ -92,9 +92,11 @@ func (s *smoother) drain() (pending, released int) {
 	now := time.Now()
 	ticksPerWindow := max(1, int(smoothWindow/smoothTickInterval))
 
-	// New tags arrived since last drain — re-snapshot the rate.
+	// New tags arrived since last drain — raise the rate if needed, never lower.
 	if n > s.lastDrained {
-		s.dripRate = float64(n) / float64(ticksPerWindow)
+		if r := float64(n) / float64(ticksPerWindow); r > s.dripRate {
+			s.dripRate = r
+		}
 	}
 
 	s.dripCarry += s.dripRate

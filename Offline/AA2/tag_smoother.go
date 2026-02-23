@@ -122,9 +122,13 @@ func (s *TagSmoother) drain() {
 		ticksPerWindow = 1
 	}
 
-	// New tags arrived since the previous drain — re-snapshot the rate.
+	// New tags arrived since the previous drain — raise the rate if needed,
+	// but never lower it. Lowering on each trickle arrival is what caused the
+	// drain to stall: rate decays → burst takes 4-5× longer than smoothWindow.
 	if n > s.lastDrained {
-		s.dripRate = float64(n) / float64(ticksPerWindow)
+		if r := float64(n) / float64(ticksPerWindow); r > s.dripRate {
+			s.dripRate = r
+		}
 	}
 
 	s.dripCarry += s.dripRate
