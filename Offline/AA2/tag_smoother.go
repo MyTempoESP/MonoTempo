@@ -15,7 +15,7 @@ const (
 	smoothMaxDelay = 12 * time.Second
 
 	// smoothTickInterval is the drain goroutine's wake interval.
-	smoothTickInterval = 10 * time.Millisecond
+	smoothTickInterval = 50 * time.Millisecond
 )
 
 // smoothEntry is one buffered tag waiting to be committed to display counters.
@@ -31,8 +31,9 @@ type smoothEntry struct {
 // Antenna recording is NOT handled here; callers must call
 // pcData.Antennas[...].Record() directly.
 type TagSmoother struct {
-	mu      sync.Mutex
-	pending []smoothEntry
+	mu        sync.Mutex
+	pending   []smoothEntry
+	dripCarry float64 // fractional drip accumulator across ticks
 
 	pcTags            *atomic.Int64
 	pcUniqueTags      *atomic.Int32
@@ -73,6 +74,7 @@ func (s *TagSmoother) Push(epc int) {
 func (s *TagSmoother) Clear() {
 	s.mu.Lock()
 	s.pending = s.pending[:0]
+	s.dripCarry = 0
 	s.pcTags.Store(0)
 	s.pcUniqueTags.Store(0)
 	s.pcPermanentUnique.Store(0)
@@ -92,9 +94,9 @@ func (s *TagSmoother) run() {
 
 // drain releases the appropriate number of buffered entries per tick.
 //
-// Drip rate: ceil(N / ticksPerWindow) entries per tick, where
-// ticksPerWindow = smoothWindow / smoothTickInterval = 100.
-// This spreads N tags over ~1 second.
+// Drip rate: a fractional accumulator advances by N/ticksPerWindow each tick,
+// where ticksPerWindow = smoothWindow / smoothTickInterval = 40.
+// This spreads N tags evenly over the full window regardless of how small N is.
 //
 // Any entry older than smoothMaxDelay is released unconditionally.
 func (s *TagSmoother) drain() {
@@ -108,9 +110,13 @@ func (s *TagSmoother) drain() {
 	now := time.Now()
 
 	ticksPerWindow := int(smoothWindow / smoothTickInterval)
+	if ticksPerWindow < 1 {
+		ticksPerWindow = 1
+	}
 
-	// Ceiling division: always release at least 1 per tick.
-	release := (n + ticksPerWindow - 1) / ticksPerWindow
+	s.dripCarry += float64(n) / float64(ticksPerWindow)
+	release := int(s.dripCarry)
+	s.dripCarry -= float64(release)
 
 	// Force-flush entries that have exceeded the max delay.
 	deadline := now.Add(-smoothMaxDelay)
@@ -120,6 +126,7 @@ func (s *TagSmoother) drain() {
 	}
 	if forced > release {
 		release = forced
+		s.dripCarry = 0 // reset carry after a force-flush
 	}
 	if release > n {
 		release = n

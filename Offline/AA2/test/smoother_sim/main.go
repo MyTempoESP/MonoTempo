@@ -28,8 +28,8 @@ import (
 // ── tuneable constants (mirrors tag_smoother.go) ─────────────────────────────
 
 var (
-	smoothWindow      = 2 * time.Second
-	smoothMaxDelay    = 12 * time.Second
+	smoothWindow       = 2 * time.Second
+	smoothMaxDelay     = 12 * time.Second
 	smoothTickInterval = 10 * time.Millisecond
 )
 
@@ -41,15 +41,16 @@ type smoothEntry struct {
 }
 
 type smoother struct {
-	mu       sync.Mutex
-	pending  []smoothEntry
+	mu        sync.Mutex
+	pending   []smoothEntry
+	dripCarry float64 // fractional drip accumulator across ticks
 
 	// counters
-	totalTags   atomic.Int64
-	uniqueTags  atomic.Int64
+	totalTags  atomic.Int64
+	uniqueTags atomic.Int64
 
 	// internal unique tracking
-	seen map[int]struct{}
+	seen   map[int]struct{}
 	seenMu sync.Mutex
 
 	// per-tick stats for printing
@@ -85,11 +86,11 @@ func (s *smoother) drain() (pending, released int) {
 
 	now := time.Now()
 	ticksPerWindow := int(smoothWindow / smoothTickInterval)
-	if ticksPerWindow < 1 {
-		ticksPerWindow = 1
-	}
+	ticksPerWindow = max(1, ticksPerWindow)
 
-	release := (n + ticksPerWindow - 1) / ticksPerWindow
+	s.dripCarry += float64(n) / float64(ticksPerWindow)
+	release := int(s.dripCarry)
+	s.dripCarry -= float64(release)
 
 	deadline := now.Add(-smoothMaxDelay)
 	forced := 0
@@ -98,6 +99,7 @@ func (s *smoother) drain() (pending, released int) {
 	}
 	if forced > release {
 		release = forced
+		s.dripCarry = 0 // reset carry after a force-flush
 	}
 	if release > n {
 		release = n
@@ -170,10 +172,10 @@ var scenarios = map[string]scenario{
 	},
 
 	// infrequent individual tags — one every ~3 s; exercises force-flush path
-	"sparse": func(elapsed time.Duration, _ float64, _ *fracAcc) int {
+	"sparse": func(elapsed time.Duration, baserate float64, _ *fracAcc) int {
 		ms := elapsed.Milliseconds()
 		if ms > 0 && ms%3000 < int64(smoothTickInterval.Milliseconds()) {
-			return 1
+			return int(baserate)
 		}
 		return 0
 	},
@@ -191,17 +193,17 @@ var scenarios = map[string]scenario{
 
 func main() {
 	scenarioName := flag.String("scenario", "floating", "burst | steady | floating | sparse | mixed")
-	windowFlag   := flag.Duration("window", 2*time.Second, "smoothing spread window")
+	windowFlag := flag.Duration("window", 2*time.Second, "smoothing spread window")
 	maxDelayFlag := flag.Duration("max-delay", 12*time.Second, "max age before force-flush")
-	tickFlag     := flag.Duration("tick", 10*time.Millisecond, "drain interval")
-	rateFlag     := flag.Float64("rate", 10, "base tag arrival rate (tags/sec)")
+	tickFlag := flag.Duration("tick", 10*time.Millisecond, "drain interval")
+	rateFlag := flag.Float64("rate", 10, "base tag arrival rate (tags/sec)")
 	durationFlag := flag.Duration("duration", 15*time.Second, "total simulation time")
-	noZerosFlag  := flag.Bool("no-zeros", false, "suppress ticks where both arrived and released are 0")
+	noZerosFlag := flag.Bool("no-zeros", false, "suppress ticks where both arrived and released are 0")
 	flag.Parse()
 
 	// apply flags to package-level vars used by the smoother
-	smoothWindow       = *windowFlag
-	smoothMaxDelay     = *maxDelayFlag
+	smoothWindow = *windowFlag
+	smoothMaxDelay = *maxDelayFlag
 	smoothTickInterval = *tickFlag
 
 	arrivalFn, ok := scenarios[*scenarioName]
