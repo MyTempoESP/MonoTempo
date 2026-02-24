@@ -1,17 +1,18 @@
 package main
 
 import (
+	"os"
+	"strconv"
+	"strings"
+	"sync/atomic"
+	"time"
+
 	"aa2/com"
 	"aa2/constant"
 	"aa2/intSet"
 	"aa2/logparse"
 	"aa2/pinger"
 	"aa2/usb"
-	"os"
-	"strconv"
-	"strings"
-	"sync/atomic"
-	"time"
 
 	"go.uber.org/zap"
 )
@@ -173,13 +174,9 @@ func (a *Ay) Process() {
 			pcData.Antennas[(t.Antena-1)%4].Record()
 			tagsUSB.Add(1)
 
-			if smoother != nil {
-				smoother.Push(t.Epc)
-			} else {
-				pcData.Tags.Add(1)
-				tagSet.Insert(t.Epc)
-				permanentTagSet.Insert(t.Epc)
-			}
+			pcData.Tags.Add(1)
+			tagSet.Insert(t.Epc)
+			permanentTagSet.Insert(t.Epc)
 		}
 	}()
 
