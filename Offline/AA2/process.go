@@ -7,7 +7,6 @@ import (
 	"aa2/logparse"
 	"aa2/pinger"
 	"aa2/usb"
-	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -171,7 +170,7 @@ func (a *Ay) Process() {
 				continue
 			}
 
-			pcData.Antennas[(t.Antena-1)%4].Record()
+			go pcData.Antennas[(t.Antena-1)%4].Record()
 			tagsUSB.Add(1)
 
 			if smoother != nil {
@@ -267,8 +266,6 @@ func (a *Ay) Process() {
 
 			// usbOk, _ := device.Check()
 			// pcData.UsbStatus.Store(usbOk)
-
-			log.Printf("%d\n", state)
 
 			switch state {
 			case stateTagReport:
