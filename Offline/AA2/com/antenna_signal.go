@@ -8,8 +8,8 @@ import (
 
 const (
 	signalWindowDuration = 250 * time.Millisecond
-	signalThresholdLow   = 1.0 // tags/sec
-	signalThresholdHigh  = 1.0 // tags/sec
+	signalThresholdLow   = 0.2 // tags/sec
+	signalThresholdHigh  = 0.5 // tags/sec
 )
 
 type AntennaSignal struct {
