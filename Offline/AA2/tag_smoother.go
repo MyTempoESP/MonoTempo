@@ -8,7 +8,8 @@ import (
 )
 
 const (
-	// smoothWindow is the target duration over which a burst is spread.
+	// smoothWindow is the duration over which a batch of tags is linearly
+	// interpolated into the display counters.
 	smoothWindow = 2 * time.Second
 
 	// smoothMaxDelay is the age at which buffered tags are force-flushed.
@@ -24,18 +25,36 @@ type smoothEntry struct {
 	arrivedAt time.Time
 }
 
-// TagSmoother buffers incoming RFID tag events and releases them at a steady
-// drip rate into the caller-owned PCData counters and intSets, so that the
-// display counter increments smoothly instead of jumping in chunks.
+// TagSmoother buffers incoming RFID tag events and releases them via linear
+// interpolation into the caller-owned PCData counters and intSets, so that
+// the display counter increments smoothly instead of jumping in chunks.
+//
+// The smoother tracks how many entries have been "released" (committed to
+// display) as a floating-point lerp target.  Each tick it computes:
+//
+//	target = lerp(lerpFrom, lerpTo, elapsed/smoothWindow)
+//
+// and releases int(target)-released entries.  When new tags arrive while a
+// lerp is in progress the target is extended without restarting the clock,
+// so the rate increases but the curve stays linear.
 //
 // Antenna recording is NOT handled here; callers must call
 // pcData.Antennas[...].Record() directly.
 type TagSmoother struct {
-	mu          sync.Mutex
-	pending     []smoothEntry
-	dripRate    float64 // tags/tick — snapshotted on each new arrival burst
-	dripCarry   float64 // fractional accumulator across ticks
-	lastDrained int     // pending count after previous drain (detects new arrivals)
+	mu      sync.Mutex
+	pending []smoothEntry
+
+	// Linear interpolation state.
+	// released counts total entries committed since the last Clear.
+	// queued   counts total entries ever pushed since the last Clear.
+	// lerpFrom is the released count at the moment the current lerp started.
+	// lerpTo   is the target released count at lerpStart+smoothWindow.
+	// lerpStart is zero until the first entry is pushed.
+	released  int
+	queued    int
+	lerpFrom  float64
+	lerpTo    float64
+	lerpStart time.Time
 
 	pcTags            *atomic.Int64
 	pcUniqueTags      *atomic.Int32
@@ -69,16 +88,19 @@ func (s *TagSmoother) Push(epc int) {
 	e := smoothEntry{epc: epc, arrivedAt: time.Now()}
 	s.mu.Lock()
 	s.pending = append(s.pending, e)
+	s.queued++
 	s.mu.Unlock()
 }
 
-// Clear discards all buffered tags and resets counters. Called on infoAction.
+// Clear discards all buffered tags and resets all counters. Called on infoAction.
 func (s *TagSmoother) Clear() {
 	s.mu.Lock()
 	s.pending = s.pending[:0]
-	s.dripRate = 0
-	s.dripCarry = 0
-	s.lastDrained = 0
+	s.released = 0
+	s.queued = 0
+	s.lerpFrom = 0
+	s.lerpTo = 0
+	s.lerpStart = time.Time{}
 	s.pcTags.Store(0)
 	s.pcUniqueTags.Store(0)
 	s.pcPermanentUnique.Store(0)
@@ -96,64 +118,72 @@ func (s *TagSmoother) run() {
 	}
 }
 
-// drain releases the appropriate number of buffered entries per tick.
+// drain uses linear interpolation to decide how many buffered entries to
+// release this tick.
 //
-// Drip rate: snapshotted once when new tags arrive (n > lastDrained) as
-// N/ticksPerWindow and held constant until the next arrival burst.  This
-// gives a perfectly uniform drip — the old approach recomputed the rate from
-// the shrinking buffer each tick, which caused the rate to decay and stutter.
-//
-// Any entry older than smoothMaxDelay is released unconditionally.
+// Lerp lifecycle:
+//   - On the first arrival (or after the previous lerp completed), a new lerp
+//     starts: lerpFrom = released, lerpTo = queued, lerpStart = now.
+//   - While a lerp is active and new tags arrive, lerpTo is extended so the
+//     existing linear ramp covers the new arrivals without restarting the clock.
+//   - Entries older than smoothMaxDelay are force-flushed, after which the
+//     lerp is restarted from the new released position.
 func (s *TagSmoother) drain() {
 	s.mu.Lock()
-	n := len(s.pending)
-	if n == 0 {
-		s.dripRate = 0
-		s.dripCarry = 0
-		s.lastDrained = 0
+
+	if len(s.pending) == 0 {
 		s.mu.Unlock()
 		return
 	}
 
 	now := time.Now()
 
-	ticksPerWindow := int(smoothWindow / smoothTickInterval)
-	if ticksPerWindow < 1 {
-		ticksPerWindow = 1
-	}
-
-	// New tags arrived since the previous drain — raise the rate if needed,
-	// but never lower it. Lowering on each trickle arrival is what caused the
-	// drain to stall: rate decays → burst takes 4-5× longer than smoothWindow.
-	if n > s.lastDrained {
-		if r := float64(n) / float64(ticksPerWindow); r > s.dripRate {
-			s.dripRate = r
+	// Detect new arrivals: queued grew beyond our current lerp target.
+	if s.queued > int(s.lerpTo) {
+		elapsed := now.Sub(s.lerpStart)
+		if s.lerpStart.IsZero() || elapsed >= smoothWindow {
+			// No active lerp — start one from the current position.
+			s.lerpFrom = float64(s.released)
+			s.lerpStart = now
 		}
+		// Extend the target to include all newly queued entries.
+		s.lerpTo = float64(s.queued)
 	}
 
-	s.dripCarry += s.dripRate
-	release := int(s.dripCarry)
-	s.dripCarry -= float64(release)
+	// Linear interpolation: t ∈ [0, 1] over smoothWindow.
+	t := float64(now.Sub(s.lerpStart)) / float64(smoothWindow)
+	if t > 1.0 {
+		t = 1.0
+	}
+	lerpTarget := s.lerpFrom + t*(s.lerpTo-s.lerpFrom)
+	toRelease := int(lerpTarget) - s.released
 
-	// Force-flush entries that have exceeded the max delay.
+	// Force-flush any entries that have waited longer than smoothMaxDelay.
 	deadline := now.Add(-smoothMaxDelay)
 	forced := 0
-	for forced < n && s.pending[forced].arrivedAt.Before(deadline) {
+	for forced < len(s.pending) && s.pending[forced].arrivedAt.Before(deadline) {
 		forced++
 	}
-	if forced > release {
-		release = forced
-		s.dripRate = 0
-		s.dripCarry = 0 // reset carry after a force-flush
-	}
-	if release > n {
-		release = n
+	if forced > toRelease {
+		toRelease = forced
+		// Restart the lerp from the post-flush position.
+		s.lerpFrom = float64(s.released + forced)
+		s.lerpTo = float64(s.queued)
+		s.lerpStart = now
 	}
 
-	batch := make([]smoothEntry, release)
-	copy(batch, s.pending[:release])
-	s.pending = s.pending[release:]
-	s.lastDrained = n - release
+	if toRelease <= 0 {
+		s.mu.Unlock()
+		return
+	}
+	if toRelease > len(s.pending) {
+		toRelease = len(s.pending)
+	}
+
+	batch := make([]smoothEntry, toRelease)
+	copy(batch, s.pending[:toRelease])
+	s.pending = s.pending[toRelease:]
+	s.released += toRelease
 	s.mu.Unlock()
 
 	for _, e := range batch {

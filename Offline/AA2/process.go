@@ -170,11 +170,11 @@ func (a *Ay) Process() {
 				continue
 			}
 
-			go pcData.Antennas[(t.Antena-1)%4].Record()
+			pcData.Antennas[(t.Antena-1)%4].Record()
 			tagsUSB.Add(1)
 
 			if smoother != nil {
-				go smoother.Push(t.Epc)
+				smoother.Push(t.Epc)
 			} else {
 				pcData.Tags.Add(1)
 				tagSet.Insert(t.Epc)
