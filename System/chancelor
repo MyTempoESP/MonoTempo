@@ -179,12 +179,13 @@ mytempo_auto_upload_once() {
 
 mytempo_start_auto_upload() {
 
-  mytempo_release_upload_lock
-
   if [ "$AUTO_UPLOAD_ENABLED" != 1 ]; then
     echo "[AUTO-UPLOAD] Auto-upload is disabled, skipping"
     return 0
   fi
+
+  # clean up a possibly broken status
+  mytempo_stop_auto_upload
 
   (
     NEXT_AUTO_UPLOAD="$(calculate_next_upload_date)"
@@ -393,6 +394,9 @@ export VERSION_NUMBER_AA2
 
 # clean up logs
 echo '{"level":"info","msg":"No data"}' >"$LOG_DIR"/pc.log
+
+# clean up a possibly broken status
+mytempo_stop_auto_upload
 
 while true; do
   rm "$DATABASE_DIR"/*-journal
