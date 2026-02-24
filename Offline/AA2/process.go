@@ -174,7 +174,7 @@ func (a *Ay) Process() {
 			tagsUSB.Add(1)
 
 			if smoother != nil {
-				smoother.Push(t.Epc)
+				go smoother.Push(t.Epc)
 			} else {
 				pcData.Tags.Add(1)
 				tagSet.Insert(t.Epc)
