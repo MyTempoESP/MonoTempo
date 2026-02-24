@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	signalWindowDuration = 100 * time.Millisecond
+	signalWindowDuration = 250 * time.Millisecond
 	signalThresholdLow   = 1.0 // tags/sec
 	signalThresholdHigh  = 1.0 // tags/sec
 )
