@@ -1,18 +1,17 @@
 package main
 
 import (
-	"os"
-	"strconv"
-	"strings"
-	"sync/atomic"
-	"time"
-
 	"aa2/com"
 	"aa2/constant"
 	"aa2/intSet"
 	"aa2/logparse"
 	"aa2/pinger"
 	"aa2/usb"
+	"os"
+	"strconv"
+	"strings"
+	"sync/atomic"
+	"time"
 
 	"go.uber.org/zap"
 )
@@ -153,7 +152,7 @@ func (a *Ay) Process() {
 	}
 
 	var smoother *TagSmoother
-	if deviceID >= 700 {
+	if deviceID == 666 { // only the devil needs ts
 		smoother = newTagSmoother(&pcData.Tags, &pcData.UniqueTags, &pcData.PermanentUniqueTags, &tagSet, &permanentTagSet)
 	}
 
@@ -256,10 +255,8 @@ func (a *Ay) Process() {
 
 		for range sendTicker.C {
 
-			if smoother == nil {
-				pcData.UniqueTags.Store(int32(tagSet.Count()))
-				pcData.PermanentUniqueTags.Store(int32(permanentTagSet.Count()))
-			}
+			pcData.UniqueTags.Store(int32(tagSet.Count()))
+			pcData.PermanentUniqueTags.Store(int32(permanentTagSet.Count()))
 
 			// usbOk, _ := device.Check()
 			// pcData.UsbStatus.Store(usbOk)
