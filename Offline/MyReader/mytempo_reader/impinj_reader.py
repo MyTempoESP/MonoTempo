@@ -67,7 +67,7 @@ class ImpinjReader(BaseReader):
             modecap = 0
 
         factory_args: dict[str, int | bool | list] = dict(
-            duration=0.5,
+            duration=0.1,
             report_every_n_tags=None,
             report_timeout_ms=100,  # Send a report at least every 100ms even if no new tags
             antennas=enabled_antennas,
