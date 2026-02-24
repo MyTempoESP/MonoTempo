@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	signalWindowDuration = 1 * time.Second
-	signalThresholdLow   = 10.0 // tags/sec
-	signalThresholdHigh  = 13.0 // tags/sec
+	signalWindowDuration = 100 * time.Millisecond
+	signalThresholdLow   = 1.0 // tags/sec
+	signalThresholdHigh  = 1.0 // tags/sec
 )
 
 type AntennaSignal struct {
@@ -44,7 +44,7 @@ func (a *AntennaSignal) Level() int {
 		return 0
 	}
 
-	rate := float64(count) / signalWindowDuration.Seconds()
+	rate := float64(count) / float64(signalWindowDuration.Milliseconds())
 
 	if rate >= signalThresholdHigh {
 		return 3
