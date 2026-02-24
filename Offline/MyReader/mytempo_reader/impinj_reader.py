@@ -67,13 +67,13 @@ class ImpinjReader(BaseReader):
             modecap = 0
 
         factory_args: dict[str, int | bool | list] = dict(
-            duration=1,
+            duration=0.5,
             report_every_n_tags=None,
-            report_timeout_ms=50,  # Send a report at least every 100ms even if no new tags
+            report_timeout_ms=100,  # Send a report at least every 100ms even if no new tags
             antennas=enabled_antennas,
             tx_power=91, # Ensure this is within your reader's max (e.g., 3000 for 30dBm)
-            session=1, # Session 1 is often better for "continuous" scrolling than Session 2
-            tag_population=200,
+            session=0, # Session 1 is often better for "continuous" scrolling than Session 2
+            tag_population=8,
             start_inventory=True,
             reconnect=True,
             tari=0,
