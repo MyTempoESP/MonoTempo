@@ -230,6 +230,68 @@ PCData g_system_data;
 // whether or not the antenna reports are enabled
 bool g_does_antenna_reports = false;
 
+// antenna reporting mode configuration
+typedef enum AntennaReportingMode {
+  AMODE_SIGNAL_BARS,
+  AMODE_RAW_COUNT
+} AntennaReportingMode;
+
+AntennaReportingMode g_antenna_reporting_mode = ANTENNA_MODE_SIGNAL_BARS;
+
+// antenna signal bar reporting configuration
+typedef enum AntennaSignalStrength {
+  ASIG_NO,
+  ASIG_LOW,
+  ASIG_MID,
+  ASIG_HI
+} AntennaSignalStrength;
+
+int g_antenna_signal_window = 500;
+float g_antenna_signal_thresh_low = 0.5f; // 1/s
+float g_antenna_signal_thresh_med = 1.5f; // 3/s
+
+typedef struct AntennaSignal {
+  int32_t               last_read;
+  float                 tpw;      // tags per window
+  AntennaSignalStrength s;
+} AntennaSignal;
+
+AntennaSignal g_antennas_signal[4];
+
+// calculate_antenna_strength sets the strength for the given antenna number
+// based on the count of new reads.
+void calculate_antenna_strength(int32_t* readings, int n)
+{
+  int32_t c = readings[n];
+
+  g_antennas_signal[n].tpw =
+    (float)(c - g_antennas_signal[n].last_read) / g_antenna_signal_window;
+
+  g_antennas_signal[n].last_read = c;
+
+  float tpw = g_antennas_signal[n];
+
+  if (c == 0)
+  {
+    g_antennas_signal[n].s = ASIG_NO;
+    return;
+  }
+
+  if (tpw < g_antenna_signal_thresh_low)
+  {
+    g_antennas_signal[n].s = ASIG_LOW;
+    return;
+  }
+
+  if (tpw > g_antenna_signal_thresh_low)
+  {
+    g_antennas_signal[n].s = ASIG_MID;
+    return;
+  }
+ 
+  g_antennas_signal[n].s = ASIG_HI;
+}
+
 // whether or not the log reports are enabled
 bool g_does_log_reports = false;
 
@@ -547,6 +609,16 @@ const char fill_pattern[20] = "                   ";
 #define virt_scr_fill_from(n, y) \
 	(n < 20 && snprintf(g_virt_scr[y] + n, (VIRT_SCR_COLS - n), fill_pattern + n));
 
+// Write 3 signal bar characters into the virtual screen buffer at (col, row).
+// level: 0 = all outline, 1 = 1 filled + 2 outline, 2 = 2 filled + 1 outline, 3 = all filled
+void virt_scr_signal_bars(int col, int row, int level)
+{
+	for (int i = 0; i < 3; i++)
+	{
+		g_virt_scr[row][col + i] = (i < level) ? CHAR_FILLED : CHAR_OUTLINE;
+	}
+}
+
 /*
 | **Screen**              | **Content**                                      | **Description**                                                       | **Action (optional)**                                                                       |
 |-------------------------|--------------------------------------------------|-----------------------------------------------------------------------|---------------------------------------------------------------------------------------------|
@@ -626,11 +698,23 @@ void screen_build(void)
 				      g_system_data.tag_data.unique_tags);
 		break;
 	case ANTNNA_SCREEN:
-		l1 = virt_scr_sprintf(0, 1, "A1: %" PRId32 " A2: %" PRId32,
-				      g_system_data.tag_data.antenna1, g_system_data.tag_data.antenna2);
+    if (g_antenna_reporting_mode == AMODE_RAW_COUNT)
+    {
+      l1 = virt_scr_sprintf(0, 1, "A1: %" PRId32 " A2: %" PRId32,
+                g_system_data.tag_data.antenna1, g_system_data.tag_data.antenna2);
+      l2 = virt_scr_sprintf(0, 2, "A3: %" PRId32 " A4: %" PRId32,
+                g_system_data.tag_data.antenna3, g_system_data.tag_data.antenna4);
+    }
+    else
+    {
+      l1 = snprintf(g_virt_scr[1], VIRT_SCR_COLS, "A1:    A2:   ");
+      virt_scr_signal_bars(3, 1, (int)g_antennas_signal[0].s);
+      virt_scr_signal_bars(10, 1, (int)g_antennas_signal[1].s);
 
-		l2 = virt_scr_sprintf(0, 2, "A3: %" PRId32 " A4: %" PRId32,
-				      g_system_data.tag_data.antenna3, g_system_data.tag_data.antenna4);
+      l2 = snprintf(g_virt_scr[2], VIRT_SCR_COLS, "A3:    A4:   ");
+      virt_scr_signal_bars(3, 2, (int)g_antennas_signal[2].s);
+      virt_scr_signal_bars(10, 2, (int)g_antennas_signal[3].s);
+    }
 		break;
 	case NETWRK_SCREEN:
 		l1 = virt_scr_sprintf(0, 1, "Leitor     : %2s", g_system_data.rfid_status ? "OK" : "X");
@@ -900,6 +984,9 @@ void setup(void)
 	while (!Serial)
 		;
 
+  lcd.createChar(CHAR_OUTLINE, signal_outline);
+	lcd.createChar(CHAR_FILLED, signal_filled);
+
 	serial_reader.connect(Serial); // where SafeStringReader will read from
 	serial_writer.connect(Serial); // where BufferedOutput will write to
 
@@ -908,10 +995,19 @@ void setup(void)
 
 	screen_lock(WAITON_SCREEN);
 	screen_draw();
+
+  for (int n = 0; n < 4; n++)
+  {
+    g_antennas_signal[n].last_read = 0;
+    g_antennas_signal[n].s = ASIG_NO;
+    g_antennas_signal[n].tpw = 0;
+  }
 }
 
 unsigned long previous_millis = 0;
 unsigned long previous_millis_battery_check = 0;
+
+unsigned long previous_millis_antenna_signal_check = 0;
 
 void loop(void)
 {
@@ -930,6 +1026,25 @@ void loop(void)
 			tone(2, 1000, 200);
 		}
 	}
+
+  if (g_does_antenna_reports &&
+      g_antenna_reporting_mode == AMODE_SIGNAL_BARS &&
+      ms - previous_millis_antenna_signal_check >= g_antenna_signal_window)
+  {
+    previous_millis_antenna_signal_check = ms;
+
+    int32_t antenna_readings[4] = {
+      g_system_data.tag_data.antenna1,
+      g_system_data.tag_data.antenna2,
+      g_system_data.tag_data.antenna3,
+      g_system_data.tag_data.antenna4
+    };
+
+    for (int n = 0; n < 4; n++)
+    {
+      calculate_antenna_strength(antenna_readings, n);
+    }
+  }
 
 	if (ms - previous_millis >= 5)
 	{
