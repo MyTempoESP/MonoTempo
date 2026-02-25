@@ -53,7 +53,7 @@ func populateTagSet(tagSet *intSet.IntSet, permanentSet *intSet.IntSet) {
 	}
 }
 
-func checkAction(actionString string, state *int, tagSet *intSet.IntSet, tags *atomic.Int64, antennas *[4]com.AntennaSignal) {
+func checkAction(actionString string, state *int, tagSet *intSet.IntSet, tags *atomic.Int64, antennas *[4]atomic.Int64) {
 	idx := strings.Index(actionString, "$")
 
 	if idx == -1 {
@@ -73,10 +73,10 @@ func checkAction(actionString string, state *int, tagSet *intSet.IntSet, tags *a
 	case infoAction:
 		tagSet.Clear()
 		tags.Store(0)
-		antennas[0].Clear()
-		antennas[1].Clear()
-		antennas[2].Clear()
-		antennas[3].Clear()
+		antennas[0].Store(0)
+		antennas[1].Store(0)
+		antennas[2].Store(0)
+		antennas[3].Store(0)
 	case antennaAction:
 		*state = stateAntennaReport
 	case networkAction:
@@ -158,7 +158,7 @@ func (a *Ay) Process() {
 				continue
 			}
 
-			pcData.Antennas[(t.Antena-1)%4].Record()
+			pcData.Antennas[(t.Antena-1)%4].Add(1)
 
 			pcData.Tags.Add(1)
 			tagsUSB.Add(1)
