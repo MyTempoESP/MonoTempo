@@ -233,10 +233,11 @@ bool g_does_antenna_reports = false;
 // antenna reporting mode configuration
 typedef enum AntennaReportingMode {
   AMODE_SIGNAL_BARS,
-  AMODE_RAW_COUNT
+  AMODE_RAW_COUNT,
+  AMODE_TAG_RATE
 } AntennaReportingMode;
 
-AntennaReportingMode g_antenna_reporting_mode = ANTENNA_MODE_SIGNAL_BARS;
+AntennaReportingMode g_antenna_reporting_mode = AMODE_RAW_COUNT;
 
 // antenna signal bar reporting configuration
 typedef enum AntennaSignalStrength {
@@ -269,7 +270,7 @@ void calculate_antenna_strength(int32_t* readings, int n)
 
   g_antennas_signal[n].last_read = c;
 
-  float tpw = g_antennas_signal[n];
+  float tpw = g_antennas_signal[n].tpw;
 
   if (c == 0)
   {
@@ -705,7 +706,7 @@ void screen_build(void)
       l2 = virt_scr_sprintf(0, 2, "A3: %" PRId32 " A4: %" PRId32,
                 g_system_data.tag_data.antenna3, g_system_data.tag_data.antenna4);
     }
-    else
+    else if (g_antenna_reporting_mode == AMODE_SIGNAL_BARS)
     {
       l1 = snprintf(g_virt_scr[1], VIRT_SCR_COLS, "A1:    A2:   ");
       virt_scr_signal_bars(3, 1, (int)g_antennas_signal[0].s);
@@ -714,6 +715,13 @@ void screen_build(void)
       l2 = snprintf(g_virt_scr[2], VIRT_SCR_COLS, "A3:    A4:   ");
       virt_scr_signal_bars(3, 2, (int)g_antennas_signal[2].s);
       virt_scr_signal_bars(10, 2, (int)g_antennas_signal[3].s);
+    }
+    else
+    { // XXX: float->int conversion
+      l1 = virt_scr_sprintf(0, 1, "A1: %" PRId32 " A2: %" PRId32,
+                (int32_t)(g_antennas_signal[0].tpw), (int32_t)(g_antennas_signal[1].tpw));
+      l2 = virt_scr_sprintf(0, 2, "A3: %" PRId32 " A4: %" PRId32,
+                (int32_t)(g_antennas_signal[2].tpw), (int32_t)(g_antennas_signal[3].tpw));
     }
 		break;
 	case NETWRK_SCREEN:
@@ -1043,6 +1051,9 @@ void loop(void)
     for (int n = 0; n < 4; n++)
     {
       calculate_antenna_strength(antenna_readings, n);
+
+      if (g_antenna_reporting_mode == AMODE_TAG_RATE)
+        g_antennas_signal[n].tpw = g_antennas_signal[n].tpw * 100.0f;
     }
   }
 

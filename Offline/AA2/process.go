@@ -1,17 +1,18 @@
 package main
 
 import (
+	"os"
+	"strconv"
+	"strings"
+	"sync/atomic"
+	"time"
+
 	"aa2/com"
 	"aa2/constant"
 	"aa2/intSet"
 	"aa2/logparse"
 	"aa2/pinger"
 	"aa2/usb"
-	"os"
-	"strconv"
-	"strings"
-	"sync/atomic"
-	"time"
 
 	"go.uber.org/zap"
 )
@@ -244,7 +245,7 @@ func (a *Ay) Process() {
 	// TODO: revert everything you did today again
 
 	go func() {
-		switcherTicker := time.NewTicker(400 * time.Millisecond)
+		switcherTicker := time.NewTicker(200 * time.Millisecond)
 		sendTicker := time.NewTicker(120 * time.Millisecond)
 		state := stateTagReport
 
