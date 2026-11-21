@@ -46,8 +46,8 @@ into an **Offline** half that runs for the whole event without needing internet,
 and an **Online** half that runs on demand to sync with the MyTempo API.
 
 <p align="center">
-  <img src="docs/img/inside-unit.jpg" alt="Inside a portal: mini PC, RFID reader and power supply on wooden shelves" width="420">
-  <br><sub>Inside a unit: the fanless mini PC, the RFID reader below it and the power supply at the bottom, with the button wiring above.</sub>
+  <img src="docs/img/inside-unit.jpg" alt="Inside a 50x unit: LCD and buttons on the lid, Arduino Mega, mini PC, RFID reader and power supply on wooden shelves" width="420">
+  <br><sub>Inside a 50x unit: the LCD with the START and AVANÇAR (next) buttons on the lid, the Arduino Mega (lit red) with its buzzer, the fanless mini PC, the RFID reader and the power supply.</sub>
 </p>
 
 ```mermaid
