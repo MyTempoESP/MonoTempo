@@ -314,8 +314,8 @@ goroutine per file and streams each file's results as one upload batch.
 
 AA2 consumes the tag stream to keep live counters, and talks to an Arduino Mega
 (20x4 I2C LCD, *next* and *action* buttons) over serial at 115200 baud. This is the
-second design; the first one, where the Arduino ran a Forth interpreter, is kept in
-[archives](#aa2-retro-the-forth-screen).
+third design. The two earlier ones, where the Arduino ran a Forth interpreter, are
+kept in [archives](#archives).
 
 **Counters.** Total reads, unique tags since the last reset, and unique tags for
 the whole event. The event-wide set is seeded at boot from a `TAGS` file that
@@ -488,18 +488,26 @@ so staff can confirm at kit pickup that every bib's chip reads.
 
 ## Archives
 
+The screen went through three designs before reaching the protocol described in
+[Serial protocol](#serial-protocol). The first two ran Forth on the Arduino and are
+kept here, unchanged, as February 2025 snapshots from the MySQL era.
+
+```mermaid
+flowchart LR
+    A["AA2-retro<br/>PC sends Forth phrases<br/>to a nanoFORTH REPL"] --> B["AA2-main<br/>self-modifying Dis word,<br/>PC only calls S-1 … S-7"] --> C["Offline/AA2<br/>C++ sketch,<br/>checksummed data frames"]
+```
+
 ### AA2-retro: the Forth screen
 
 [archives/AA2-retro](archives/AA2-retro) is the first version of AA2 and the
-reference implementation for the screen. It is preserved unchanged from a February 2025 snapshot.
-It dates from the MySQL era, before the move to SQLite and the current serial protocol.
+reference implementation for the screen.
 
 Instead of firmware that knows what to draw, the Arduino ran
 [nanoFORTH](https://github.com/chochain/nanoFORTH), and the PC drove it as an
 interactive Forth REPL over serial through the
 [flick](https://github.com/MyTempoESP/flick) Go library.
 
-- **Self-modifying firmware.** The sketch ([sketch.ino](archives/AA2-retro/sketch.ino))
+- **Extensible at runtime.** The sketch ([sketch.ino](archives/AA2-retro/sketch.ino))
   only ships a handful of C primitives: draw, print label, print number, IP, time,
   line feed. It exposes them to Forth as `API` calls and boots by compiling the
   vocabulary in [forth/](archives/AA2-retro/forth) into its dictionary. The
@@ -536,11 +544,65 @@ sequenceDiagram
     G->>F: #58; newword … #59; (redefine at runtime)
 ```
 
-It was replaced by the checksummed protocol in [Serial protocol](#serial-protocol).
-The history doesn't record why, but the trade-off is visible in the code. Every
-button poll was a synchronous round trip through the interpreter, and nothing
-guarded against a corrupted line. The newer design moves drawing into the sketch
-and sends only checksummed data.
+The weak spot was the link. Every frame was a full Forth phrase, and every button
+poll was a synchronous round trip through the interpreter.
+
+### AA2-main: the self-modifying screen
+
+[archives/AA2-main](archives/AA2-main) continues AA2-retro. It moves the
+screen logic out of the Go strings and into a real Forth program on the device,
+[forth/aa2.fs](archives/AA2-main/forth/aa2.fs). The PC was meant to call one word
+per screen with raw values on the stack, for example `3 10 3 10 S-1` for the tags
+screen, instead of sending drawing phrases. The Go side in this snapshot still
+sends the AA2-retro phrases, so the new interface was only finished on the Forth side.
+
+**`Dis` rewrites its own body.** The display word `Dis` is compiled with holes in
+it: 16 bytes of `NOP` at the start for data, and two code buffers of placeholder call
+slots. A timer interrupt runs `Dis` periodically (`50 0 TMI Dis`), so whatever
+it contains is redrawn. The screen words `S-1` … `S-7` never draw anything. They
+patch `Dis`:
+
+- **Data is written as code.** nanoFORTH has no data segment inside a word, so values
+  are stored as instructions that push them. Small values become 1-byte literals, and
+  16-bit values become `LIT` (`$BF`) followed by the value, with 4-byte "BigNumbers"
+  for value + magnitude. When `Dis` runs, its first 16 bytes push the screen's
+  arguments onto the stack.
+- **Calls are patched in.** `program-calls!` writes `CALL` instructions
+  (`$C000 | address`) into the code slots, pointing at the drawing word each screen
+  needs (`Label`, `BigNum`, `Ip`, `Value`, `Ms` …). These then consume what the data
+  section pushed.
+- **Fixed parts stay fixed.** The device-name header, the connectivity footer and the
+  final `0 API` (draw) are compiled into `Dis` once and never touched.
+
+```mermaid
+flowchart LR
+    PC["PC sends<br/>3 10 3 10 S-1"] --> S1["S-1"]
+    S1 -- "data-Big! / data-C!<br/>LIT-encoded values" --> D
+    S1 -- "program-calls!<br/>CALL Label, CALL BigNum" --> C1
+    S1 -- "program-calls!" --> C2
+    subgraph Dis["Dis (word body, redrawn by timer interrupt)"]
+        direction LR
+        D["DATA<br/>16 bytes"] --> H["header<br/>PORTAL my501"] --> C1["CODE-1<br/>2 call slots"] --> C2["CODE-2<br/>2 call slots"] --> F["footer<br/>COMUNICANDO"] --> DR["0 API<br/>draw"]
+    end
+```
+
+To make this practical the snapshot also adds:
+
+- **A Forth "compiler".** nanoFORTH only keeps the first 3 characters of a name, so
+  `aa2.fs` is written with readable names and stack comments.
+  [unforth.vim](archives/AA2-main/forth/unforth.vim) strips the comments,
+  shortens the primitives (`SWAP` → `SWP` …) and renames every word to a unique
+  short name (`w0`, `v29` …). It emits [forth2cstr.h](archives/AA2-main/Arduino/aa2/forth2cstr.h)
+  as a C string that the sketch compiles into its dictionary at boot. Words meant to be
+  called from the PC end in `*` and must stay unique in their first 3 characters.
+- **A patched nanoFORTH.** The VM is vendored into [Arduino/aa2](archives/AA2-main/Arduino/aa2)
+  with two extra words: `NOP`, and `TAG`, which pushes its own address so `aa2.fs`
+  can find the slots to patch at compile time.
+- **A date screen.** A `$DA7E` sentinel tells the `Ip` primitive to print `DD/MM/YYYY`.
+
+This design was abandoned in turn. In March–April 2025 the Arduino was rewritten
+in plain C++ with SafeString, and the link became the checksummed data protocol
+used today.
 
 ## Repository layout
 
@@ -560,7 +622,9 @@ and sends only checksummed data.
 │   ├── Receba/                 # API download
 │   ├── Reenvio/                # time upload
 │   └── Validate/               # chip validation upload
-├── archives/AA2-retro/         # first AA2: Go + nanoFORTH Arduino screen
+├── archives/
+│   ├── AA2-retro/              # first AA2: Go driving a nanoFORTH REPL
+│   └── AA2-main/               # second AA2: self-modifying Forth screen
 ├── scripts/                    # NTP setup, DB inspection helpers
 └── docs/img/                   # README images
 ```
@@ -570,7 +634,7 @@ and sends only checksummed data.
 | Period | Milestone |
 | --- | --- |
 | Jul–Oct 2024 | Container layout, MyReader, Chafon extension, Receba and a MySQL/PHP storage backend |
-| Jan–Feb 2025 | AA2 screen service, first as a nanoFORTH REPL driven from Go ([AA2-retro](#aa2-retro-the-forth-screen)) |
+| Jan–Feb 2025 | AA2 screen service on nanoFORTH: first as a REPL driven from Go ([AA2-retro](#aa2-retro-the-forth-screen)), then a self-modifying screen word ([AA2-main](#aa2-main-the-self-modifying-screen)) |
 | Mar 2025 | Move from MySQL to sharded SQLite; Reenvio; chancelor reorganized |
 | Mar–Apr 2025 | Provost; Arduino rewrite with SafeString and on-screen actions |
 | Dec 2025 | Chip validation (Validate), configurable API URL and scheme |

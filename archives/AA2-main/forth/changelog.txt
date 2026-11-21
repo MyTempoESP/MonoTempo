@@ -1,0 +1,44 @@
+this only contains some important changes which i might regret later.
+
+02-17-2025 afternoon:
+        added changelog
+        removed external signatures from forth source code,
+        ... using screen functions instead. *
+
+        ( * )   - | \ Extern signatures in alphabetical order
+                - |
+                - | 1-CODE VALUE 1-C*        ( ; extern )
+                - | 2-CODE VALUE 2-C*        ( ; extern )
+                - | 
+                - | \ ___
+                - | : Atn* Antenna!          ; ( I8 I16 I8 I16 I8 I16 I8 I16 ; extern )
+                - | : ad!* aligned-data!     ; ( I16      idx align          ; extern )
+                - | : adB* aligned-data-Big! ; ( I8 I16   idx                ; extern )
+                - | : adC* aligned-data-C!   ; ( I8       idx align          ; extern )
+                - | : ci!* call-idx!         ; ( U16-addr idx U16-addr       ; extern )
+                - | : Dis* Dis               ; (                             ; extern )
+                - | 
+                - | ' Label   VALUE Lbl* ( ; extern )
+                - | ' Forward VALUE Fwd* ( ; extern )
+                - | ' BigNum  VALUE Big* ( ; extern )
+                - | ' Number  VALUE Num* ( ; extern )
+                - | ' Value   VALUE Val* ( ; extern )
+                - | ' Ip      VALUE IP-* ( ; extern )
+                - | ' Ms      VALUE MS-* ( ; extern )
+                - | ' antenna VALUE atn* ( ; extern )
+                 
+	changed alignment functions so they work backwards *
+  
+	( * )	- | : aligned-data!	( value idx align -- ; n-byte aligned 16-bit write to DATA buffer )
+		- | 	DATA calc-align		( value idx align )
+		- | 	16-bit-encode!		( value iaddr     ; encodes value to specified DATA buffer index )
+		- | ;
+		- | : aligned-data-C!	( value idx align -- ; n-byte aligned 8-bit write to DATA buffer )
+		- | 	DATA calc-align		( value idx align )
+		- | 		    C!		( value iaddr     ; encodes value to specified DATA buffer index )
+		- | ;
+		- | : data-Big!		( m v idx -- ; automatic 4-byte aligned BigNumber write to DATA buffer, according to the BigNumber type )
+		- | 	4			( value idx align ; this one has fixed alignment because 4 is the max size )
+		- | 	DATA calc-align		( value idx align ; each BigNumber has a 3-byte encoded value + a single-byte magnitude )
+		- | 		    F!		( value iaddr     ; writes a BigNumber to the specified DATA index )
+		- | ;   
