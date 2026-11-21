@@ -597,7 +597,8 @@ To make this practical the snapshot also adds:
   called from the PC end in `*` and must stay unique in their first 3 characters.
 - **A patched nanoFORTH.** The VM is vendored into [Arduino/aa2](archives/AA2-main/Arduino/aa2)
   with two extra words: `NOP`, and `TAG`, which pushes its own address so `aa2.fs`
-  can find the slots to patch at compile time.
+  can find the slots to patch at compile time. nanoFORTH is © 2021 chochain under the
+  MIT license; see [LICENSE.nanoFORTH](archives/AA2-main/Arduino/aa2/LICENSE.nanoFORTH).
 - **A date screen.** A `$DA7E` sentinel tells the `Ip` primitive to print `DD/MM/YYYY`.
 
 This design was abandoned in turn. In March–April 2025 the Arduino was rewritten
