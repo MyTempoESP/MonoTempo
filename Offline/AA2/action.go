@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-
 	"os/exec"
 )
 
@@ -18,9 +17,9 @@ import (
 
 - System          : START: Fetch and Install the latest version from github.
 
-- Upload          : START: Upload all tag data currently stored + pending.
+- AutoUp          : START: Toggle auto-upload mode.
 
-- Upload (Backup) : START: Upload all backups.
+- Upload          : START: Upload all backups.
 
 - #15 (Erase data): START: Erase all data from the device.
 
@@ -38,27 +37,27 @@ import (
 
 #define SYSTEM_SCREEN 5
 
-#define UPLOAD_SCREEN 6
+#define AUTOUP_SCREEN 7
 
-#define BACKUP_SCREEN 7
+#define UPLOAD_SCREEN 8
 
-#define DELETE_SCREEN 8
+#define DELETE_SCREEN 10
 
-#define SHTDWN_SCREEN 9
+#define SHTDWN_SCREEN 11
 */
 const (
-	INFO_ACTION = iota
-	ANTENNA_ACTION
-	NETWORK_ACTION
-	NETWORK_MGMT_ACTION
-	USBCFG_ACTION
-	DATETIME_ACTION
-	UPDATE_ACTION
-	UPLOAD_ACTION
-	UPLOAD_BACKUP_ACTION
-	ERASE_ACTION
-	SHUTDOWN_ACTION
-	VALIDATE_ACTION=-1//NOT IMPLEMENTED YET
+	infoAction = iota
+	antennaAction
+	networkAction
+	networkMgmtAction
+	usbcfgAction
+	datetimeAction
+	updateAction
+	autouploadAction
+	uploadAction
+	validateAction
+	eraseAction
+	shutdownAction
 )
 
 func CMD(s string) {
@@ -73,38 +72,15 @@ func AUX(s string) {
 	log.Println(err)
 }
 
-// Shuts down the PC. FIXME: Implement poweroff command in chancelor.
-func PCShutdown() { CMD("poweroff") }
-
-// Reboots the PC.
-func PCReboot() { CMD("reboot") }
-
-// Uploads normal tag data.
-func UploadData() { CMD("normal") }
-
-// Uploads backup tag data.
-func UploadBackup() { CMD("backup") }
-
-// Sends captured tag data to validation
-func SendValidation() { CMD("validate") }
-
-// Updates the equipment to the latest version.
-func PCUpdate() { CMD("update") }
-
-// Creates a USB report with device statistics.
-func CreateUSBReport() { CMD("stats") }
-
-// Resets all device data.
-func FullReset() { CMD("reset") }
-
-// Resets the Wi-Fi configuration.
-func ResetWifi() { AUX("reset") }
-
-// Refreshes the system state, used for fatal errors.
-func Refresh() { CMD("fatal") }
-
-// Resets the 4G LTE configuration.
-func Reset4g() { AUX("lte4g") }
-
-// Copies data to a USB device.
-func CopyToUSB() { CMD("save") }
+func PCShutdown()       { CMD("poweroff") }
+func PCReboot()         { CMD("reboot") }
+func ToggleAutoUpload() { CMD("auto_up") }
+func UploadData()       { CMD("normal") }
+func SendValidation()   { CMD("validate") }
+func PCUpdate()         { CMD("update") }
+func CreateUSBReport()  { CMD("stats") }
+func FullReset()        { CMD("reset") }
+func ResetWifi()        { AUX("reset") }
+func Refresh()          { CMD("fatal") }
+func Reset4g()          { AUX("lte4g") }
+func CopyToUSB()        { CMD("save") }

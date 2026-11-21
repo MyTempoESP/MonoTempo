@@ -17,9 +17,9 @@ func (envio *Envio) CreateBindings() (err error) {
 	bindings :=
 		[]rabbit.Binding{
 			rabbit.NewBinding(
-				ANTENNA_QUEUE,
-				ANTENNA_ROUTE,
-				ANTENNA_EXCHANGE,
+				antennaQueue,
+				antennaRoute,
+				antennaExchange,
 				true, /* durable */
 			),
 		}

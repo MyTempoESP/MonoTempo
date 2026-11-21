@@ -1,10 +1,10 @@
 package dbman
 
 const (
-	ATTACH = `ATTACH DATABASE '/var/monotempo-data/equipamento.db' AS equip_data;`
+	attach = `ATTACH DATABASE '/var/monotempo-data/equipamento.db' AS equip_data;`
 
 	// args: HORA_LARGADA
-	QUERY_ATLETAS = `
+	queryAtletas = `
 SELECT DISTINCT
 	athlete_num
 FROM

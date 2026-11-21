@@ -3,8 +3,8 @@ package com
 import (
 	"fmt"
 	"log"
-	"time"
 	"strings"
+	"time"
 
 	"go.bug.st/serial"
 	"go.uber.org/zap"
@@ -64,7 +64,7 @@ func NewSerialSender(baudRate int, portName string, logger *zap.Logger) (sender 
 // Returns:
 //   - err: An error if the port cannot be opened after retries.
 func (s *SerialSender) Open() (err error) {
-	var portName string = s.portName
+	portName := s.portName
 	var newPort serial.Port
 
 	backoff := time.Millisecond * 100 // Initial backoff duration
@@ -188,13 +188,13 @@ func GetFirstAvailablePortName() (port string, err error) {
 
 	log.Println("Available serial ports:", ports)
 
-	for _, portName := range(ports) {
+	for _, portName := range ports {
 		if strings.Contains(portName, "USB") || strings.Contains(portName, "ACM") {
 			port = portName
 			return
 		}
 	}
-	
+
 	err = fmt.Errorf("no valid serial ports found")
 
 	return

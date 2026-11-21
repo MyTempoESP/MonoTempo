@@ -10,13 +10,12 @@ import (
 	"encoding/json"
 
 	"github.com/MyTempoESP/Reenvio/atleta"
-	"github.com/MyTempoESP/Reenvio/narrator"
 	"go.uber.org/zap"
 )
 
 const (
-	REENVIO_INTERVALO     = 23 * time.Second
-	TIMEOUT_MONITORAMENTO = 5 * time.Second
+	reenvioIntervalo     = 23 * time.Second
+	timeoutMonitoramento = 5 * time.Second
 )
 
 var (
@@ -49,7 +48,7 @@ type AtletasForm struct {
 
 var ErrWrongDate = errors.New("a data da prova não coincide com a data atual")
 
-func (reenvio *Reenvio) Upload(atletas []atleta.Atleta, voicelog narrator.Narrator, logger *zap.Logger) (err error) {
+func (reenvio *Reenvio) Upload(atletas []atleta.Atleta, logger *zap.Logger) (err error) {
 
 	startTime := time.Now()
 
@@ -121,10 +120,6 @@ func (reenvio *Reenvio) Upload(atletas []atleta.Atleta, voicelog narrator.Narrat
 			zap.Duration("tempo", time.Since(startTime)),
 		)
 
-		if errors.Is(err, ErrNetwork) {
-			voicelog.SayString("Erro de internet, verifique a conexão")
-		}
-
 		var ae *APIError
 
 		if errors.As(err, &ae) {
@@ -161,7 +156,6 @@ em caso de erro, redireciona para o Banco de Dados.
 */
 func (reenvio *Reenvio) TentarReenvio(
 	lotes <-chan []atleta.Atleta,
-	vl narrator.Narrator,
 	logger *zap.Logger) (err error) {
 
 	var (
@@ -178,10 +172,10 @@ func (reenvio *Reenvio) TentarReenvio(
 		define o tempo gasto esperando um tempo vir da lista.
 	*/
 	timeoutMon := time.After(
-		min(TIMEOUT_MONITORAMENTO, REENVIO_INTERVALO-1),
+		min(timeoutMonitoramento, reenvioIntervalo-1),
 	)
 
-	logger = logger.With(zap.Duration("timeout", TIMEOUT_MONITORAMENTO))
+	logger = logger.With(zap.Duration("timeout", timeoutMonitoramento))
 
 	/*
 		Se houver registros, receba.
@@ -195,11 +189,9 @@ func (reenvio *Reenvio) TentarReenvio(
 				return
 			}
 
-			uploadErr := reenvio.Upload(tempos, vl, logger)
+			uploadErr := reenvio.Upload(tempos, logger)
 
 			if errors.Is(uploadErr, ErrWrongDate) {
-				logger.Info("Queueing error message", zap.Error(err))
-				vl.SayString(ErrWrongDate.Error())
 				err = uploadErr
 				return
 			}

@@ -1,10 +1,10 @@
 package dbman
 
 const (
-	ATTACH = `ATTACH DATABASE '/var/monotempo-data/equipamento.db' AS equip_data;`
+	attach = `ATTACH DATABASE '/var/monotempo-data/equipamento.db' AS equip_data;`
 
 	// args: HORA_LARGADA
-	QUERY_LARGADA = `
+	queryLargada = `
 SELECT
 	athlete_num,
 	antenna,
@@ -23,7 +23,7 @@ GROUP BY
 	athlete_num;`
 
 	// args: HORA_CHEGADA
-	QUERY_CHEGADA = `
+	queryChegada = `
 SELECT
 	athlete_num,
 	antenna,
@@ -40,7 +40,7 @@ WHERE
 GROUP BY
 	athlete_num;`
 
-	QUERY_CHECKPOINT = `
+	queryCheckpoint = `
 SELECT
 	athlete_num,
 	antenna,

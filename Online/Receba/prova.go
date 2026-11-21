@@ -35,7 +35,7 @@ func (r *Receba) BuscaProva(idProva int, logger *zap.Logger) (prova Prova, err e
 func (r *Receba) AtualizaProva(prova Prova) (err error) {
 
 	r.db.Exec(
-		QUERY_ATUALIZA_PROVA,
+		queryAtualizaProva,
 
 		prova.ID,
 		prova.Data,

@@ -1,7 +1,7 @@
 package dbman
 
 const (
-	CREATE_TIME_DATABASE = `
+	createTimeDatabase = `
 PRAGMA synchronous = OFF;
 PRAGMA journal_mode = MEMORY;
 
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS athletes_times (
 
 END TRANSACTION;`
 
-	INSERT_TIME = `
+	insertTime = `
 INSERT INTO athletes_times
 	(antenna, athlete_num, staff, athlete_time) VALUES (?, ?, ?, ?)`
 )

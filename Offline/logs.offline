@@ -2,5 +2,4 @@
 
 TAIL=30
 
-docker compose -p monotempo-offline -f "$(dirname $0)/docker-compose.yml" logs --tail $TAIL -f $1
-
+docker compose -p monotempo-offline -f "$(dirname "$0")/docker-compose.yml" logs --tail $TAIL -f "$1"

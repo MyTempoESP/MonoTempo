@@ -16,8 +16,9 @@ type PCData struct {
 	Lte4Status          atomic.Bool
 	RfidStatus          atomic.Bool
 	UsbStatus           atomic.Bool
+	AutoUploadStatus    atomic.Bool
 	PermanentUniqueTags atomic.Int32
-	Antennas            [4]atomic.Int64
+	Antennas            [4]AntennaSignal
 
 	// constants
 	SysVersion  int
@@ -74,9 +75,10 @@ func epoch() int64 {
 func (pd *PCData) formatPCDataReport() string {
 	currentEpoch := epoch()
 
-	f := fmt.Sprintf("MYTMP;%d;%d;P;%d;%d;%d;%d;%d;%d;%d;%d",
+	f := fmt.Sprintf("MYTMP;%d;%d;P;%d;%d;%d;%d;%d;%d;%d;%d;%d",
 		pd.Tags.Load(), pd.UniqueTags.Load(), boolToInt(pd.CommStatus.Load()),
 		boolToInt(pd.RfidStatus.Load()), boolToInt(pd.UsbStatus.Load()),
+		boolToInt(pd.AutoUploadStatus.Load()),
 		pd.SysVersion, pd.SysCodeName, pd.Backups, pd.PermanentUniqueTags.Load(),
 		currentEpoch)
 
@@ -87,8 +89,8 @@ func (pd *PCData) formatAntennaReport() string {
 	currentEpoch := epoch()
 
 	f := fmt.Sprintf("MYTMP;%d;%d;A;%d;%d;%d;%d;%d",
-		pd.Tags.Load(), pd.UniqueTags.Load(), pd.Antennas[0].Load(),
-		pd.Antennas[1].Load(), pd.Antennas[2].Load(), pd.Antennas[3].Load(), currentEpoch)
+		pd.Tags.Load(), pd.UniqueTags.Load(), pd.Antennas[0].Level(),
+		pd.Antennas[1].Level(), pd.Antennas[2].Level(), pd.Antennas[3].Level(), currentEpoch)
 
 	return withChecksum(f)
 }
