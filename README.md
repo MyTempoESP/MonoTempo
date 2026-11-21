@@ -319,17 +319,88 @@ the whole event. The event-wide set is seeded at boot from a `TAGS` file that
 chancelor generates from existing databases. Unique sets are mutex-guarded hash
 sets with an atomic counter.
 
-**Protocol.** Line-based, NMEA-style: `$<payload>*<XOR checksum>`. Every 120 ms AA2
-sends one report and polls for a reply. A 400 ms ticker rotates which report is sent:
+#### Serial protocol
 
-| Type | Payload | Shown |
+USB serial at 115200 baud, 8N1. AA2 talks on a fixed 120 ms cadence, and the
+Arduino only speaks when a button is pressed.
+
+**Frames (PC → Arduino)** are newline-terminated, NMEA-style:
+
+```
+$MYTMP;<tags>;<unique>;<type>;<fields…>;<epoch>*<checksum>
+```
+
+- `checksum` is the XOR of every byte between `$` and `*`, as two hex digits. The
+  Arduino folds the received checksum into the same XOR and accepts the frame only if
+  the result is 0. Invalid frames are dropped silently.
+- `epoch` is Unix time **plus the local UTC offset**, so the Arduino can show local
+  time without timezone tables.
+- `tags` and `unique` lead every frame, so the counters update whatever the type.
+
+| Type | Fields after `<type>` | Example |
 | --- | --- | --- |
-| `T` | tags, unique, time | Tag counters |
-| `A` | tags, unique, 4 antenna levels, time | Signal bars per antenna (Impinj only) |
-| `P` | comm, reader, USB, auto-upload, version, serial, backups, … | System status |
-| `L` | uploads, databases, avg. time, errors, status | Last upload report (at boot) |
+| `T` tags | – | `$MYTMP;1520;342;T;1744846380*3D` |
+| `A` antennas | level of antennas 1–4 (0–3) | `$MYTMP;1520;342;A;3;2;0;0;1744846380*29` |
+| `P` PC data | API ok, reader ok, USB present, auto-upload on, version, serial no., backups, event-wide unique tags | `$MYTMP;1520;342;P;1;1;0;1;666;501;3;980;1744846380*38` |
+| `L` log | uploads, databases, avg. processing ms, errors, last status | sent 5 times at boot, from `logs/pc.log` |
 
-The rotation is `T T T A A P P`, so tag counts are on screen most of the time.
+A 400 ms ticker steps through `T T T A A P P`, so tag counts are on screen most of
+the time. Chafon units have no per-antenna data, so they send `P` in the `A` slots. The
+Arduino hides the antenna screen until it has seen an `A` frame, and the log screen
+until it has seen an `L` frame.
+
+**Actions (Arduino → PC)** are 10 bytes, `$MYTMP;<screen>`, with no checksum or
+newline. AA2 polls for them after each report, scans for `$` and maps the screen
+index to a command:
+
+| Screen | # | Action | Where it goes |
+| --- | --- | --- | --- |
+| Info | 0 | Reset session counters and signal windows | AA2 only |
+| Network config | 3 | Reconnect Wi-Fi | `sig-device-operation` → provost |
+| USB | 4 | Dump reads to USB (`stats`) | `sig-upload-data` → chancelor |
+| System | 6 | Update from git (`update`) | 〃 |
+| Auto-upload | 7 | Toggle (`auto_up`) | 〃 |
+| Upload | 8 | Upload times (`normal`) | 〃 |
+| Validate | 9 | Validate chips (`validate`) | 〃 |
+| Delete | 10 | Erase data (`reset`), asks for confirmation | 〃 |
+| Shutdown | 11 | Power off (`poweroff`), asks for confirmation | 〃 |
+
+Antennas (1), network status (2), date/time (5), battery (12) and last upload log (13)
+are display-only.
+
+**Lock handshake.** There is no explicit acknowledgement. The Arduino locks the
+screen after sending any action above screen 2 (except date/time), and unlocks only
+after **three** valid frames arrive. For long-running commands AA2 writes to the FIFO
+and then blocks forever, so the frames stop. The "waiting" screen therefore stays up
+for exactly as long as chancelor is working, and clears when chancelor brings the
+stack back up and a fresh AA2 starts reporting again. Requiring three frames prevents
+a stray frame that was already in flight from unlocking the screen early. Boot uses the same lock, so the
+screen reads "starting…" until AA2 is up.
+
+```mermaid
+sequenceDiagram
+    participant U as Operator
+    participant A as Arduino
+    participant G as AA2
+    participant C as chancelor
+    loop every 120 ms
+        G->>A: report frame (T, A or P)
+    end
+    U->>A: press START on Upload
+    A->>G: $MYTMP#59;8
+    A->>A: lock, show "waiting"
+    G->>C: "normal" to sig-upload-data
+    G->>G: block forever, frames stop
+    C->>C: compose down, Receba + Reenvio
+    C->>G: compose up, fresh AA2
+    G->>A: frame 1, 2, 3
+    A->>A: unlock, back to Info screen
+```
+
+Shutdown is the exception. The Arduino shows a 30 s countdown, turns off the
+backlight and puts the MCU to sleep, while chancelor powers the PC off.
+
+#### Signal, status and battery
 
 **Antenna signal.** Each antenna keeps a 250 ms sliding window of read timestamps
 and maps the read rate to signal bars:
@@ -348,12 +419,8 @@ flowchart LR
 indicator; an ICMP ping to the reader every 4 s sets the reader indicator; `/sys/block`
 is scanned for USB mass storage.
 
-**Actions.** The Arduino has 14 screens (info, antennas, network, USB, date/time,
-upload, validate, delete, shutdown, battery, …). Pressing *action* sends
-`$MYTMP;<screen>`; AA2 translates it to a command word and writes it to a FIFO for
-the host. Destructive actions ask for confirmation, and the screen locks until AA2
-replies. The Arduino also reads battery voltage through a 5:1 divider and beeps
-below 11 V.
+**Battery.** The Arduino reads battery voltage on A0 through a 5:1 divider every
+500 ms and beeps below 11 V.
 
 ### Chancelor and Provost
 
