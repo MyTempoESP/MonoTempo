@@ -208,6 +208,8 @@ re-stamped, which protects against units booting with a dead RTC.
 
 <p align="center">
   <img src="docs/img/chafon-reader.png" alt="Chafon integrated UHF reader" width="320">
+  <img src="docs/img/chafon-tower.jpg" alt="Tower portal with the Chafon reader mounted on top" height="320">
+  <br><sub>The Chafon reader, and the same panel mounted on a tower portal above the LCD, buttons and electronics.</sub>
 </p>
 
 The Chafon is an integrated reader/antenna panel controlled through a closed vendor
