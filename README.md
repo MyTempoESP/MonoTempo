@@ -29,6 +29,7 @@ upload start/finish times to the MyTempo platform.
   - [AA2 and the Arduino screen](#aa2-and-the-arduino-screen)
   - [Chancelor and Provost](#chancelor-and-provost)
   - [Receba, Reenvio and Validate](#receba-reenvio-and-validate)
+- [Archives](#archives)
 - [Repository layout](#repository-layout)
 - [History](#history)
 
@@ -312,7 +313,9 @@ goroutine per file and streams each file's results as one upload batch.
 ### AA2 and the Arduino screen
 
 AA2 consumes the tag stream to keep live counters, and talks to an Arduino Mega
-(20x4 I2C LCD, *next* and *action* buttons) over serial at 115200 baud.
+(20x4 I2C LCD, *next* and *action* buttons) over serial at 115200 baud. This is the
+second design; the first one, where the Arduino ran a Forth interpreter, is kept in
+[archives](#aa2-retro-the-forth-screen).
 
 **Counters.** Total reads, unique tags since the last reset, and unique tags for
 the whole event. The event-wide set is seeded at boot from a `TAGS` file that
@@ -483,6 +486,62 @@ keep retrying.
 **Validate** sends `SELECT DISTINCT athlete_num` to the chip-validation endpoint,
 so staff can confirm at kit pickup that every bib's chip reads.
 
+## Archives
+
+### AA2-retro: the Forth screen
+
+[archives/AA2-retro](archives/AA2-retro) is the first version of AA2 and the
+reference implementation for the screen. It is preserved unchanged from a February 2025 snapshot.
+It dates from the MySQL era, before the move to SQLite and the current serial protocol.
+
+Instead of firmware that knows what to draw, the Arduino ran
+[nanoFORTH](https://github.com/chochain/nanoFORTH), and the PC drove it as an
+interactive Forth REPL over serial through the
+[flick](https://github.com/MyTempoESP/flick) Go library.
+
+- **Self-modifying firmware.** The sketch ([sketch.ino](archives/AA2-retro/sketch.ino))
+  only ships a handful of C primitives: draw, print label, print number, IP, time,
+  line feed. It exposes them to Forth as `API` calls and boots by compiling the
+  vocabulary in [forth/](archives/AA2-retro/forth) into its dictionary. The
+  dictionary lives in RAM and accepts new `: word … ;` definitions on the same serial
+  line, so the PC can extend or redefine the screen language at runtime without
+  reflashing.
+- **Screens are programs.** Each frame the PC sends a short Forth phrase that builds
+  the screen in a virtual buffer and ends with `0 API` (draw). The tags screen, for example, is
+  `0 lbl 501 num 2 lbl 1 3 fnm …`. Because Forth cells are 16-bit, counts are sent
+  as value + magnitude (`1520` → `1 3`, shown as `1K`).
+- **Buttons in Forth.** A nanoFORTH timer interrupt (`TMI`) runs `chb`, which
+  debounces both buttons and latches press/release edges into variables. The PC
+  polls them with `bac @ .`, gets `-1` (Forth true) or `0`, and clears them with
+  `0 bac !`. Press timing lives on the PC: a short press switches screens, a 2.3 s hold
+  on the action button runs the screen's action, and a 1.3 s hold on the second button restarts.
+- **Computation on the device.** The info screen pushes the reader code as a hex
+  literal and builds the serial label on the Arduino with `LSH`/`RSH`/`OR` before
+  printing it as hex.
+
+```mermaid
+sequenceDiagram
+    participant G as AA2 (Go + flick)
+    participant F as nanoFORTH on Arduino
+    participant L as LCD
+    Note over F: boot: compile Button.fth + Screen.fth<br/>start TMI timer running chb
+    loop every frame
+        G->>F: 0 lbl 501 num 2 lbl 1 3 fnm … 0 API
+        F->>F: words fill virtual screen buffer
+        F->>L: draw()
+        G->>F: bac @ .
+        F-->>G: -1 (released) or 0
+        G->>F: 0 bac !
+    end
+    G->>F: #58; newword … #59; (redefine at runtime)
+```
+
+It was replaced by the checksummed protocol in [Serial protocol](#serial-protocol).
+The history doesn't record why, but the trade-off is visible in the code. Every
+button poll was a synchronous round trip through the interpreter, and nothing
+guarded against a corrupted line. The newer design moves drawing into the sketch
+and sends only checksummed data.
+
 ## Repository layout
 
 ```
@@ -501,6 +560,7 @@ so staff can confirm at kit pickup that every bib's chip reads.
 │   ├── Receba/                 # API download
 │   ├── Reenvio/                # time upload
 │   └── Validate/               # chip validation upload
+├── archives/AA2-retro/         # first AA2: Go + nanoFORTH Arduino screen
 ├── scripts/                    # NTP setup, DB inspection helpers
 └── docs/img/                   # README images
 ```
@@ -510,7 +570,7 @@ so staff can confirm at kit pickup that every bib's chip reads.
 | Period | Milestone |
 | --- | --- |
 | Jul–Oct 2024 | Container layout, MyReader, Chafon extension, Receba and a MySQL/PHP storage backend |
-| Jan 2025 | AA2 screen service |
+| Jan–Feb 2025 | AA2 screen service, first as a nanoFORTH REPL driven from Go ([AA2-retro](#aa2-retro-the-forth-screen)) |
 | Mar 2025 | Move from MySQL to sharded SQLite; Reenvio; chancelor reorganized |
 | Mar–Apr 2025 | Provost; Arduino rewrite with SafeString and on-screen actions |
 | Dec 2025 | Chip validation (Validate), configurable API URL and scheme |
