@@ -13,6 +13,11 @@ upload start/finish times to the MyTempo platform.
 > July 2024 to February 2026. It is kept for reference and is no longer maintained.
 
 <p align="center">
+  <img src="docs/img/portals.jpg" alt="Two MyTempo portals in the workshop next to a crate of RFID timing chips" width="420">
+  <br><sub>Two portals in the workshop, a tower unit and a box unit, next to a crate of timing chips.</sub>
+</p>
+
+<p align="center">
   <img src="docs/img/results-dashboard.png" alt="MyTempo results dashboard showing reads from RFIDMY501 and RFIDMY503" width="900">
   <br><sub>Reads from two 50x portals in the MyTempo dashboard after an event (event and staff names redacted).</sub>
 </p>
@@ -39,6 +44,11 @@ Each unit is a small Arch Linux PC wired to an RFID reader (Chafon or Impinj), a
 Arduino Mega with a 20x4 LCD and two buttons, and a 12 V battery. Software is split
 into an **Offline** half that runs for the whole event without needing internet,
 and an **Online** half that runs on demand to sync with the MyTempo API.
+
+<p align="center">
+  <img src="docs/img/inside-unit.jpg" alt="Inside a portal: mini PC, RFID reader and power supply on wooden shelves" width="420">
+  <br><sub>Inside a unit: the fanless mini PC, the RFID reader below it and the power supply at the bottom, with the button wiring above.</sub>
+</p>
 
 ```mermaid
 flowchart LR
@@ -316,6 +326,11 @@ AA2 consumes the tag stream to keep live counters, and talks to an Arduino Mega
 (20x4 I2C LCD, *next* and *action* buttons) over serial at 115200 baud. This design
 replaced three earlier iterations where the Arduino ran a Forth interpreter; they
 are kept in [archives](#archives).
+
+<p align="center">
+  <img src="docs/img/lcd-info-screen.jpg" alt="LCD showing PORTAL my701, Regist.: 2116, Atletas: 2, START:Reset tela" width="420">
+  <br><sub>The Info screen: total reads, unique athletes, and the START action that resets them.</sub>
+</p>
 
 **Counters.** Total reads, unique tags since the last reset, and unique tags for
 the whole event. The event-wide set is seeded at boot from a `TAGS` file that
