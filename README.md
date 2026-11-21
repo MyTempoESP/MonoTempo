@@ -313,9 +313,9 @@ goroutine per file and streams each file's results as one upload batch.
 ### AA2 and the Arduino screen
 
 AA2 consumes the tag stream to keep live counters, and talks to an Arduino Mega
-(20x4 I2C LCD, *next* and *action* buttons) over serial at 115200 baud. This is the
-third design. The two earlier ones, where the Arduino ran a Forth interpreter, are
-kept in [archives](#archives).
+(20x4 I2C LCD, *next* and *action* buttons) over serial at 115200 baud. This design
+replaced three earlier iterations where the Arduino ran a Forth interpreter; they
+are kept in [archives](#archives).
 
 **Counters.** Total reads, unique tags since the last reset, and unique tags for
 the whole event. The event-wide set is seeded at boot from a `TAGS` file that
@@ -488,13 +488,13 @@ so staff can confirm at kit pickup that every bib's chip reads.
 
 ## Archives
 
-The screen went through three designs before reaching the protocol described in
-[Serial protocol](#serial-protocol). The first two ran Forth on the Arduino and are
-kept here, unchanged, as February 2025 snapshots from the MySQL era.
+Before the protocol in [Serial protocol](#serial-protocol), the screen ran Forth
+on the Arduino through three iterations. They are kept here, unchanged, as
+February 2025 snapshots from the MySQL era.
 
 ```mermaid
 flowchart LR
-    A["AA2-retro<br/>PC sends Forth phrases<br/>to a nanoFORTH REPL"] --> B["AA2-main<br/>self-modifying Dis word,<br/>PC only calls S-1 … S-7"] --> C["Offline/AA2<br/>C++ sketch,<br/>checksummed data frames"]
+    A["AA2-retro<br/>PC sends Forth phrases<br/>to a nanoFORTH REPL"] --> B["AA2-main<br/>self-modifying Dis word<br/>(Forth side only)"] --> C["AA2-final<br/>Go calls S-1 … S-7,<br/>Arduino navigates itself"] --> D["Offline/AA2<br/>C++ sketch,<br/>checksummed data frames"]
 ```
 
 ### AA2-retro: the Forth screen
@@ -554,7 +554,7 @@ screen logic out of the Go strings and into a real Forth program on the device,
 [forth/aa2.fs](archives/AA2-main/forth/aa2.fs). The PC was meant to call one word
 per screen with raw values on the stack, for example `3 10 3 10 S-1` for the tags
 screen, instead of sending drawing phrases. The Go side in this snapshot still
-sends the AA2-retro phrases, so the new interface was only finished on the Forth side.
+sends the AA2-retro phrases; the switch happens in [AA2-final](#aa2-final-the-device-takes-over).
 
 **`Dis` rewrites its own body.** The display word `Dis` is compiled with holes in
 it: 16 bytes of `NOP` at the start for data, and two code buffers of placeholder call
@@ -601,9 +601,50 @@ To make this practical the snapshot also adds:
   MIT license; see [LICENSE.nanoFORTH](archives/AA2-main/Arduino/aa2/LICENSE.nanoFORTH).
 - **A date screen.** A `$DA7E` sentinel tells the `Ip` primitive to print `DD/MM/YYYY`.
 
-This design was abandoned in turn. In March–April 2025 the Arduino was rewritten
-in plain C++ with SafeString, and the link became the checksummed data protocol
-used today.
+### AA2-final: the device takes over
+
+[archives/AA2-final](archives/AA2-final) is the last Forth snapshot (24 February
+2025). It finishes AA2-main on both sides and moves screen navigation onto the Arduino.
+
+- **Go speaks the new interface.** Each screen update is one line, such as
+  `3 10 3 10 S-1`, wrapped in `0 TME` / `1 TME` to pause the timer interrupts so `Dis`
+  is never drawn half-patched. The flick client is vendored as [flick/](archives/AA2-final/flick).
+- **The Arduino navigates.** A second timer interrupt runs `do-button` every 10 ticks.
+  It debounces both buttons and, on the arrow button, advances through the 7 screens
+  itself. It reprograms `Dis` through a jump table of `PROG-S-n` words kept in a byte
+  buffer (`Button-Data`, accessed as `BAG`), and records the event in an action byte.
+  The PC polls that byte with `2 BA@ .` to learn which screen is up and which data
+  to send.
+- **Program once, update often.** `PROG-S-n` writes a screen's call slots once, on
+  screen change. `S-n` only rewrites the data section. The slots now hold direct
+  primitive calls (`05 B4` = push 5, `API`, i.e. `Label`) instead of `CALL`s to wrapper
+  words, which saves room in the 1 KB dictionary.
+- **Freezing by patching `EXIT`.** Modal screens (`S-A`: wait, error, confirm) write
+  `EXIT` (`$80`) over the first byte of `Dis`'s data, so every timer redraw returns at
+  once. `do-button` begins with `TAG` so it can store its own address and disable
+  input the same way. `restore` puts the `NOP` back and redraws.
+- **More VM changes.** `EMT`/`CR` were swapped for `===` and `PCK`, numbers always
+  print in hex (the PC parses hex), `pop` is guarded against underflow, and a ninth
+  C API slot adds a dedicated antenna-screen primitive. The license notice is in
+  [LICENSE.nanoFORTH](archives/AA2-final/Arduino/aa2/LICENSE.nanoFORTH).
+
+```mermaid
+sequenceDiagram
+    participant G as AA2 (Go)
+    participant A as nanoFORTH on Arduino
+    participant L as LCD
+    Note over A: arrow button pressed
+    A->>A: do-button: next screen, action = $6n
+    A->>A: PROG-S-n patches the call slots of Dis
+    G->>A: 2 BA@ .
+    A-->>G: 6n
+    G->>A: 0 TME, values + S-n, 1 TME
+    A->>A: S-n patches the data section of Dis
+    A->>L: Dis on timer: redraw
+```
+
+The Forth line ended there. In March–April 2025 the Arduino was rewritten in plain
+C++ with SafeString, and the link became the checksummed data protocol used today.
 
 ## Repository layout
 
@@ -625,7 +666,8 @@ used today.
 │   └── Validate/               # chip validation upload
 ├── archives/
 │   ├── AA2-retro/              # first AA2: Go driving a nanoFORTH REPL
-│   └── AA2-main/               # second AA2: self-modifying Forth screen
+│   ├── AA2-main/               # second AA2: self-modifying Forth screen
+│   └── AA2-final/              # last Forth AA2: on-device navigation
 ├── scripts/                    # NTP setup, DB inspection helpers
 └── docs/img/                   # README images
 ```
@@ -635,7 +677,7 @@ used today.
 | Period | Milestone |
 | --- | --- |
 | Jul–Oct 2024 | Container layout, MyReader, Chafon extension, Receba and a MySQL/PHP storage backend |
-| Jan–Feb 2025 | AA2 screen service on nanoFORTH: first as a REPL driven from Go ([AA2-retro](#aa2-retro-the-forth-screen)), then a self-modifying screen word ([AA2-main](#aa2-main-the-self-modifying-screen)) |
+| Jan–Feb 2025 | AA2 screen service on nanoFORTH: first as a REPL driven from Go ([AA2-retro](#aa2-retro-the-forth-screen)), then a self-modifying screen word ([AA2-main](#aa2-main-the-self-modifying-screen)), then on-device navigation ([AA2-final](#aa2-final-the-device-takes-over)) |
 | Mar 2025 | Move from MySQL to sharded SQLite; Reenvio; chancelor reorganized |
 | Mar–Apr 2025 | Provost; Arduino rewrite with SafeString and on-screen actions |
 | Dec 2025 | Chip validation (Validate), configurable API URL and scheme |
